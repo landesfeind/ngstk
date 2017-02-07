@@ -21,6 +21,10 @@ impl Read {
         self.segments.push( segment );
     }
 
+    pub fn segments(&self) -> Vec<ReadSegment> {
+        return self.segments.clone();
+    }
+
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
     pub fn sequence(&self) -> DNASequence {
@@ -35,7 +39,8 @@ impl Read {
     /// Returns `true` if the read is aligned to a genome. This is identical with having 
     /// a position assigned.
     pub fn is_aligned(&self) -> bool {
-        return self.position.is_some();
+        return self.position.is_some() 
+            && self.segments.iter().any( |rs| rs.is_aligned() );
     }
 
     /// Returns the read alignment position if the read `is_aligned()`.

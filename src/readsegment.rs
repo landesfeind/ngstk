@@ -38,6 +38,10 @@ impl ReadSegment {
     pub fn set_offset(&mut self, offset: u64) {
         self.offset = offset;
     }
+
+    pub fn is_aligned(&self) -> bool {
+        return self.is_aligned;
+    }
 }
 
 impl From<DNASequence> for ReadSegment {

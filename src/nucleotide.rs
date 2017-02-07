@@ -54,6 +54,30 @@ impl From<DNANucleotide> for char {
     }
 }
 
+impl From<u8> for DNANucleotide {
+    fn from(n: u8) -> DNANucleotide {
+        match n {
+            1 => DNANucleotide::A,
+            2 => DNANucleotide::C,
+            3 => DNANucleotide::G,
+            4 => DNANucleotide::T,
+            _ => DNANucleotide::N
+        }
+    }
+}
+
+impl From<DNANucleotide> for u8 {
+    fn from(n: DNANucleotide) -> u8 {
+        match n {
+            DNANucleotide::A => 1,
+            DNANucleotide::C => 2,
+            DNANucleotide::G => 3,
+            DNANucleotide::T => 4,
+            _ => 0
+        }
+    }
+}
+
 impl<'a> From<&'a DNANucleotide> for char {
     fn from(n: &DNANucleotide) -> char {
         match *n {
