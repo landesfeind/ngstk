@@ -28,7 +28,7 @@ impl Read {
     }
 
     /// Returns the length of the full read sequence
-    pub fn length(&self) -> usize {
+    pub fn length(&self) -> u64 {
         return self.sequence().length();
     }
 
@@ -51,7 +51,7 @@ impl Read {
         }
 
         let end = self.position.unwrap() 
-            + self.segments.iter().map(|s| s.offset() + s.length() as u64 ).max().unwrap();
+            + self.segments.iter().map(|s| s.offset() + s.length()).max().unwrap();
         return Some(end);
     }
      

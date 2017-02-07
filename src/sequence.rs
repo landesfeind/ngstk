@@ -13,8 +13,8 @@ impl DNASequence {
         return DNASequence { seq: Vec::new() };
     }
 
-    pub fn length(&self) -> usize {
-        self.seq.len()
+    pub fn length(&self) -> u64 {
+        self.seq.len() as u64
     }
 
     pub fn nucleotides(&self) -> Vec<DNANucleotide> {

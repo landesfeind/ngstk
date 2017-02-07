@@ -18,7 +18,7 @@ impl ReadSegment {
         return self.nucleotides.clone();
     }
 
-    pub fn length(&self) -> usize {
+    pub fn length(&self) -> u64 {
         return self.nucleotides.length();
     }
 
@@ -27,7 +27,7 @@ impl ReadSegment {
     }
 
     pub fn set_qualities(&mut self, quals: &Vec<i32>) {
-        assert_eq!(self.length(), quals.len());
+        assert_eq!(self.length(), quals.len() as u64);
         self.qualities = quals.clone();
     }
 
