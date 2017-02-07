@@ -16,12 +16,53 @@ pub struct Read {
 
 impl Read {
 
+    /// Appends a ReadSegment to this read.
     pub fn append_segment(&mut self, segment: ReadSegment) {
         self.segments.push( segment );
     }
 
+    /// Returns the full sequence of the read which is the
+    /// concatenation of all read segments.
     pub fn sequence(&self) -> DNASequence {
         return self.segments.iter().fold(DNASequence::empty(), |s,r| s + r.sequence() )
+    }
+
+    /// Returns the length of the full read sequence
+    pub fn length(&self) -> usize {
+        return self.sequence().length();
+    }
+
+    /// Returns `true` if the read is aligned to a genome. This is identical with having 
+    /// a position assigned.
+    pub fn is_aligned(&self) -> bool {
+        return self.position.is_some();
+    }
+
+    /// Returns the read alignment position if the read `is_aligned()`.
+    pub fn position(&self) -> Option<u64> {
+        return self.position;
+    }
+
+    /// Returns the maximum end position which is the alignment start 
+    /// plus the maximum of all read segment offsets plus lengths.
+    pub fn position_end(&self) -> Option<u64> {
+        if self.position.is_none() {
+            return None
+        }
+
+        let end = self.position.unwrap() 
+            + self.segments.iter().map(|s| s.offset() + s.length() as u64 ).max().unwrap();
+        return Some(end);
+    }
+     
+    /// Set the alignment position of the read.
+    pub fn set_position(&mut self, p: u64) {
+        self.position = Some(p);
+    }
+
+    /// Returns `true` if the read is aligned onto the forward strand.
+    pub fn is_forward(&self) -> Option<bool> {
+        return self.is_forward;
     }
 }
 
