@@ -1,6 +1,6 @@
 
-use readsegment::ReadSegment;
-use sequence::DNASequence;
+use data::readsegment::ReadSegment;
+use data::sequence::DNASequence;
 
 ///
 /// A read is a nucleotide sequence generated
@@ -92,9 +92,9 @@ impl From<DNASequence> for Read {
 #[cfg(test)]
 mod tests {
     
-    use sequence::DNASequence;
-    use readsegment::ReadSegment;
-    use read::Read;
+    use data::sequence::DNASequence;
+    use data::readsegment::ReadSegment;
+    use data::read::Read;
 
     #[test]
     fn test_1(){

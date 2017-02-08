@@ -1,10 +1,5 @@
 
-mod nucleotide;
-mod sequence;
-mod readsegment;
-mod read;
-mod pileup;
-mod chromosome;
+mod data;
 
 fn main() {
     println!("Hello, world!");

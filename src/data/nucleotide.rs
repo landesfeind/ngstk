@@ -94,7 +94,7 @@ impl<'a> From<&'a DNANucleotide> for char {
 #[cfg(test)]
 mod tests {
 
-    use nucleotide::DNANucleotide;
+    use data::nucleotide::DNANucleotide;
     
     #[test]
     fn test_a() {

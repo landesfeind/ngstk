@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use nucleotide::DNANucleotide;
-use readsegment::ReadSegment;
-use read::Read;
+use data::nucleotide::DNANucleotide;
+use data::readsegment::ReadSegment;
+use data::read::Read;
 
 #[derive(Clone,Debug)]
 pub struct PositionPileup (u64, u64, u64, u64, u64);

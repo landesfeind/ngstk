@@ -1,6 +1,6 @@
 use std::fmt::{Display,Formatter,Result};
 use std::ops::Add;
-use nucleotide::DNANucleotide;
+use data::nucleotide::DNANucleotide;
 
 #[derive(Clone,Debug)]
 pub struct DNASequence {
@@ -59,8 +59,8 @@ impl Display for DNASequence {
 #[cfg(test)]
 mod tests {
     
-    use nucleotide::DNANucleotide;
-    use sequence::DNASequence;
+    use data::nucleotide::DNANucleotide;
+    use data::sequence::DNASequence;
 
     #[test]
     fn test_from_vec(){

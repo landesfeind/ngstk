@@ -1,4 +1,4 @@
-use sequence::DNASequence;
+use data::sequence::DNASequence;
 
 /// A segment is a DNASequence with 
 #[derive(Clone,Debug)]
