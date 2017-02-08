@@ -1,5 +1,5 @@
 [package]
-name = "rgtk"
+name = "ngstk"
 version = "0.1.0"
 authors = ["Manuel Landesfeind <manuel@landesfeind.de>"]
 
