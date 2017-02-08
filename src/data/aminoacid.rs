@@ -82,7 +82,7 @@ impl From<Aminoacid> for char {
                 Aminoacid::N    => 'N',
                 Aminoacid::D    => 'D',
                 Aminoacid::C    => 'C',
-                Aminoacid::E    => 'E',
+                Aminoacid::E    => 'G',
                 Aminoacid::Q    => 'Q',
                 Aminoacid::G    => 'G',
                 Aminoacid::H    => 'H',

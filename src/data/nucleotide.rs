@@ -77,7 +77,6 @@ impl From<DNANucleotide> for u8 {
     }
 }
 
-
 impl<'a> From<&'a DNANucleotide> for u8 {
     fn from(n: &'a DNANucleotide) -> u8 {
         match n.clone() {
@@ -101,7 +100,6 @@ impl<'a> From<&'a DNANucleotide> for char {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
