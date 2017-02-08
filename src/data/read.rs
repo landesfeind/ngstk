@@ -28,7 +28,7 @@ impl Read {
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
     pub fn sequence(&self) -> DNASequence {
-        return self.segments.iter().fold(DNASequence::empty(), |s,r| s + r.sequence() )
+        return self.segments.iter().fold(DNASequence::new_empty(), |s,r| s + r.sequence() )
     }
 
     /// Returns the length of the full read sequence

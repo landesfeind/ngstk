@@ -7,21 +7,46 @@ pub struct DNASequence {
     seq: Vec<DNANucleotide>
 }
 
+/// A DNA sequence is a consecutive sequence of DNA nucleotides without further information.
 impl DNASequence {
 
-    pub fn empty() -> Self {
+    /// Returns a new DNA sequences that does not comprise any nucleotide
+    pub fn new_empty() -> Self {
         return DNASequence { seq: Vec::new() };
     }
 
+    /// Returns the length of the DNA sequence which is the number of nucleotides in it.
     pub fn length(&self) -> u64 {
         self.seq.len() as u64
     }
 
-    pub fn nucleotides(&self) -> Vec<DNANucleotide> {
-        return self.seq.clone();
+    /// 
+    pub fn is_empty(&self) -> bool {
+        self.length() > 0
+    }
+
+    pub fn nucleotides(&self) -> &Vec<DNANucleotide> {
+        &self.seq
     }
 }
 
+/// A trait that is implemented by all structs that comprise a DNA sequence
+pub trait HasDnaSequence {
+
+    fn dna_sequence(&self) -> &DNASequence;
+
+    fn dna_nucleotides(&self) -> &Vec<DNANucleotide> {
+        self.dna_sequence().nucleotides()
+    }
+
+    fn dna_length(&self) -> u64 {
+        self.dna_sequence().length()
+    }
+}
+
+impl HasDnaSequence for DNASequence {
+    fn dna_sequence(&self) -> &DNASequence { self }
+}
 
 impl From<Vec<DNANucleotide>> for DNASequence {
 
@@ -37,13 +62,12 @@ impl<'a> From<&'a str> for DNASequence {
     }
 }
 
-
 impl Add for DNASequence {
     type Output = DNASequence;
 
     fn add(self, other: DNASequence) -> DNASequence {
-        let mut nucleotides = self.nucleotides();
-        nucleotides.append( &mut other.nucleotides() );
+        let mut nucleotides = self.nucleotides().clone();
+        nucleotides.append( &mut other.nucleotides().clone() );
         return DNASequence::from( nucleotides ); 
     }
 }

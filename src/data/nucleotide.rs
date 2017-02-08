@@ -25,7 +25,6 @@ impl Ord for DNANucleotide {
     }
 }
 
-
 impl From<char> for DNANucleotide {
     fn from(c: char) -> DNANucleotide {
         match c {
