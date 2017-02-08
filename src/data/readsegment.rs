@@ -1,4 +1,4 @@
-use data::sequence::DNASequence;
+use data::dnasequence::DNASequence;
 
 /// A segment is a DNASequence with 
 #[derive(Clone,Debug)]
@@ -8,7 +8,7 @@ pub struct ReadSegment {
     /// The corresponding 
     qualities: Vec<i32>,
     /// The offset with respect to the Read position
-    offset: u64,
+    offset: usize,
     /// Set to true if the read segment is mapped to the genome
     is_aligned: bool
 }
@@ -18,7 +18,7 @@ impl ReadSegment {
         return self.nucleotides.clone();
     }
 
-    pub fn length(&self) -> u64 {
+    pub fn length(&self) -> usize {
         return self.nucleotides.length();
     }
 
@@ -27,15 +27,15 @@ impl ReadSegment {
     }
 
     pub fn set_qualities(&mut self, quals: &Vec<i32>) {
-        assert_eq!(self.length(), quals.len() as u64);
+        assert_eq!(self.length(), quals.len() as usize);
         self.qualities = quals.clone();
     }
 
-    pub fn offset(&self) -> u64 {
+    pub fn offset(&self) -> usize {
         return self.offset;
     }
 
-    pub fn set_offset(&mut self, offset: u64) {
+    pub fn set_offset(&mut self, offset: usize) {
         self.offset = offset;
     }
 

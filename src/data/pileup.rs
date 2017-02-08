@@ -8,35 +8,35 @@ use data::read::Read;
 pub struct Pileup {
     /// Stores the data mapping a position toward
     /// a tuple of nucleotide counts. The keys are 
-    positions: HashMap<u64, u64>
+    positions: HashMap<usize, usize>
 }
 
 impl Pileup {
-    fn get_key(&self, p: u64, n: &DNANucleotide) -> u64 {
-        p * 10 + (u8::from(n)) as u64
+    fn get_key(&self, p: usize, n: &DNANucleotide) -> usize {
+        p * 10 + (u8::from(n)) as usize
     }
 
     /// Internal method to add a nucleotide to the pileup at a specific position
-    fn add_pileup(&mut self, p: u64, n: &DNANucleotide){
+    fn add_pileup(&mut self, p: usize, n: &DNANucleotide){
         let pn = self.get_key(p, n);
 
-        let counts : u64 = match self.positions.get(&pn) {
+        let counts : usize = match self.positions.get(&pn) {
             Some(c) => *c,
             None => 0
         };
-        self.positions.insert(pn, counts + 1u64);
+        self.positions.insert(pn, counts + 1usize);
     }
 
     /// Returns the nucleotide count of a specific nucleotide `n` at position `p`.
-    pub fn nucleotide_count(&self, p: u64, n: &DNANucleotide) -> u64 {
+    pub fn nucleotide_count(&self, p: usize, n: &DNANucleotide) -> usize {
         match self.positions.get(&self.get_key(p, n)) {
             Some(c) => *c,
             None => 0
         }
     }
 
-    pub fn nucleotide_counts(&self, p: u64, nucleotides: &Vec<DNANucleotide>) -> Vec<u64> {
-        nucleotides.iter().map(|n| self.nucleotide_count(p, n)).collect::<Vec<u64>>()
+    pub fn nucleotide_counts(&self, p: usize, nucleotides: &Vec<DNANucleotide>) -> Vec<usize> {
+        nucleotides.iter().map(|n| self.nucleotide_count(p, n)).collect::<Vec<usize>>()
     }
 
     /// Add a read to the pileup

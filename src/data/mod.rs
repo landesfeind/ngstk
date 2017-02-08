@@ -1,6 +1,6 @@
 mod nucleotide;
-mod sequence;
+mod dnasequence;
+mod genomicregion;
 mod readsegment;
 mod read;
 mod pileup;
-mod genomicsequence;

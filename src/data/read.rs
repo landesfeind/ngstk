@@ -1,6 +1,6 @@
 
 use data::readsegment::ReadSegment;
-use data::sequence::DNASequence;
+use data::dnasequence::DNASequence;
 
 ///
 /// A read is a nucleotide sequence generated
@@ -9,7 +9,7 @@ use data::sequence::DNASequence;
 #[derive(Clone,Debug)]
 pub struct Read {
     segments: Vec<ReadSegment>,
-    position: Option<u64>,
+    position: Option<usize>,
     mapping_quality: Option<i32>,
     is_forward: Option<bool>
 }
@@ -32,7 +32,7 @@ impl Read {
     }
 
     /// Returns the length of the full read sequence
-    pub fn length(&self) -> u64 {
+    pub fn length(&self) -> usize {
         return self.sequence().length();
     }
 
@@ -44,13 +44,13 @@ impl Read {
     }
 
     /// Returns the read alignment position if the read `is_aligned()`.
-    pub fn position(&self) -> Option<u64> {
+    pub fn position(&self) -> Option<usize> {
         return self.position;
     }
 
     /// Returns the maximum end position which is the alignment start 
     /// plus the maximum of all read segment offsets plus lengths.
-    pub fn position_end(&self) -> Option<u64> {
+    pub fn position_end(&self) -> Option<usize> {
         if self.position.is_none() {
             return None
         }
@@ -61,7 +61,7 @@ impl Read {
     }
      
     /// Set the alignment position of the read.
-    pub fn set_position(&mut self, p: u64) {
+    pub fn set_position(&mut self, p: usize) {
         self.position = Some(p);
     }
 
@@ -92,7 +92,7 @@ impl From<DNASequence> for Read {
 #[cfg(test)]
 mod tests {
     
-    use data::sequence::DNASequence;
+    use data::dnasequence::DNASequence;
     use data::readsegment::ReadSegment;
     use data::read::Read;
 
