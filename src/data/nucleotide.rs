@@ -77,6 +77,19 @@ impl From<DNANucleotide> for u8 {
     }
 }
 
+
+impl<'a> From<&'a DNANucleotide> for u8 {
+    fn from(n: &'a DNANucleotide) -> u8 {
+        match n.clone() {
+            DNANucleotide::A => 1,
+            DNANucleotide::C => 2,
+            DNANucleotide::G => 3,
+            DNANucleotide::T => 4,
+            _ => 0
+        }
+    }
+}
+
 impl<'a> From<&'a DNANucleotide> for char {
     fn from(n: &DNANucleotide) -> char {
         match *n {
