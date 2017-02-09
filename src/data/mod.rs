@@ -1,9 +1,12 @@
-mod nucleotide;
-mod dnasequence;
-mod genomicregion;
-mod readsegment;
-mod read;
-mod pileup;
-
+mod dnanucleotide;
+mod rnanucleotide;
 mod aminoacid;
-mod peptide;
+mod sequence;
+
+//mod dnasequence;
+//mod genomicregion;
+//mod readsegment;
+//mod read;
+//mod pileup;
+//
+//mod peptide;

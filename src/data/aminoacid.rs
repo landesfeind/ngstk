@@ -4,27 +4,6 @@ use std::cmp::{Ord,Ordering};
 pub enum Aminoacid  { A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V, Unknown, Stop }
 pub enum Aminoacid3 { Ala, Arg, Asn, Asp, Cys, Glu, Gln, Gly, His, Ile, Leu, Lys, Met, Phe, Pro, Ser, Thr, Trp, Tyr, Val, Unknown, Stop }
 
-//Ala 	A
-//Arg 	R
-//Asn 	N
-//Asp 	D
-//Cys 	C
-//Glu   E
-//Gln 	Q
-//Gly 	G
-//His 	H
-//Ile 	I
-//Leu 	L
-//Lys 	K
-//Met 	M
-//Phe 	F
-//Pro 	P
-//Ser 	S
-//Thr 	T
-//Trp 	W
-//Tyr 	Y
-//Val 	V
-
 impl PartialEq for Aminoacid {
     fn eq(&self, other: &Self) -> bool {
         return (char::from(self)) == (char::from(other));

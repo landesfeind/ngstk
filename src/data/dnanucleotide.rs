@@ -104,7 +104,7 @@ impl<'a> From<&'a DNANucleotide> for char {
 #[cfg(test)]
 mod tests {
 
-    use data::nucleotide::DNANucleotide;
+    use data::dnanucleotide::DNANucleotide;
     
     #[test]
     fn test_a() {
@@ -149,7 +149,4 @@ mod tests {
         assert_eq!( DNANucleotide::from('H'), DNANucleotide::N);
     }
 }
-
-
-
 
