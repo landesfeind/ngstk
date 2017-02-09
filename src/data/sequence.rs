@@ -7,15 +7,16 @@ use data::dnanucleotide::DNANucleotide;
 use data::rnanucleotide::RNANucleotide;
 use data::aminoacid::Aminoacid;
 
+/// An element that can be part of a sequence.
 pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + From<char> + Into<char> + Sized {}
-
 impl SequenceElement for DNANucleotide {}
 impl SequenceElement for RNANucleotide {}
 impl SequenceElement for Aminoacid {}
 
-/// A DNA sequence is a consecutive sequence of DNA nucleotides without further information.
+/// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
 pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + From<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug {
 
+    /// Constructs a new empty sequence
     fn new_empty() -> Self;
 
     /// Returns the length of the DNA sequence which is the number of nucleotides in it.
@@ -80,7 +81,6 @@ impl<T: SequenceElement> Sequence<T> for Vec<T> {
     fn new_empty() -> Self {
         Vec::new()
     }
-
     fn length(&self) -> usize {
         self.len()
     }

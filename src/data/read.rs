@@ -29,8 +29,8 @@ impl Read {
 
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
-    pub fn sequence(&self) -> DNASequence {
-        self.segments.iter().fold(Vec::new(), |a,s|{ a.append(&mut s.sequence().clone()); a })
+    pub fn sequence(&self) -> Vec<DNANucleotide> {
+        self.segments.iter().fold(Vec::new(), |mut a,s|{ a.append(&mut s.sequence().clone()); a })
     }
 
     /// Returns the length of the full read sequence
@@ -94,23 +94,29 @@ impl From<Vec<DNANucleotide>> for Read {
 #[cfg(test)]
 mod tests {
     
+    use data::dnanucleotide::DNANucleotide;
     use data::sequence::DnaSequence;
     use data::readsegment::ReadSegment;
     use data::read::Read;
 
     #[test]
     fn test_1(){
-        let seq : Vec<DNANucleotide> = DnaSequence::from("acgt")
-        let read = Read::from( ReadSegment::from(  ) );
-        assert_eq!(read.sequence().to_string(), "ACGT");
-        assert_eq!(read.sequence().length(), 4);
+        let seq : Vec<DNANucleotide> = DnaSequence::from("acgt");
+        let read = Read::from( ReadSegment::from( seq.clone() ) );
+        assert_eq!(read.sequence(), seq);
+        assert_eq!(read.sequence().len(), 4);
     }
 
     #[test]
     fn test_2(){
-        let mut read = Read::from( ReadSegment::from( DnaSequence::from("acgt") ) );
-        read.append_segment( ReadSegment::from( DnaSequence::from("tgca") ) );
-        assert_eq!(read.sequence().to_string(), "ACGTTGCA");
-        assert_eq!(read.sequence().length(), 8);
+        let seq1 : Vec<DNANucleotide> = DnaSequence::from("acgt");
+        let seq2 : Vec<DNANucleotide> = DnaSequence::from("tgca");
+        let mut seq3 = seq1.clone();
+        seq3.append( &mut seq2.clone() );
+
+        let mut read = Read::from( ReadSegment::from( seq1.clone() ) );
+        read.append_segment( ReadSegment::from( seq2.clone() ) );
+        assert_eq!(read.sequence().len(), 8);
+        assert_eq!(read.sequence(), seq3);
     }
 }
