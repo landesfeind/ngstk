@@ -1,9 +1,10 @@
 use std::fmt::{Display,Formatter,Result,Debug};
 use std::ops::Add;
+use std::ops::Index;
 use std::cmp::{Ord,Ordering};
 use std::iter::FromIterator;
 
-pub trait SequenceElement:  Ord + Eq + Clone + Debug + From<char> + Into<char> {}
+pub trait SequenceElement:  Ord + Eq + Clone + Debug + From<char> + Into<char> + Sized {}
 
 
 #[derive(Clone,Debug)]
@@ -48,6 +49,14 @@ impl<T: SequenceElement> Sequence<T> {
 
     pub fn to_string(&self) -> String {
         self.seq.iter().map(|n| n.clone().into() ).collect()
+    }
+}
+
+impl<T:SequenceElement> Index<usize> for Sequence<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &T {
+        &self.seq[index]
     }
 }
 
