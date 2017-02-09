@@ -1,10 +1,11 @@
-use data::dnasequence::DNASequence;
+use data::dnanucleotide::DNANucleotide;
+use data::sequence::DnaSequence;
 
 /// A segment is a DNASequence with 
 #[derive(Clone,Debug)]
 pub struct ReadSegment {
     /// The nucleotides of this read segment
-    nucleotides: DNASequence, 
+    nucleotides: Vec<DNANucleotide>, 
     /// The corresponding 
     qualities: Vec<i32>,
     /// The offset with respect to the Read position
@@ -14,16 +15,17 @@ pub struct ReadSegment {
 }
 
 impl ReadSegment {
-    pub fn sequence(&self) -> DNASequence {
-        return self.nucleotides.clone();
+
+    pub fn sequence(&self) -> &Vec<DNANucleotide> {
+        &self.nucleotides
     }
 
     pub fn length(&self) -> usize {
-        return self.nucleotides.length();
+        self.nucleotides.len()
     }
 
-    pub fn qualities(&self) -> Vec<i32> {
-        return self.qualities.clone();
+    pub fn qualities(&self) -> &Vec<i32> {
+        &self.qualities
     }
 
     pub fn set_qualities(&mut self, quals: &Vec<i32>) {
@@ -32,21 +34,21 @@ impl ReadSegment {
     }
 
     pub fn offset(&self) -> usize {
-        return self.offset;
+        self.offset
     }
 
     pub fn set_offset(&mut self, offset: usize) {
-        self.offset = offset;
+        self.offset = offset
     }
 
     pub fn is_aligned(&self) -> bool {
-        return self.is_aligned;
+        self.is_aligned
     }
 }
 
-impl From<DNASequence> for ReadSegment {
-    fn from(seq: DNASequence) -> ReadSegment {
-        let qs : Vec<i32> = seq.nucleotides().iter().map(|n| 0 as i32).collect();
+impl From<Vec<DNANucleotide>> for ReadSegment {
+    fn from(seq: Vec<DNANucleotide>) -> ReadSegment {
+        let qs : Vec<i32> = seq.iter().map(|n| 0 as i32).collect();
         return ReadSegment { 
             nucleotides: seq,
             qualities: qs,

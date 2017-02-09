@@ -1,6 +1,8 @@
 
 use data::readsegment::ReadSegment;
-use data::dnasequence::DNASequence;
+use data::sequence::Sequence;
+use data::sequence::DnaSequence;
+use data::dnanucleotide::DNANucleotide;
 
 ///
 /// A read is a nucleotide sequence generated
@@ -21,19 +23,19 @@ impl Read {
         self.segments.push( segment );
     }
 
-    pub fn segments(&self) -> Vec<ReadSegment> {
-        return self.segments.clone();
+    pub fn segments(&self) -> &Vec<ReadSegment> {
+        &self.segments
     }
 
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
     pub fn sequence(&self) -> DNASequence {
-        return self.segments.iter().fold(DNASequence::new_empty(), |s,r| s + r.sequence() )
+        self.segments.iter().fold(Vec::new(), |a,s|{ a.append(&mut s.sequence().clone()); a })
     }
 
     /// Returns the length of the full read sequence
     pub fn length(&self) -> usize {
-        return self.sequence().length();
+        self.segments.iter().fold(0, |s,r| s + r.length() )
     }
 
     /// Returns `true` if the read is aligned to a genome. This is identical with having 
@@ -83,8 +85,8 @@ impl From<ReadSegment> for Read {
     }
 }
 
-impl From<DNASequence> for Read {
-    fn from(seq: DNASequence) -> Self {
+impl From<Vec<DNANucleotide>> for Read {
+    fn from(seq: Vec<DNANucleotide>) -> Self {
         return Read::from( ReadSegment::from(seq) );
     }
 }
@@ -92,21 +94,22 @@ impl From<DNASequence> for Read {
 #[cfg(test)]
 mod tests {
     
-    use data::dnasequence::DNASequence;
+    use data::sequence::DnaSequence;
     use data::readsegment::ReadSegment;
     use data::read::Read;
 
     #[test]
     fn test_1(){
-        let read = Read::from( ReadSegment::from( DNASequence::from("acgt") ) );
+        let seq : Vec<DNANucleotide> = DnaSequence::from("acgt")
+        let read = Read::from( ReadSegment::from(  ) );
         assert_eq!(read.sequence().to_string(), "ACGT");
         assert_eq!(read.sequence().length(), 4);
     }
 
     #[test]
     fn test_2(){
-        let mut read = Read::from( ReadSegment::from( DNASequence::from("acgt") ) );
-        read.append_segment( ReadSegment::from( DNASequence::from("tgca") ) );
+        let mut read = Read::from( ReadSegment::from( DnaSequence::from("acgt") ) );
+        read.append_segment( ReadSegment::from( DnaSequence::from("tgca") ) );
         assert_eq!(read.sequence().to_string(), "ACGTTGCA");
         assert_eq!(read.sequence().length(), 8);
     }
