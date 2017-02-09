@@ -1,150 +1,159 @@
-use std::fmt::{Display,Formatter,Result,Debug};
+use std::fmt;
 use std::ops::Add;
 use std::ops::Index;
 use std::cmp::{Ord,Ordering};
-use std::iter::FromIterator;
 
-pub trait SequenceElement:  Ord + Eq + Clone + Debug + From<char> + Into<char> + Sized {}
+use data::dnanucleotide::DNANucleotide;
+use data::rnanucleotide::RNANucleotide;
+use data::aminoacid::Aminoacid;
 
+pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + From<char> + Into<char> + Sized {}
 
-#[derive(Clone,Debug)]
-pub struct Sequence<T: SequenceElement> {
-    seq: Vec<T>
-}
+impl SequenceElement for DNANucleotide {}
+impl SequenceElement for RNANucleotide {}
+impl SequenceElement for Aminoacid {}
 
 /// A DNA sequence is a consecutive sequence of DNA nucleotides without further information.
-impl<T: SequenceElement> Sequence<T> {
+pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + From<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug {
 
-    /// Returns a new DNA sequences that does not comprise any nucleotide
-    pub fn new_empty() -> Self {
-        return Sequence { seq: Vec::new() };
-    }
+    fn new_empty() -> Self;
 
     /// Returns the length of the DNA sequence which is the number of nucleotides in it.
-    pub fn length(&self) -> usize {
-        self.seq.len()
-    }
+    fn length(&self) -> usize;
 
     /// Returns `true` if the sequence does not contain a single nucleotide.
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.length() == 0
     }
 
     /// Returns the nucleotides of the sequence as a vector
-    pub fn elements(&self) -> &Vec<T> {
-        &self.seq
-    }
+    fn as_vec(&self) -> &Vec<T>;
 
-    pub fn element(&self, idx: usize) -> Option<&T> {
-        self.seq.get(idx)
-    }
-
-    pub fn subsequence(&self, from: usize, length: usize) -> Option<Self> {
-        if from + length >= self.length() {
+    /// Returns a slice of the sequence or `None` if the coordinates
+    /// are out of range.
+    fn subsequence(&self, from: usize, length: usize) -> Option<Self> {
+        if from + length > self.length() {
             None
         } else {
-            Some( Sequence { seq: self.seq.iter().skip(from).take(length).map(|n| n.clone() ).collect() } )
+            let elems : Vec<T> = self.as_vec().iter().skip(from).take(length).map(|n| n.clone() ).collect();
+            Some( elems.into() )
         }
     }
 
-    pub fn to_string(&self) -> String {
-        self.seq.iter().map(|n| n.clone().into() ).collect()
+
+    fn from_string(s: &str) -> Self {
+        let elems : Vec<T> = s.chars().map(|c| T::from(c) ).collect();
+        elems.into()
     }
-}
 
-impl<T:SequenceElement> Index<usize> for Sequence<T> {
-    type Output = T;
-
-    fn index(&self, index: usize) -> &T {
-        &self.seq[index]
-    }
-}
-
-impl<T: SequenceElement> PartialEq for Sequence<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
-    }
-}
-
-impl<T: SequenceElement> Eq for Sequence<T> {
-}
-
-impl<T: SequenceElement> From<Vec<T>> for Sequence<T> {
-
-    fn from(s: Vec<T>) -> Sequence<T> {
-        Sequence { seq: s }
-    }
-}
-
-impl<'a, T: SequenceElement> From<&'a Vec<T>> for Sequence<T> {
-
-    fn from(s: &'a Vec<T>) -> Sequence<T> {
-        Sequence::from( s.clone() )
-    }
-}
-
-impl<T: SequenceElement> Add for Sequence<T> {
-    type Output = Sequence<T>;
-
-    fn add(self, other: Sequence<T>) -> Sequence<T> {
-        let mut elems = self.elements().clone();
-        elems.append( &mut other.elements().clone() );
-        return Sequence::from( elems ); 
-    }
-}
-
-impl<T: SequenceElement> PartialOrd for Sequence<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.elements().partial_cmp( other.elements() )
-    }
-}
-
-impl<T: SequenceElement> Ord for Sequence<T> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-impl<T: SequenceElement> Display for Sequence<T> {
-
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.to_string())
+    fn to_string(&self) -> String {
+        self.as_vec().iter().map(|n| n.clone().into() ).collect()
     }
 }
 
 
-//#[cfg(test)]
-//mod tests {
-//    
-//    use data::nucleotide::DNANucleotide;
-//    use data::dnasequence::DNASequence;
-//
-//    #[test]
-//    fn test_from_vec(){
-//        let seq_vec = vec![ DNANucleotide::A, DNANucleotide::C, DNANucleotide::G, DNANucleotide::T ];
-//        let seq = DNASequence::from(seq_vec);
-//
-//        assert_eq!(seq.to_string(), "ACGT");
-//        assert_eq!(seq.length(), 4);
-//    }
-//
-//    #[test]
-//    fn test_from_string(){
-//        let seq = DNASequence::from("acgt");
-//        assert_eq!(seq.to_string(), "ACGT");
-//        assert_eq!(seq.length(), 4);
-//    }
-//
-//    #[test]
-//    fn test_subsequence(){
-//        let seq = DNASequence::from("acgt");
-//
-//        assert_eq!(seq.subsequence(0,0), DNASequence::new_empty());
-//        assert_eq!(seq.subsequence(0,1), DNASequence::from("A"));
-//        assert_eq!(seq.subsequence(1,1), DNASequence::from("C"));
-//        assert_eq!(seq.subsequence(1,2), DNASequence::from("CG"));
-//        assert_eq!(seq.subsequence(3,1), DNASequence::from("T"));
-//        assert_eq!(seq.subsequence(4,1), DNASequence::new_empty());
-//    
-//    }
-//}
+pub trait DnaSequence: Sequence<DNANucleotide> {
+    fn from(s: &str) -> Self {
+        let elems : Vec<DNANucleotide> = s.chars().map(|c| DNANucleotide::from(c) ).collect();
+        elems.into()
+    }
+
+}
+
+pub trait RnaSequence: Sequence<RNANucleotide> {
+    fn from(s: &str) -> Self {
+        let elems : Vec<RNANucleotide> = s.chars().map(|c| RNANucleotide::from(c) ).collect();
+        elems.into()
+    }
+}
+
+pub trait Peptide: Sequence<Aminoacid> {
+
+    fn from(s: &str) -> Self {
+        let elems : Vec<Aminoacid> = s.chars().map(|c| Aminoacid::from(c) ).collect();
+        elems.into()
+    }
+
+}
+
+impl<T: SequenceElement> Sequence<T> for Vec<T> {
+    fn new_empty() -> Self {
+        Vec::new()
+    }
+
+    fn length(&self) -> usize {
+        self.len()
+    }
+    fn as_vec(&self) -> &Vec<T> {
+        &self
+    }
+}
+
+impl DnaSequence for Vec<DNANucleotide> {}
+impl RnaSequence for Vec<RNANucleotide> {}
+impl Peptide for Vec<Aminoacid> {}
+
+#[cfg(test)]
+mod tests {
+    
+    use data::dnanucleotide::DNANucleotide;
+    use data::rnanucleotide::RNANucleotide;
+    use data::aminoacid::Aminoacid;
+    use data::sequence::*;
+
+    #[test]
+    fn test_from_tring(){
+        let dna : Vec<DNANucleotide> = DnaSequence::from("ACGT");
+        let rna : Vec<RNANucleotide> = RnaSequence::from("ACGU");
+        let peptide : Vec<Aminoacid> = Peptide::from("MAASGTSTTS");
+    }
+
+    #[test]
+    fn test_to_tring(){
+        let dna : Vec<DNANucleotide> = DnaSequence::from("ACGT");
+        assert_eq!( dna.to_string(), "ACGT" );
+        let rna : Vec<RNANucleotide> = RnaSequence::from("ACGU");
+        assert_eq!( rna.to_string(), "ACGU" );
+        let peptide : Vec<Aminoacid> = Peptide::from("MAASGTSTTS");
+        assert_eq!( peptide.to_string(), "MAASGTSTTS" );
+    }
+    #[test]
+    fn test_from_vec(){
+        let seq = vec![ DNANucleotide::A, DNANucleotide::C, DNANucleotide::G, DNANucleotide::T ];
+
+        assert_eq!(seq.to_string(), "ACGT");
+        assert_eq!(seq.length(), 4);
+        assert_eq!(seq.as_vec().clone(), seq);
+    }
+
+    #[test]
+    fn test_from_string(){
+        let seq = vec![ DNANucleotide::A, DNANucleotide::C, DNANucleotide::G, DNANucleotide::T ];
+
+        assert_eq!(seq.to_string(), "ACGT");
+        assert_eq!(seq.length(), 4);
+    }
+
+    #[test]
+    fn test_subsequence(){
+        let seq = vec![ DNANucleotide::A, DNANucleotide::C, DNANucleotide::G, DNANucleotide::T ];
+
+        assert!(seq.subsequence(0,0).is_some());
+        assert!(seq.subsequence(0,1).is_some());
+        assert!(seq.subsequence(1,1).is_some());
+        assert!(seq.subsequence(1,2).is_some());
+        assert!(seq.subsequence(2,1).is_some());
+        assert!(seq.subsequence(0,4).is_some());
+        assert!(seq.subsequence(3,1).is_some());
+
+        assert!(seq.subsequence(3,2).is_none());
+        assert!(seq.subsequence(4,1).is_none());
+
+        assert_eq!(seq.subsequence(0,0).unwrap().to_string(), "");
+        assert_eq!(seq.subsequence(0,1).unwrap().to_string(), "A");
+        assert_eq!(seq.subsequence(1,1).unwrap().to_string(), "C");
+        assert_eq!(seq.subsequence(1,2).unwrap().to_string(), "CG");
+        assert_eq!(seq.subsequence(3,1).unwrap().to_string(), "T");
+    
+    }
+}

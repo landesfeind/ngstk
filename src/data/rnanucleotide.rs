@@ -143,8 +143,6 @@ mod tests {
 
     #[test]
     fn test_others() {
-        assert_eq!( RNANucleotide::from('U'), RNANucleotide::N);
-        assert_eq!( RNANucleotide::from('U'), RNANucleotide::N);
         assert_eq!( RNANucleotide::from('B'), RNANucleotide::N);
         assert_eq!( RNANucleotide::from('H'), RNANucleotide::N);
     }
