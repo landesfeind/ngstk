@@ -1,6 +1,7 @@
 use std::cmp::{Ord,Ordering};
 use data::sequence::{SequenceElement,Sequence};
 use data::rna::RnaNucleotide;
+use data::aminoacid::{Codon,Aminoacid};
 
 
 #[derive(Clone,Debug)]
@@ -106,19 +107,30 @@ impl<'a> From<&'a DnaNucleotide> for char {
 
 impl SequenceElement for DnaNucleotide {}
 
-
 pub trait DnaSequence : Sequence<DnaNucleotide> {
     
-    fn transcribe(&self) -> Vec<RnaNucleotide> {
+    fn rnanucleotides(&self) -> Vec<RnaNucleotide> {
         self.as_vec().iter().map(|n| (*n).clone().into() ).collect()
     }
+
+    fn codons(&self) -> Vec<Codon> {
+        let elems = self.as_vec();
+        (0..(self.length() / 3)).map(|i| Codon(elems[i].clone(), elems[i+1].clone(), elems[i+2].clone())).collect()
+    }
+
+    fn aminoacids(&self) -> Vec<Aminoacid> {
+        self.codons().iter().map(|c| Aminoacid::from(c) ).collect()
+    }
 }
+
+impl DnaSequence for Vec<DnaNucleotide> {}
 
 
 #[cfg(test)]
 mod tests {
-
+    use data::sequence::*;
     use data::dna::DnaNucleotide;
+    use data::dna::DnaSequence;
     
     #[test]
     fn test_a() {
@@ -162,5 +174,15 @@ mod tests {
         assert_eq!( DnaNucleotide::from('B'), DnaNucleotide::N);
         assert_eq!( DnaNucleotide::from('H'), DnaNucleotide::N);
     }
+
+
+    #[test]
+    fn test_dnsequence_to_peptide(){
+        let seq : Vec<DnaNucleotide> =  Sequence::from_string("AGTACGGCAAGT");
+        println!("{:?}", seq);
+        println!("{:?}", seq.aminoacids());
+    }
+
+
 }
 

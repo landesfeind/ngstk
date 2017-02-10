@@ -33,7 +33,6 @@ pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + From<Vec<T>> + P
         }
     }
 
-
     fn from_string(s: &str) -> Self {
         let elems : Vec<T> = s.chars().map(|c| T::from(c) ).collect();
         elems.into()

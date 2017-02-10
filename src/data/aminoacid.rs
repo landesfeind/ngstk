@@ -1,4 +1,5 @@
 use std::cmp::{Ord,Ordering};
+use data::sequence::{Sequence,SequenceElement};
 use data::dna::DnaNucleotide;
 
 #[derive(Clone,Debug)]
@@ -6,7 +7,9 @@ pub enum Aminoacid  { A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V
 #[derive(Clone,Debug)]
 pub enum Aminoacid3 { Ala, Arg, Asn, Asp, Cys, Glu, Gln, Gly, His, Ile, Leu, Lys, Met, Phe, Pro, Ser, Thr, Trp, Tyr, Val, Unknown, Stop }
 #[derive(Clone,Debug)]
-pub struct Codon (DnaNucleotide, DnaNucleotide, DnaNucleotide);
+pub struct Codon (pub DnaNucleotide, pub DnaNucleotide, pub DnaNucleotide);
+
+impl SequenceElement for Aminoacid {}
 
 impl PartialEq for Aminoacid {
     fn eq(&self, other: &Self) -> bool {
@@ -175,9 +178,9 @@ impl From<Aminoacid> for Aminoacid3 {
     }
 }
 
-impl From<Codon> for Aminoacid {
-    fn from(c: Codon) -> Aminoacid {
-        match c {
+impl<'a> From<&'a Codon> for Aminoacid {
+    fn from(c: &Codon) -> Aminoacid {
+        match *c {
                 Codon(DnaNucleotide::G, DnaNucleotide::C, _) => Aminoacid::A,
                 Codon(DnaNucleotide::C, DnaNucleotide::G, _) => Aminoacid::R,
                 Codon(DnaNucleotide::A, DnaNucleotide::G, DnaNucleotide::A) => Aminoacid::R,
@@ -222,10 +225,19 @@ impl From<Codon> for Aminoacid {
         }
     }
 }
+impl From<Codon> for Aminoacid {
+    fn from(c: Codon) -> Aminoacid {
+        Aminoacid::from(&c)
+    }
+}
+
 impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for Aminoacid {
     fn from(c: (DnaNucleotide, DnaNucleotide, DnaNucleotide)) -> Aminoacid {
         Aminoacid::from(Codon(c.0, c.1,c.2))
     }
 }
 
+pub trait Peptide : Sequence<Aminoacid> {}
+
+impl Peptide for Vec<Aminoacid> {} 
 

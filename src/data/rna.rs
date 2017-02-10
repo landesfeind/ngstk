@@ -133,6 +133,9 @@ impl SequenceElement for RnaNucleotide {}
 
 pub trait RnaSequence : Sequence<RnaNucleotide> {}
 
+impl RnaSequence for Vec<RnaNucleotide> {}
+
+
 
 #[cfg(test)]
 mod tests {
