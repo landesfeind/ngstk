@@ -1,8 +1,12 @@
 use std::cmp::{Ord,Ordering};
+use data::dna::DnaNucleotide;
 
 #[derive(Clone,Debug)]
 pub enum Aminoacid  { A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V, Unknown, Stop }
+#[derive(Clone,Debug)]
 pub enum Aminoacid3 { Ala, Arg, Asn, Asp, Cys, Glu, Gln, Gly, His, Ile, Leu, Lys, Met, Phe, Pro, Ser, Thr, Trp, Tyr, Val, Unknown, Stop }
+#[derive(Clone,Debug)]
+pub struct Codon (DnaNucleotide, DnaNucleotide, DnaNucleotide);
 
 impl PartialEq for Aminoacid {
     fn eq(&self, other: &Self) -> bool {
@@ -168,6 +172,59 @@ impl From<Aminoacid> for Aminoacid3 {
                 Aminoacid::Unknown => Aminoacid3::Unknown,
                 Aminoacid::Stop    => Aminoacid3::Stop,
         }
+    }
+}
+
+impl From<Codon> for Aminoacid {
+    fn from(c: Codon) -> Aminoacid {
+        match c {
+                Codon(DnaNucleotide::G, DnaNucleotide::C, _) => Aminoacid::A,
+                Codon(DnaNucleotide::C, DnaNucleotide::G, _) => Aminoacid::R,
+                Codon(DnaNucleotide::A, DnaNucleotide::G, DnaNucleotide::A) => Aminoacid::R,
+                Codon(DnaNucleotide::A, DnaNucleotide::G, DnaNucleotide::G) => Aminoacid::R,
+                Codon(DnaNucleotide::A, DnaNucleotide::A, DnaNucleotide::T) => Aminoacid::N,
+                Codon(DnaNucleotide::A, DnaNucleotide::A, DnaNucleotide::C) => Aminoacid::N,
+                Codon(DnaNucleotide::G, DnaNucleotide::A, DnaNucleotide::T) => Aminoacid::D,
+                Codon(DnaNucleotide::G, DnaNucleotide::A, DnaNucleotide::C) => Aminoacid::D,
+                Codon(DnaNucleotide::T, DnaNucleotide::G, DnaNucleotide::T) => Aminoacid::C,
+                Codon(DnaNucleotide::T, DnaNucleotide::G, DnaNucleotide::C) => Aminoacid::C,
+                Codon(DnaNucleotide::C, DnaNucleotide::A, DnaNucleotide::A) => Aminoacid::Q,
+                Codon(DnaNucleotide::C, DnaNucleotide::A, DnaNucleotide::G) => Aminoacid::Q,
+                Codon(DnaNucleotide::G, DnaNucleotide::A, DnaNucleotide::A) => Aminoacid::E,
+                Codon(DnaNucleotide::G, DnaNucleotide::A, DnaNucleotide::G) => Aminoacid::E,
+                Codon(DnaNucleotide::G, DnaNucleotide::G, _) => Aminoacid::G,
+                Codon(DnaNucleotide::C, DnaNucleotide::A, DnaNucleotide::T) => Aminoacid::H,
+                Codon(DnaNucleotide::C, DnaNucleotide::A, DnaNucleotide::C) => Aminoacid::H,
+                Codon(DnaNucleotide::A, DnaNucleotide::T, DnaNucleotide::T) => Aminoacid::I,
+                Codon(DnaNucleotide::A, DnaNucleotide::T, DnaNucleotide::C) => Aminoacid::I,
+                Codon(DnaNucleotide::A, DnaNucleotide::T, DnaNucleotide::A) => Aminoacid::I,
+                Codon(DnaNucleotide::C, DnaNucleotide::T, _) => Aminoacid::L,
+                Codon(DnaNucleotide::T, DnaNucleotide::T, DnaNucleotide::A) => Aminoacid::L,
+                Codon(DnaNucleotide::T, DnaNucleotide::T, DnaNucleotide::G) => Aminoacid::L,
+                Codon(DnaNucleotide::A, DnaNucleotide::A, DnaNucleotide::A) => Aminoacid::K,
+                Codon(DnaNucleotide::A, DnaNucleotide::A, DnaNucleotide::G) => Aminoacid::K,
+                Codon(DnaNucleotide::A, DnaNucleotide::T, DnaNucleotide::G) => Aminoacid::M,
+                Codon(DnaNucleotide::T, DnaNucleotide::T, DnaNucleotide::T) => Aminoacid::F,
+                Codon(DnaNucleotide::T, DnaNucleotide::T, DnaNucleotide::C) => Aminoacid::F,
+                Codon(DnaNucleotide::C, DnaNucleotide::C, _) => Aminoacid::P,
+                Codon(DnaNucleotide::T, DnaNucleotide::C, _) => Aminoacid::S,
+                Codon(DnaNucleotide::A, DnaNucleotide::G, DnaNucleotide::T) => Aminoacid::S,
+                Codon(DnaNucleotide::A, DnaNucleotide::G, DnaNucleotide::C) => Aminoacid::S,
+                Codon(DnaNucleotide::A, DnaNucleotide::C, _) => Aminoacid::T,
+                Codon(DnaNucleotide::T, DnaNucleotide::G, DnaNucleotide::G) => Aminoacid::W,
+                Codon(DnaNucleotide::T, DnaNucleotide::A, DnaNucleotide::T) => Aminoacid::Y,
+                Codon(DnaNucleotide::T, DnaNucleotide::A, DnaNucleotide::C) => Aminoacid::Y,
+                Codon(DnaNucleotide::G, DnaNucleotide::T, _) => Aminoacid::V,
+                Codon(DnaNucleotide::T, DnaNucleotide::A, DnaNucleotide::A) => Aminoacid::Stop,
+                Codon(DnaNucleotide::T, DnaNucleotide::A, DnaNucleotide::G) => Aminoacid::Stop,
+                Codon(DnaNucleotide::T, DnaNucleotide::G, DnaNucleotide::A) => Aminoacid::Stop,
+                _ => Aminoacid::Unknown
+        }
+    }
+}
+impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for Aminoacid {
+    fn from(c: (DnaNucleotide, DnaNucleotide, DnaNucleotide)) -> Aminoacid {
+        Aminoacid::from(Codon(c.0, c.1,c.2))
     }
 }
 

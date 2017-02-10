@@ -17,7 +17,6 @@ pub struct Read {
 }
 
 impl Read {
-
     /// Appends a ReadSegment to this read.
     pub fn append_segment(&mut self, segment: ReadSegment) {
         self.segments.push( segment );

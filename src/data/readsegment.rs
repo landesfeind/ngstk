@@ -58,3 +58,26 @@ impl From<Vec<DNANucleotide>> for ReadSegment {
     }
 }
 
+impl From<ReadSegment> for Vec<DNANucleotide> {
+
+    fn from(s: ReadSegment) -> Vec<DNANucleotide> {
+       s.sequence().clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use data::readsegment::ReadSegment;
+    use data::dnanucleotide::DNANucleotide;
+    use data::sequence::*;
+
+
+
+
+    #[test]
+    fn test_conversion_from_vec(){
+        let seq : Vec<DNANucleotide> = DnaSequence::from("ACGGTCAGCT");
+    }
+
+}
