@@ -3,14 +3,15 @@ mod data;
 
 use data::sequence::*;
 use data::dna::*;
+use data::rna::*;
+use data::aminoacid::*;
 
 fn main() {
-    let seq : Vec<DnaNucleotide> = Vec::from_string("ATGTGGTGCTGATGA");
-    let tra = seq.rnanucleotides();
-    let cod = seq.codons();
-    let pep = seq.aminoacids();
-    println!("{:?}", seq);
-    println!("-> {:?}", tra);
-    println!("-> {:?}", cod);
-    println!("-> {:?}", pep);
+    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATGA");
+    let tra = RnaSequence::from(&seq);
+    let pep = Peptide::from(&seq);
+    println!("<{}", seq.reverse_strand());
+    println!(">{}", seq);
+    println!("-> {}", tra);
+    println!("-> {}", pep);
 }

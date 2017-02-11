@@ -2,12 +2,13 @@ use std::fmt;
 use std::ops::Index;
 use std::ops::Range;
 use std::cmp::Ord;
+use std::slice;
 
 /// An element that can be part of a sequence.
-pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + From<char> + Into<char> + Sized {}
+pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}
 
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
-pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug {
+pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<T>> + Into<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug {
 
     /// Constructs a new empty sequence
     fn new_empty() -> Self;
@@ -20,39 +21,10 @@ pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
         self.length() == 0
     }
 
-    /// Returns the nucleotides of the sequence as a vector
-    fn as_vec(&self) -> &Vec<T>;
+    fn iter(&self) -> slice::Iter<T>;
 
-    /// Returns a slice of the sequence or `None` if the coordinates
-    /// are out of range.
-    fn subsequence(&self, from: usize, length: usize) -> Option<Self> {
-        if from + length > self.length() {
-            None
-        } else {
-            let elems : Vec<T> = self.as_vec().iter().skip(from).take(length).map(|n| n.clone() ).collect();
-            Some( elems.into() )
-        }
-    }
-
-    fn from_string(s: &str) -> Self {
-        let elems : Vec<T> = s.chars().map(|c| T::from(c) ).collect();
-        elems.into()
-    }
-
-    fn to_string(&self) -> String {
-        self.as_vec().iter().map(|n| n.clone().into() ).collect()
-    }
-}
-
-impl<T: SequenceElement> Sequence<T> for Vec<T> {
-    fn new_empty() -> Self {
-        Vec::new()
-    }
-    fn length(&self) -> usize {
-        self.len()
-    }
-    fn as_vec(&self) -> &Vec<T> {
-        &self
+    fn as_vec(&self) -> Vec<T> {
+        self.iter().map(|x| (*x).clone()).collect()
     }
 }
 

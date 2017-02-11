@@ -1,6 +1,9 @@
+use std::fmt;
+use std::ops;
+use std::slice;
 use std::cmp::{Ord,Ordering};
 use data::sequence::{Sequence,SequenceElement};
-use data::dna::DnaNucleotide;
+use data::dna::{DnaNucleotide,DnaSequence};
 
 #[derive(Clone,Debug)]
 pub enum Aminoacid  { A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V, Unknown, Stop }
@@ -11,9 +14,15 @@ pub struct Codon (pub DnaNucleotide, pub DnaNucleotide, pub DnaNucleotide);
 
 impl SequenceElement for Aminoacid {}
 
+impl fmt::Display for Aminoacid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", char::from(self))
+    }
+}
+
 impl PartialEq for Aminoacid {
     fn eq(&self, other: &Self) -> bool {
-        return (char::from(self)) == (char::from(other));
+        (char::from(self)) == (char::from(other))
     }
 }
 
@@ -21,13 +30,13 @@ impl Eq for Aminoacid { }
 
 impl PartialOrd for Aminoacid {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return Some( (char::from(self).cmp(& char::from(other))) );
+        Some( (char::from(self).cmp(& char::from(other))) )
     }
 }
 
 impl Ord for Aminoacid {
     fn cmp(&self, other: &Self) -> Ordering {
-        return self.partial_cmp(other).unwrap();
+        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -237,7 +246,79 @@ impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for Aminoacid {
     }
 }
 
-pub trait Peptide : Sequence<Aminoacid> {}
+#[derive(Clone,Debug)]
+pub struct Peptide {
+    nucleotides: Vec<Aminoacid>
+}
 
-impl Peptide for Vec<Aminoacid> {} 
+impl Sequence<Aminoacid> for Peptide {
+    fn new_empty() -> Peptide {
+        Peptide { nucleotides: Vec::new() }
+    }
+    fn length(&self) -> usize {
+        self.nucleotides.len()
+    }
+    fn iter(&self) -> slice::Iter<Aminoacid> {
+        self.nucleotides.iter()
+    }
+}
+
+impl PartialOrd for Peptide {
+    fn partial_cmp(&self, other: &Peptide) -> Option<Ordering> {
+        self.nucleotides.partial_cmp( &other.nucleotides )
+    }
+}
+impl Ord for Peptide {
+    fn cmp(&self, other: &Peptide) -> Ordering {
+        self.partial_cmp( other ).unwrap()
+    }
+}
+impl PartialEq for Peptide {
+    fn eq(&self, other: &Peptide) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for Peptide { }
+impl ops::Index<usize> for Peptide {
+    type Output = Aminoacid;
+
+    fn index(&self, i:usize) -> &Aminoacid {
+        &self.nucleotides[i]
+    }
+}
+impl ops::Index<ops::Range<usize>> for Peptide {
+    type Output = [Aminoacid];
+
+    fn index(&self, i: ops::Range<usize>) -> &[Aminoacid] {
+        &self.nucleotides[i]
+    }
+}
+impl From<Vec<Aminoacid>> for Peptide {
+    fn from(n: Vec<Aminoacid>) -> Peptide {
+        Peptide { nucleotides: n }
+    }
+}
+
+impl From<Peptide> for Vec<Aminoacid> {
+    fn from(seq: Peptide) -> Vec<Aminoacid> {
+        seq.nucleotides
+    }
+}
+
+impl<'a> From<&'a DnaSequence> for Peptide {
+    fn from(s: &DnaSequence) -> Peptide {
+        let aas : Vec<Aminoacid> = s.codons()
+                .map(|elems| Codon(elems[0].clone(), elems[1].clone(), elems[2].clone()))
+                .map(|c| Aminoacid::from(c) )
+                .collect();
+        Peptide::from(aas)
+    }
+}
+
+impl fmt::Display for Peptide {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s : String = self.iter().map(|n| char::from(n) ).collect();
+        write!(f, "{}", s)
+    }
+}
 

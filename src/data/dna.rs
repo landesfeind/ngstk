@@ -1,7 +1,9 @@
 use std::cmp::{Ord,Ordering};
+use std::ops;
+use std::fmt;
+use std::slice;
 use data::sequence::{SequenceElement,Sequence};
 use data::rna::RnaNucleotide;
-use data::aminoacid::{Codon,Aminoacid};
 
 
 #[derive(Clone,Debug)]
@@ -9,9 +11,29 @@ pub enum DnaNucleotide {
     A, C, G, T, N
 }
 
+impl DnaNucleotide {
+    pub fn complement(&self) -> DnaNucleotide {
+        match *self {
+            DnaNucleotide::A => DnaNucleotide::T,
+            DnaNucleotide::C => DnaNucleotide::G,
+            DnaNucleotide::G => DnaNucleotide::C,
+            DnaNucleotide::T => DnaNucleotide::A,
+            _ => DnaNucleotide::N
+        }
+    }
+}
+
+impl SequenceElement for DnaNucleotide {}
+
+impl fmt::Display for DnaNucleotide {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", char::from(self))
+    }
+}
+
 impl PartialEq for DnaNucleotide {
     fn eq(&self, other: &Self) -> bool {
-        return (char::from(self)) == (char::from(other));
+        (char::from(self)) == (char::from(other))
     }
 }
 
@@ -19,7 +41,7 @@ impl Eq for DnaNucleotide { }
 
 impl PartialOrd for DnaNucleotide {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return Some( (char::from(self).cmp(& char::from(other))) );
+        Some( (char::from(self).cmp(& char::from(other))) )
     }
 }
 
@@ -105,30 +127,104 @@ impl<'a> From<&'a DnaNucleotide> for char {
     }
 }
 
-impl SequenceElement for DnaNucleotide {}
+#[derive(Clone,Debug)]
+pub struct DnaSequence {
+    nucleotides: Vec<DnaNucleotide>
+}
 
-pub trait DnaSequence : Sequence<DnaNucleotide> {
-    
-    fn rnanucleotides(&self) -> Vec<RnaNucleotide> {
-        self.as_vec().iter().map(|n| (*n).clone().into() ).collect()
+impl DnaSequence {
+
+    pub fn codons(&self) -> slice::Chunks<DnaNucleotide> {
+        self.nucleotides.chunks(3usize)
     }
 
-    fn codons(&self) -> Vec<Codon> {
-        let elems = self.as_vec();
-        (0..(self.length() / 3)).map(|i| Codon(elems[i].clone(), elems[i+1].clone(), elems[i+2].clone())).collect()
+    /// Returns the reverse strand sequence
+    pub fn reverse_strand(&self) -> DnaSequence {
+        let r : Vec<DnaNucleotide> = self.iter().map( |n| n.complement() ).collect();
+        DnaSequence::from( r )
     }
 
-    fn aminoacids(&self) -> Vec<Aminoacid> {
-        self.codons().iter().map(|c| Aminoacid::from(c) ).collect()
+    /// Returns the reverse strand sequence in forward direction
+    pub fn complement(&self) -> DnaSequence {
+        let mut r : Vec<DnaNucleotide> = self.iter().map( |n| n.complement() ).collect();
+        r.reverse();
+        DnaSequence::from( r )
+    }
+
+}
+
+impl Sequence<DnaNucleotide> for DnaSequence {
+    fn new_empty() -> DnaSequence {
+        DnaSequence { nucleotides: Vec::new() }
+    }
+    fn length(&self) -> usize {
+        self.nucleotides.len()
+    }
+
+    fn iter(&self) -> slice::Iter<DnaNucleotide> {
+        self.nucleotides.iter()
     }
 }
 
-impl DnaSequence for Vec<DnaNucleotide> {}
+impl PartialOrd for DnaSequence {
+    fn partial_cmp(&self, other: &DnaSequence) -> Option<Ordering> {
+        self.nucleotides.partial_cmp( &other.nucleotides )
+    }
+}
+impl Ord for DnaSequence {
+    fn cmp(&self, other: &DnaSequence) -> Ordering {
+        self.partial_cmp( other ).unwrap()
+    }
+}
+impl PartialEq for DnaSequence {
+    fn eq(&self, other: &DnaSequence) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for DnaSequence { }
+impl ops::Index<usize> for DnaSequence {
+    type Output = DnaNucleotide;
+
+    fn index(&self, i:usize) -> &DnaNucleotide {
+        &self.nucleotides[i]
+    }
+}
+impl ops::Index<ops::Range<usize>> for DnaSequence {
+    type Output = [DnaNucleotide];
+
+    fn index(&self, i: ops::Range<usize>) -> &[DnaNucleotide] {
+        &self.nucleotides[i]
+    }
+}
+impl From<Vec<DnaNucleotide>> for DnaSequence {
+    fn from(n: Vec<DnaNucleotide>) -> DnaSequence {
+        DnaSequence { nucleotides: n }
+    }
+}
+
+impl From<DnaSequence> for Vec<DnaNucleotide> {
+    fn from(seq: DnaSequence) -> Vec<DnaNucleotide> {
+        seq.nucleotides
+    }
+}
+
+impl<'a> From<&'a str> for DnaSequence {
+    fn from(s: &str) -> DnaSequence {
+        let v : Vec<DnaNucleotide> = s.chars().map(|c| DnaNucleotide::from(c)).collect();
+        DnaSequence::from(v)
+    }
+}
+
+impl fmt::Display for DnaSequence {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s : String = self.iter().map(|n| char::from(n) ).collect();
+        write!(f, "{}", s)
+    }
+}
 
 
 #[cfg(test)]
 mod tests {
-    use data::sequence::*;
     use data::dna::DnaNucleotide;
     use data::dna::DnaSequence;
     
@@ -177,12 +273,20 @@ mod tests {
 
 
     #[test]
-    fn test_dnsequence_to_peptide(){
-        let seq : Vec<DnaNucleotide> =  Sequence::from_string("AGTACGGCAAGT");
-        println!("{:?}", seq);
-        println!("{:?}", seq.aminoacids());
+    fn test_dnsequence_to_string(){
+        let seq : DnaSequence =  DnaSequence::from("AGTACGGCAAGT");
+        assert_eq!(seq.to_string(), "AGTACGGCAAGT");
     }
-
+    #[test]
+    fn test_dnsequence_to_reverse_strand(){
+        let seq : DnaSequence =  DnaSequence::from("AGTACGGCAAGT");
+        assert_eq!(seq.reverse_strand().to_string(), "TCATGCCGTTCA");
+    }
+    #[test]
+    fn test_dnsequence_to_complement(){
+        let seq : DnaSequence =  DnaSequence::from("AGTACGGCAAGT");
+        assert_eq!(seq.complement().to_string(), "ACTTGCCGTACT");
+    }
 
 }
 

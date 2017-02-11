@@ -1,15 +1,26 @@
+use std::fmt;
 use std::cmp::{Ord,Ordering};
+use std::ops;
+use std::slice;
 use data::sequence::{SequenceElement,Sequence};
-use data::dna::DnaNucleotide;
+use data::dna::{DnaNucleotide,DnaSequence};
 
 #[derive(Clone,Debug)]
 pub enum RnaNucleotide {
     A, C, G, U, N
 }
 
+impl SequenceElement for RnaNucleotide {}
+
+impl fmt::Display for RnaNucleotide {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", char::from(self))
+    }
+}
+
 impl PartialEq for RnaNucleotide {
     fn eq(&self, other: &Self) -> bool {
-        return (char::from(self)) == (char::from(other));
+        (char::from(self)) == (char::from(other))
     }
 }
 
@@ -17,7 +28,7 @@ impl Eq for RnaNucleotide { }
 
 impl PartialOrd for RnaNucleotide {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return Some( (char::from(self).cmp(& char::from(other))) );
+        Some( (char::from(self).cmp(& char::from(other))) )
     }
 }
 
@@ -128,12 +139,79 @@ impl<'a> From<&'a DnaNucleotide> for RnaNucleotide {
     }
 }
 
-impl SequenceElement for RnaNucleotide {}
 
+#[derive(Clone,Debug)]
+pub struct RnaSequence {
+    nucleotides: Vec<RnaNucleotide>
+}
 
-pub trait RnaSequence : Sequence<RnaNucleotide> {}
+impl Sequence<RnaNucleotide> for RnaSequence {
+    fn new_empty() -> RnaSequence {
+        RnaSequence { nucleotides: Vec::new() }
+    }
+    fn length(&self) -> usize {
+        self.nucleotides.len()
+    }
+    fn iter(&self) -> slice::Iter<RnaNucleotide> {
+        self.nucleotides.iter()
+    }
+}
 
-impl RnaSequence for Vec<RnaNucleotide> {}
+impl PartialOrd for RnaSequence {
+    fn partial_cmp(&self, other: &RnaSequence) -> Option<Ordering> {
+        self.nucleotides.partial_cmp( &Vec::from(other.clone()) )
+    }
+}
+impl Ord for RnaSequence {
+    fn cmp(&self, other: &RnaSequence) -> Ordering {
+        self.partial_cmp( other ).unwrap()
+    }
+}
+impl PartialEq for RnaSequence {
+    fn eq(&self, other: &RnaSequence) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for RnaSequence { }
+impl ops::Index<usize> for RnaSequence {
+    type Output = RnaNucleotide;
+
+    fn index(&self, i:usize) -> &RnaNucleotide {
+        &self.nucleotides[i]
+    }
+}
+impl ops::Index<ops::Range<usize>> for RnaSequence {
+    type Output = [RnaNucleotide];
+
+    fn index(&self, i: ops::Range<usize>) -> &[RnaNucleotide] {
+        &self.nucleotides[i]
+    }
+}
+impl From<Vec<RnaNucleotide>> for RnaSequence {
+    fn from(n: Vec<RnaNucleotide>) -> RnaSequence {
+        RnaSequence { nucleotides: n }
+    }
+}
+
+impl From<RnaSequence> for Vec<RnaNucleotide> {
+    fn from(seq: RnaSequence) -> Vec<RnaNucleotide> {
+        seq.nucleotides
+    }
+}
+
+impl<'a> From<&'a DnaSequence> for RnaSequence {
+    fn from(s: &DnaSequence) -> RnaSequence {
+        let n : Vec<RnaNucleotide> = s.iter().map(|n| RnaNucleotide::from(n) ).collect();
+        RnaSequence::from(n)
+    }
+}
+
+impl fmt::Display for RnaSequence {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s : String = self.iter().map(|n| char::from(n) ).collect();
+        write!(f, "{}", s)
+    }
+}
 
 
 
