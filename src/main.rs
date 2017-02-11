@@ -7,7 +7,7 @@ use data::rna::*;
 use data::aminoacid::*;
 
 fn main() {
-    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATGA");
+    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
     let tra = RnaSequence::from(&seq);
     let pep = Peptide::from(&seq);
     println!("<{}", seq.reverse_strand());

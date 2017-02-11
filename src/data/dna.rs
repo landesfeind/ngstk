@@ -2,6 +2,7 @@ use std::cmp::{Ord,Ordering};
 use std::ops;
 use std::fmt;
 use std::slice;
+use std::iter;
 use data::sequence::{SequenceElement,Sequence};
 use data::rna::RnaNucleotide;
 
@@ -127,16 +128,24 @@ impl<'a> From<&'a DnaNucleotide> for char {
     }
 }
 
+
+#[derive(Clone,Debug)]
+pub struct DnaCodon (pub DnaNucleotide, pub DnaNucleotide, pub DnaNucleotide);
+
+
+impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for DnaCodon {
+    fn from(c: (DnaNucleotide, DnaNucleotide, DnaNucleotide)) -> DnaCodon {
+        DnaCodon(c.0, c.1,c.2)
+    }
+}
+
+
 #[derive(Clone,Debug)]
 pub struct DnaSequence {
     nucleotides: Vec<DnaNucleotide>
 }
 
 impl DnaSequence {
-
-    pub fn codons(&self) -> slice::Chunks<DnaNucleotide> {
-        self.nucleotides.chunks(3usize)
-    }
 
     /// Returns the reverse strand sequence
     pub fn reverse_strand(&self) -> DnaSequence {
@@ -151,6 +160,23 @@ impl DnaSequence {
         DnaSequence::from( r )
     }
 
+    /// Returns an iterator on the codons. This is identical
+    /// to `frame(0)`.
+    pub fn codons(&self) -> Vec<DnaCodon> {
+        self.frame(0usize)
+    }
+
+    /// Generates the codons that represents the frame starting
+    /// at `offset`. If the sequence is not a multiple of 3, the 
+    /// last codon will be filled with `DnaNucleotide::N`.
+    pub fn frame(&self, offset: usize) -> Vec<DnaCodon> {
+        self.nucleotides[offset .. self.nucleotides.len()].chunks(3usize).map(|e| match e.len() {
+            1 => DnaCodon(e[0].clone(), DnaNucleotide::N, DnaNucleotide::N),
+            2 => DnaCodon(e[0].clone(), e[1].clone(), DnaNucleotide::N),
+            3 => DnaCodon(e[0].clone(), e[1].clone(), e[2].clone()),
+            _ => DnaCodon(DnaNucleotide::N, DnaNucleotide::N, DnaNucleotide::N),
+        }).collect()
+    }
 }
 
 impl Sequence<DnaNucleotide> for DnaSequence {
