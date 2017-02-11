@@ -139,6 +139,16 @@ impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for DnaCodon {
     }
 }
 
+impl<'a> From<&'a [DnaNucleotide]> for DnaCodon {
+    fn from(e: &[DnaNucleotide]) -> DnaCodon {
+        match e.len() {
+                1 => DnaCodon(e[0].clone(), DnaNucleotide::N, DnaNucleotide::N),
+                2 => DnaCodon(e[0].clone(), e[1].clone(), DnaNucleotide::N),
+                3 => DnaCodon(e[0].clone(), e[1].clone(), e[2].clone()),
+                _ => DnaCodon(DnaNucleotide::N, DnaNucleotide::N, DnaNucleotide::N),
+            }
+    }
+}
 
 #[derive(Clone,Debug)]
 pub struct DnaSequence {
@@ -170,12 +180,15 @@ impl DnaSequence {
     /// at `offset`. If the sequence is not a multiple of 3, the 
     /// last codon will be filled with `DnaNucleotide::N`.
     pub fn frame(&self, offset: usize) -> Vec<DnaCodon> {
-        self.nucleotides[offset .. self.nucleotides.len()].chunks(3usize).map(|e| match e.len() {
-            1 => DnaCodon(e[0].clone(), DnaNucleotide::N, DnaNucleotide::N),
-            2 => DnaCodon(e[0].clone(), e[1].clone(), DnaNucleotide::N),
-            3 => DnaCodon(e[0].clone(), e[1].clone(), e[2].clone()),
-            _ => DnaCodon(DnaNucleotide::N, DnaNucleotide::N, DnaNucleotide::N),
-        }).collect()
+        self.nucleotides[offset .. self.nucleotides.len()].chunks(3usize).map(|e| DnaCodon::from(e) ).collect()
+    }
+    /// Generates all codons that can be generated from the DnaSequence. The
+    /// codons will be generated from the first three DnaNucleotide (position 1, 2, and 3), 
+    /// then DnaNucleotides at position 2, 3, and 4, and so on.
+    /// If the DnaSequence is not a multiple of 3, the 
+    /// last codon will be filled with `DnaNucleotide::N`.
+    pub fn all_codons_in_all_frames(&self) -> Vec<DnaCodon> {
+        self.nucleotides.windows(3usize).map(|e| DnaCodon::from(e) ).collect()
     }
 }
 
