@@ -1,13 +1,13 @@
-use data::dnanucleotide::DNANucleotide;
-use data::sequence::DnaSequence;
+use data::dna::DnaSequence;
+use data::sequence::Sequence;
 
 /// A segment is a DNASequence with 
 #[derive(Clone,Debug)]
 pub struct ReadSegment {
     /// The nucleotides of this read segment
-    nucleotides: Vec<DNANucleotide>, 
+    sequence: DnaSequence, 
     /// The corresponding 
-    qualities: Vec<i32>,
+    qualities: Option<Vec<i32>>,
     /// The offset with respect to the Read position
     offset: usize,
     /// Set to true if the read segment is mapped to the genome
@@ -16,21 +16,22 @@ pub struct ReadSegment {
 
 impl ReadSegment {
 
-    pub fn sequence(&self) -> &Vec<DNANucleotide> {
-        &self.nucleotides
+    pub fn sequence(&self) -> &DnaSequence {
+        &self.sequence
     }
 
     pub fn length(&self) -> usize {
-        self.nucleotides.len()
+        self.sequence.length()
     }
 
-    pub fn qualities(&self) -> &Vec<i32> {
+    /// Returns the 
+    pub fn qualities(&self) -> &Option<Vec<i32>> {
         &self.qualities
     }
 
     pub fn set_qualities(&mut self, quals: &Vec<i32>) {
         assert_eq!(self.length(), quals.len() as usize);
-        self.qualities = quals.clone();
+        self.qualities = Some(quals.clone());
     }
 
     pub fn offset(&self) -> usize {
@@ -46,22 +47,20 @@ impl ReadSegment {
     }
 }
 
-impl From<Vec<DNANucleotide>> for ReadSegment {
-    fn from(seq: Vec<DNANucleotide>) -> ReadSegment {
-        let qs : Vec<i32> = seq.iter().map(|n| 0 as i32).collect();
-        return ReadSegment { 
-            nucleotides: seq,
-            qualities: qs,
+impl From<DnaSequence> for ReadSegment {
+    fn from(seq: DnaSequence) -> ReadSegment {
+        ReadSegment { 
+            sequence: seq,
+            qualities: None,
             offset: 0,
             is_aligned: false
-        };
+        }
     }
 }
 
-impl From<ReadSegment> for Vec<DNANucleotide> {
-
-    fn from(s: ReadSegment) -> Vec<DNANucleotide> {
-       s.sequence().clone()
+impl<'a> From<&'a DnaSequence> for ReadSegment {
+    fn from(seq: &DnaSequence) -> ReadSegment {
+        ReadSegment::from( seq.clone() )
     }
 }
 
@@ -69,15 +68,17 @@ impl From<ReadSegment> for Vec<DNANucleotide> {
 mod tests {
 
     use data::readsegment::ReadSegment;
-    use data::dnanucleotide::DNANucleotide;
-    use data::sequence::*;
-
-
-
+    use data::dna::DnaSequence;
+    use data::sequence::Sequence;
 
     #[test]
-    fn test_conversion_from_vec(){
-        let seq : Vec<DNANucleotide> = DnaSequence::from("ACGGTCAGCT");
+    fn test_from_dnasequence(){
+        let seq = DnaSequence::from("ACGTTGCAACGT");
+        let rs  = ReadSegment::from(&seq);
+
+        assert_eq!(rs.length(), seq.length());
+        assert_eq!(rs.sequence().clone(), seq);
+        assert_eq!(rs.offset(), 0usize);
     }
 
 }
