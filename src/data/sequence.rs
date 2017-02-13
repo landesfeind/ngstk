@@ -4,7 +4,6 @@ use std::ops::Range;
 use std::ops::Add;
 use std::cmp::Ord;
 use std::slice;
-use std::iter;
 
 /// An element that can be part of a sequence.
 pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}

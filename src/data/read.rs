@@ -1,7 +1,7 @@
 
 use data::readsegment::ReadSegment;
 use data::sequence::Sequence;
-use data::dna::{DnaSequence,DnaNucleotide};
+use data::dna::DnaSequence;
 
 ///
 /// A read is a nucleotide sequence generated
@@ -28,7 +28,7 @@ impl Read {
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
     pub fn sequence(&self) -> DnaSequence {
-        self.segments.iter().fold(DnaSequence::new_empty(), |mut a,s|{ a + s.sequence() })
+        self.segments.iter().fold(DnaSequence::new_empty(), |a,s|{ a + s.sequence() })
     }
 
     /// Returns the length of the full read sequence
@@ -114,7 +114,7 @@ mod tests {
     fn test_2(){
         let seq1 : DnaSequence = DnaSequence::from("acgt");
         let seq2 : DnaSequence = DnaSequence::from("tgca");
-        let mut seq3 = seq1.clone() + seq2.clone();
+        let seq3 = seq1.clone() + seq2.clone();
 
         let mut read = Read::from( ReadSegment::from( seq1.clone() ) );
         read.append_segment( ReadSegment::from( seq2.clone() ) );

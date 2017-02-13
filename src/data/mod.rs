@@ -3,7 +3,7 @@ pub mod rna;
 pub mod dna;
 pub mod aminoacid;
 
-//pub mod genomicrange;
+pub mod genomicrange;
 
 mod readsegment;
 mod read;

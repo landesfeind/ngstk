@@ -2,9 +2,7 @@ use std::cmp::{Ord,Ordering};
 use std::ops;
 use std::fmt;
 use std::slice;
-use std::iter;
 use data::sequence::{SequenceElement,Sequence};
-use data::rna::RnaNucleotide;
 
 
 #[derive(Clone,Debug)]
