@@ -6,7 +6,7 @@ pub mod aminoacid;
 //pub mod genomicrange;
 
 mod readsegment;
-//mod read;
+mod read;
 //mod genomicregion;
 //mod pileup;
 //

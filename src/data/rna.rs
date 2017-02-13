@@ -187,6 +187,25 @@ impl ops::Index<ops::Range<usize>> for RnaSequence {
         &self.nucleotides[i]
     }
 }
+impl ops::Add for RnaSequence {
+    type Output = RnaSequence;
+    fn add(self, other: RnaSequence) -> RnaSequence {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides);
+        RnaSequence::from(v)
+    }
+}
+impl<'a> ops::Add<&'a RnaSequence> for RnaSequence {
+    type Output = RnaSequence;
+    fn add(self, other: &RnaSequence) -> RnaSequence {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides.clone());
+        RnaSequence::from(v)
+    }
+}
+
+
+
 impl From<Vec<RnaNucleotide>> for RnaSequence {
     fn from(n: Vec<RnaNucleotide>) -> RnaSequence {
         RnaSequence { nucleotides: n }

@@ -37,7 +37,6 @@ impl Ord for Aminoacid {
         self.partial_cmp(other).unwrap()
     }
 }
-
 impl From<char> for Aminoacid {
     fn from(c: char) -> Aminoacid {
         match c {
@@ -291,6 +290,25 @@ impl ops::Index<ops::Range<usize>> for Peptide {
         &self.nucleotides[i]
     }
 }
+impl ops::Add for Peptide {
+    type Output = Peptide;
+    fn add(self, other: Peptide) -> Peptide {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides);
+        Peptide::from(v)
+    }
+}
+impl<'a> ops::Add<&'a Peptide> for Peptide {
+    type Output = Peptide;
+    fn add(self, other: &Peptide) -> Peptide {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides.clone());
+        Peptide::from(v)
+    }
+}
+
+
+
 impl From<Vec<Aminoacid>> for Peptide {
     fn from(n: Vec<Aminoacid>) -> Peptide {
         Peptide { nucleotides: n }

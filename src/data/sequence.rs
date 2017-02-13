@@ -1,14 +1,16 @@
 use std::fmt;
 use std::ops::Index;
 use std::ops::Range;
+use std::ops::Add;
 use std::cmp::Ord;
 use std::slice;
+use std::iter;
 
 /// An element that can be part of a sequence.
 pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}
 
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
-pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<T>> + Into<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug {
+pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<T>> + Into<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug + Add {
 
     /// Constructs a new empty sequence
     fn new_empty() -> Self;

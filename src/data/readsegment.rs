@@ -8,10 +8,8 @@ pub struct ReadSegment {
     sequence: DnaSequence, 
     /// The corresponding 
     qualities: Option<Vec<i32>>,
-    /// The offset with respect to the Read position
-    offset: usize,
-    /// Set to true if the read segment is mapped to the genome
-    is_aligned: bool
+    /// The offset with respect to the read position
+    offset: Option<usize>,
 }
 
 impl ReadSegment {
@@ -34,16 +32,16 @@ impl ReadSegment {
         self.qualities = Some(quals.clone());
     }
 
-    pub fn offset(&self) -> usize {
+    pub fn offset(&self) -> Option<usize> {
         self.offset
     }
 
     pub fn set_offset(&mut self, offset: usize) {
-        self.offset = offset
+        self.offset = Some(offset)
     }
 
     pub fn is_aligned(&self) -> bool {
-        self.is_aligned
+        self.offset.is_some()
     }
 }
 
@@ -52,8 +50,7 @@ impl From<DnaSequence> for ReadSegment {
         ReadSegment { 
             sequence: seq,
             qualities: None,
-            offset: 0,
-            is_aligned: false
+            offset: None,
         }
     }
 }
@@ -78,7 +75,19 @@ mod tests {
 
         assert_eq!(rs.length(), seq.length());
         assert_eq!(rs.sequence().clone(), seq);
-        assert_eq!(rs.offset(), 0usize);
+        assert_eq!(rs.offset(), None);
+    }
+
+    #[test]
+    fn test_offset_setter(){
+        let seq = DnaSequence::from("ACGTTGCAACGT");
+        let mut rs  = ReadSegment::from(&seq);
+
+        assert_eq!(rs.is_aligned(), false);
+        assert_eq!(rs.offset(), None);
+        rs.set_offset(100usize);
+        assert_eq!(rs.is_aligned(), true);
+        assert_eq!(rs.offset(), Some(100usize));
     }
 
 }

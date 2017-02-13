@@ -235,6 +235,22 @@ impl ops::Index<ops::Range<usize>> for DnaSequence {
         &self.nucleotides[i]
     }
 }
+impl ops::Add for DnaSequence {
+    type Output = DnaSequence;
+    fn add(self, other: DnaSequence) -> DnaSequence {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides);
+        DnaSequence::from(v)
+    }
+}
+impl<'a> ops::Add<&'a DnaSequence> for DnaSequence {
+    type Output = DnaSequence;
+    fn add(self, other: &DnaSequence) -> DnaSequence {
+        let mut v = self.nucleotides.clone();
+        v.extend(other.nucleotides.clone());
+        DnaSequence::from(v)
+    }
+}
 impl From<Vec<DnaNucleotide>> for DnaSequence {
     fn from(n: Vec<DnaNucleotide>) -> DnaSequence {
         DnaSequence { nucleotides: n }
@@ -327,5 +343,13 @@ mod tests {
         assert_eq!(seq.complement().to_string(), "ACTTGCCGTACT");
     }
 
+    #[test]
+    fn test_dnasequence_add(){
+        let s1 = DnaSequence::from("ACGT");
+        let s2 = DnaSequence::from("TGCA");
+        let s3 = s1 + s2;
+        assert_eq!(s3.to_string(), "ACGTTGCA");
+    
+    }
 }
 

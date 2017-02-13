@@ -1,8 +1,7 @@
 
 use data::readsegment::ReadSegment;
 use data::sequence::Sequence;
-use data::sequence::DnaSequence;
-use data::dnanucleotide::DNANucleotide;
+use data::dna::{DnaSequence,DnaNucleotide};
 
 ///
 /// A read is a nucleotide sequence generated
@@ -28,8 +27,8 @@ impl Read {
 
     /// Returns the full sequence of the read which is the
     /// concatenation of all read segments.
-    pub fn sequence(&self) -> Vec<DNANucleotide> {
-        self.segments.iter().fold(Vec::new(), |mut a,s|{ a.append(&mut s.sequence().clone()); a })
+    pub fn sequence(&self) -> DnaSequence {
+        self.segments.iter().fold(DnaSequence::new_empty(), |mut a,s|{ a + s.sequence() })
     }
 
     /// Returns the length of the full read sequence
@@ -57,7 +56,7 @@ impl Read {
         }
 
         let end = self.position.unwrap() 
-            + self.segments.iter().map(|s| s.offset() + s.length()).max().unwrap();
+            + self.segments.iter().filter(|s| s.is_aligned()).map(|s| s.offset().unwrap() + s.length()).max().unwrap();
         return Some(end);
     }
      
@@ -74,48 +73,52 @@ impl Read {
 
 impl From<Vec<ReadSegment>> for Read {
     fn from(read_segs: Vec<ReadSegment>) -> Self {
-        return Read { segments: read_segs, mapping_quality: None, position: None, is_forward: None }
+        Read { segments: read_segs, mapping_quality: None, position: None, is_forward: None }
     }
 }
 
 impl From<ReadSegment> for Read {
     fn from(rs: ReadSegment) -> Self {
-        return Read::from( vec![ rs ] );
+        Read::from( vec![ rs ] )
     }
 }
 
-impl From<Vec<DNANucleotide>> for Read {
-    fn from(seq: Vec<DNANucleotide>) -> Self {
-        return Read::from( ReadSegment::from(seq) );
+impl From<DnaSequence> for Read {
+    fn from(seq: DnaSequence) -> Self {
+        Read::from( ReadSegment::from(seq) )
+    }
+}
+
+impl<'a> From<&'a DnaSequence> for Read {
+    fn from(seq: &'a DnaSequence) -> Self {
+        Read::from( seq.clone() )
     }
 }
 
 #[cfg(test)]
 mod tests {
     
-    use data::dnanucleotide::DNANucleotide;
-    use data::sequence::DnaSequence;
+    use data::dna::DnaSequence;
     use data::readsegment::ReadSegment;
     use data::read::Read;
 
     #[test]
     fn test_1(){
-        let seq : Vec<DNANucleotide> = DnaSequence::from("acgt");
+        let seq : DnaSequence = DnaSequence::from("acgt");
         let read = Read::from( ReadSegment::from( seq.clone() ) );
         assert_eq!(read.sequence(), seq);
-        assert_eq!(read.sequence().len(), 4);
+        assert_eq!(read.length(), 4);
     }
 
     #[test]
     fn test_2(){
-        let seq1 : Vec<DNANucleotide> = DnaSequence::from("acgt");
-        let seq2 : Vec<DNANucleotide> = DnaSequence::from("tgca");
-        let mut seq3 = seq1.clone();
-        seq3.append( &mut seq2.clone() );
+        let seq1 : DnaSequence = DnaSequence::from("acgt");
+        let seq2 : DnaSequence = DnaSequence::from("tgca");
+        let mut seq3 = seq1.clone() + seq2.clone();
 
         let mut read = Read::from( ReadSegment::from( seq1.clone() ) );
         read.append_segment( ReadSegment::from( seq2.clone() ) );
-        assert_eq!(read.sequence().len(), 8);
+        assert_eq!(read.length(), 8);
         assert_eq!(read.sequence(), seq3);
     }
 }
