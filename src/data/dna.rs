@@ -2,7 +2,8 @@ use std::cmp::{Ord,Ordering};
 use std::ops;
 use std::fmt;
 use std::slice;
-use data::sequence::{SequenceElement,Sequence};
+
+pub use data::sequence::{SequenceElement,Sequence};
 
 
 #[derive(Clone,Debug)]
@@ -274,7 +275,6 @@ impl fmt::Display for DnaSequence {
         write!(f, "{}", s)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

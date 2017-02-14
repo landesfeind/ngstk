@@ -1,5 +1,6 @@
 use std::result;
 use std::fmt;
+use std::ops;
 use std::str::FromStr;
 use std::error::Error;
 
@@ -14,7 +15,6 @@ pub struct GenomicRange {
 }
 
 impl GenomicRange {
-
     /// Create a new genomic range
     ///
     /// # Arguments
@@ -35,21 +35,21 @@ impl GenomicRange {
 
     /// Returns the reference sequence name
     pub fn refname(&self) -> &str {
-        self.refname.as_ref()
+        self.refname.as_str()
     }
 
-    /// Returns the start position of the genomic range
+    /// Returns the start position of the genomic range (the first position is 0)
     pub fn start(&self) -> usize {
         self.start
     }
 
     /// Returns the end position of the genomic range
-    pub fn end(&self) -> usize {
+    pub fn end(&self) -> usize{
         self.end
     }
-
+        
     pub fn length(&self) -> usize {
-        self.end - self.start + 1
+        self.end - self.start
     }
 }
 
@@ -59,10 +59,40 @@ impl fmt::Display for GenomicRange {
     }
 }
 
+impl ops::BitAnd for GenomicRange {
+    type Output = Self;
+
+    fn bitand(self, rhs: GenomicRange) -> Self::Output {
+        match self.refname() == rhs.refname() {
+            true => self & (rhs.start() .. rhs.end()),
+            false => GenomicRange::new(self.refname().clone(), self.start(), self.start())
+        }
+
+    }
+}
+impl ops::BitAnd<ops::Range<usize>> for GenomicRange {
+    type Output = Self;
+
+    fn bitand(self, rhs: ops::Range<usize>) -> Self::Output {
+        let s = match self.start > rhs.start {
+                true => self.start,
+                false => rhs.start
+            };
+        let e = match self.end < rhs.end {
+                true => self.end,
+                false => rhs.end
+            };
+        match s < e {
+            true => GenomicRange::new( self.refname().clone(), s, e),
+            false => GenomicRange::new( self.refname().clone(), s, s)
+        }
+    }
+}
+
 impl FromStr for GenomicRange {
     type Err = &'static str;
 
-    fn from_str(s: &str) -> result::Result<Self,Self::Err> { 
+    fn from_str(s: &str) -> result::Result<GenomicRange,Self::Err> { 
         let mut iter = s.split(|c| c == ':' || c == '-' );
         
         let chr = match iter.next() {
@@ -94,7 +124,7 @@ impl FromStr for GenomicRange {
         
         };
 
-        Ok( GenomicRange::new(chr.as_ref(), start-1, end-1) )
+        Ok( GenomicRange::new(chr.as_ref(), start-1, end) )
     }
 }
 
@@ -112,7 +142,7 @@ mod tests {
         let g = rg.unwrap();
         assert_eq!(g.refname(), "chr1");
         assert_eq!(g.start(), 1231);
-        assert_eq!(g.end(), 121143);
+        assert_eq!(g.end(), 121144);
     }
 
     #[test]
@@ -121,15 +151,18 @@ mod tests {
         assert!(! rg.is_ok());
     }
 
-  #[test]
+    #[test]
     fn test_string_parse_3(){
         let rg : Result<GenomicRange, &str> = "chr1:1-1".parse();
         assert!(rg.is_ok());
         let g = rg.unwrap();
         assert_eq!(g.refname(), "chr1");
         assert_eq!(g.start(), 0);
-        assert_eq!(g.end(), 0);
+        assert_eq!(g.end(), 1);
         assert_eq!(g.length(), 1);
     }
 
+    #[test]
+    fn test_bitand(){
+    }
 }

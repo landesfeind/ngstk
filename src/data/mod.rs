@@ -7,7 +7,7 @@ pub mod genomicrange;
 
 mod readsegment;
 mod read;
-//mod genomicregion;
+mod genomicregion;
 //mod pileup;
 //
 //mod peptide;

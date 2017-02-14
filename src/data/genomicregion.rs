@@ -1,63 +1,80 @@
+use std::ops;
 
-use data::dnasequence::{DNASequence, HasDnaSequence};
+pub use data::genomicrange::*;
+pub use data::dna::*;
 
-/// A genomic sequence represents a region on the DNA of an analyte. 
-/// The genomic range may include the full genome (e.g., for prokaryotes), 
-/// a complete chromosome, or a portion of the chromosome.
+/// A genomic regions combines a genomic range with the actual DNA sequence. 
 ///
 /// **Important:** Genomic coordinates starting with 0
+#[derive(Clone,Debug)]
 pub struct GenomicRegion {
-    name: String,
-    sequence: DNASequence,
-    offset: usize,
+    range: GenomicRange,
+    sequence: DnaSequence
 }
 
 impl GenomicRegion {
-
-    pub fn new(name: &str, seq: DNASequence) -> Self {
-        Self::new_with_offset(name, seq, 0)
-    }
-
-    pub fn new_with_offset(name: &str, seq: DNASequence, offset: usize) -> Self {
-        assert!( ! seq.is_empty() );
-        return GenomicRegion { name: name.to_string(), sequence: seq, offset: offset};
-    }
-
-    pub fn offset(&self) -> usize {
-        self.offset
-    }
-
-    /// 
-    /// Extract a subsequence of the genomic region starting at *genomic position* `from` and 
-    /// continuing for `length` nucleotides. GenomicRegion can not be empty and therefore
-    /// `length` must be larger than `0`.
+    /// Create a new genomic region. 
     ///
-    pub fn subsequence(&self, from: usize, length: usize) -> Self {
-        assert!( self.offset <= from );
-        assert!( length > 0 );
-        assert!( self.sequence.length() >= from - self.offset + length );
-        Self::new_with_offset(self.name.as_str(), self.dna_subsequence(from - self.offset, length), from)
+    /// # Panics
+    ///
+    /// Fails if length of `range` is not equal to the length of the `seq`.
+    ///
+    pub fn new(range: GenomicRange, seq: DnaSequence) -> Self {
+        assert_eq!( range.length(), seq.length() );
+        GenomicRegion { range: range, sequence: seq }
+    }
+ 
+    pub fn refname(&self) -> &str {
+        self.range.refname()
+    }
+    pub fn start(&self) -> usize {
+        self.range.start()
+    }
+    pub fn end(&self) -> usize {
+        self.range.end()
+    }
+    pub fn length(&self) -> usize {
+        self.end() - self.start() + 1
+    }
+    pub fn is_empty(&self) -> bool {
+        self.length() == 0
+    }
+    pub fn sequence(&self) -> &DnaSequence {
+        &self.sequence
     }
 }
 
-impl HasDnaSequence for GenomicRegion {
-    fn dna_sequence(&self) -> &DNASequence { &self.sequence }
+impl ops::BitAnd<ops::Range<usize>> for GenomicRegion {
+    type Output = Self;
+
+    fn bitand(self, rhs: ops::Range<usize>) -> Self::Output {
+        let r = self.range.clone() & rhs;
+        let s = DnaSequence::from( self.sequence[ (r.start() - self.range.start()) .. (r.end() - self.range.start()) ].to_vec() );
+        GenomicRegion::new(r, s)
+    }
+}
+
+impl From<DnaSequence> for GenomicRegion {
+    
+    fn from(seq: DnaSequence) -> GenomicRegion {
+        GenomicRegion::new(GenomicRange::new("unknown", 0, seq.length()), seq)
+    }
+    
 }
 
 #[cfg(test)]
 mod tests {
     
-    use data::dnasequence::{DNASequence, HasDnaSequence};
+    use data::dna::*;
     use data::genomicregion::GenomicRegion;
 
     #[test]
     fn test_subsequence(){
-        let gr = GenomicRegion::new("chr", DNASequence::from("ACGTTGCA"));
+        let gr = GenomicRegion::from(DnaSequence::from("ACGTTGCA"));
 
-        assert_eq!(gr.subsequence(0,1).dna_sequence().clone(), DNASequence::from("A"));
-        assert_eq!(gr.subsequence(1,1).dna_sequence().clone(), DNASequence::from("C"));
-        assert_eq!(gr.subsequence(1,2).dna_sequence().clone(), DNASequence::from("CG"));
-        assert_eq!(gr.subsequence(3,1).dna_sequence().clone(), DNASequence::from("T"));
-        assert_eq!(gr.subsequence(3,3).dna_sequence().clone(), DNASequence::from("TTG"));
+        assert_eq!( (gr.clone() & (0..1)).sequence().clone(), DnaSequence::from("A") );
+        assert_eq!( (gr.clone() & (1..1)).sequence().clone(), DnaSequence::from("") );
+        assert_eq!( (gr.clone() & (1..2)).sequence().clone(), DnaSequence::from("C") );
+        assert_eq!( (gr.clone() & (4..8)).sequence().clone(), DnaSequence::from("TGCA") );
     }
 }
