@@ -3,12 +3,21 @@ name = "ngstk"
 version = "0.1.0"
 dependencies = [
  "rust-htslib 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "svgdom 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "custom_derive"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "float-cmp"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "idna"
@@ -54,6 +63,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-traits"
+version = "0.1.36"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "phf"
+version = "0.7.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "phf_shared 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.7.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "quick-error"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -87,6 +114,29 @@ version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "simplecss"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "svgdom"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "float-cmp 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simplecss 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "svgparser 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "svgparser"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "phf 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "unicode-bidi"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -110,6 +160,7 @@ dependencies = [
 
 [metadata]
 "checksum custom_derive 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "ef8ae57c4978a2acd8b869ce6b9ca1dfe817bff704c220209fdef2c0b75a01b9"
+"checksum float-cmp 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ae5c9d3ac80527346eb21666d9135b695243a48ef5f2df19022856975a66c411"
 "checksum idna 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1053236e00ce4f668aeca4a769a09b3bf5a682d802abd6f3cb39374f6b162c11"
 "checksum ieee754 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7f1916de1fb194db130e604f2f75a06649e602e6694ec6500ed15672a6a9bf93"
 "checksum itertools 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)" = "c4a9b56eb56058f43dc66e58f40a214b2ccbc9f3df51861b63d51dec7b65bc3f"
@@ -117,10 +168,16 @@ dependencies = [
 "checksum libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)" = "684f330624d8c3784fb9558ca46c4ce488073a8d22450415c5eb4f4cfb0d11b5"
 "checksum matches 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "efd7622e3022e1a6eaa602c4cea8912254e5582c9c692e9167714182244801b1"
 "checksum newtype_derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ac8cd24d9f185bb7223958d8c1ff7a961b74b1953fd05dba7cc568a63b3861ec"
+"checksum num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "a16a42856a256b39c6d3484f097f6713e14feacd9bfb02290917904fae46c81c"
+"checksum phf 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)" = "0c6afb2057bb5f846a7b75703f90bc1cef4970c35209f712925db7768e999202"
+"checksum phf_shared 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)" = "286385a0e50d4147bce15b2c19f0cf84c395b0e061aaf840898a7bf664c2cfb7"
 "checksum quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0aad603e8d7fb67da22dbdf1f4b826ce8829e406124109e73cf1b2454b93a71c"
 "checksum rust-htslib 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2a8e12821b1eb36fbd3970d52f9ba4b1914f928c762420f44653026ed472c96d"
 "checksum rustc_version 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "c5f5376ea5e30ce23c03eb77cbe4962b988deead10910c372b226388b594c084"
 "checksum semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
+"checksum simplecss 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "135685097a85a64067df36e28a243e94a94f76d829087ce0be34eeb014260c0e"
+"checksum svgdom 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "85195e9d9efa9c5b1d1797e6337514bc855b6eed2d67a321ca4b1ea47bfb65fa"
+"checksum svgparser 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "fe01a24af8c603ba6a423777107a997a159bc2f1c4f987ee849195eb907a8b40"
 "checksum unicode-bidi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "d3a078ebdd62c0e71a709c3d53d2af693fe09fe93fbff8344aebe289b78f9032"
 "checksum unicode-normalization 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e28fa37426fceeb5cf8f41ee273faa7c82c47dc8fba5853402841e665fcd86ff"
 "checksum url 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "f024e241a55f5c88401595adc1d4af0c9649e91da82d0e190fe55950231ae575"

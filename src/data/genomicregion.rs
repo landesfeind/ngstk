@@ -1,5 +1,3 @@
-use std::ops;
-
 pub use data::genomicrange::*;
 pub use data::dna::*;
 

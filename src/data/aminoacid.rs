@@ -154,6 +154,34 @@ impl From<Aminoacid3> for Aminoacid {
         }
     }
 }
+impl fmt::Display for Aminoacid3 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+                Aminoacid3::Ala     => write!(f, "Ala"),
+                Aminoacid3::Arg     => write!(f, "Arg"),
+                Aminoacid3::Asn     => write!(f, "Asn"),
+                Aminoacid3::Asp     => write!(f, "Asp"),
+                Aminoacid3::Cys     => write!(f, "Cys"),
+                Aminoacid3::Glu     => write!(f, "Glu"),
+                Aminoacid3::Gln     => write!(f, "Gln"),
+                Aminoacid3::Gly     => write!(f, "Gly"),
+                Aminoacid3::His     => write!(f, "His"),
+                Aminoacid3::Ile     => write!(f, "Ile"),
+                Aminoacid3::Leu     => write!(f, "Leu"),
+                Aminoacid3::Lys     => write!(f, "Lys"),
+                Aminoacid3::Met     => write!(f, "Met"),
+                Aminoacid3::Phe     => write!(f, "Phe"),
+                Aminoacid3::Pro     => write!(f, "Pro"),
+                Aminoacid3::Ser     => write!(f, "Ser"),
+                Aminoacid3::Thr     => write!(f, "Thr"),
+                Aminoacid3::Trp     => write!(f, "Trp"),
+                Aminoacid3::Tyr     => write!(f, "Tyr"),
+                Aminoacid3::Val     => write!(f, "Val"),
+                Aminoacid3::Stop    => write!(f, " * "),
+                _                   => write!(f, " ? ")
+        }
+    }
+}
 
 impl From<Aminoacid> for Aminoacid3 {
     fn from(n: Aminoacid) -> Aminoacid3 {

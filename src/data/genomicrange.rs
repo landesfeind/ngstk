@@ -1,8 +1,6 @@
 use std::result;
 use std::fmt;
-use std::ops;
 use std::str::FromStr;
-use std::error::Error;
 
 use data::genomicregion::GenomicRegion;
 
@@ -101,7 +99,7 @@ impl FromStr for GenomicRange {
         let offset = match iter.next() {
             None => return Err("Can not extract offset position"),
             Some(s) => match s.parse::<usize>() {
-                    Err(e) => return Err("Can not parse offset position"),
+                    Err(_) => return Err("Can not parse offset position"),
                     Ok(v) => match v > 0 {
                         false => return Err("Start position must be 1 or larger"),
                         true => v
@@ -113,7 +111,7 @@ impl FromStr for GenomicRange {
         let end = match iter.next() {
             None => return Err("Can not extract end position"),
             Some(s) => match s.parse::<usize>() {
-                    Err(e) => return Err("Can not parse end position"),
+                    Err(_) => return Err("Can not parse end position"),
                     Ok(v) => match v >= offset {
                         false => return Err("End position must be greater or equal start position"),
                         true => v

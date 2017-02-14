@@ -1,12 +1,16 @@
 
 mod data;
+mod svg;
 
-use data::sequence::*;
 use data::dna::*;
 use data::rna::*;
 use data::aminoacid::*;
 
 fn main() {
+    sketch();
+}
+
+fn translate(){
     let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
     let tra = RnaSequence::from(&seq);
     let pep = Peptide::from(&seq);
@@ -18,4 +22,9 @@ fn main() {
     println!("All   : {:?}", seq.all_codons_in_all_frames());
     println!("-> {}", tra);
     println!("-> {}", pep);
+}
+
+fn sketch(){
+    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+    println!("{}", svg::sketch(&seq, 100f64, 10f64));
 }
