@@ -29,7 +29,7 @@ impl GenomicRange {
     /// Fails if `start` is larger than `end`.
     ///
     pub fn new(refname: &str, start: usize, end: usize) -> GenomicRange {
-        assert!(start > end);
+        assert!(start <= end);
         GenomicRange { refname: refname.to_string(), start: start, end: end }
     }
 
@@ -48,6 +48,9 @@ impl GenomicRange {
         self.end
     }
 
+    pub fn length(&self) -> usize {
+        self.end - self.start + 1
+    }
 }
 
 impl fmt::Display for GenomicRange {
@@ -56,42 +59,42 @@ impl fmt::Display for GenomicRange {
     }
 }
 
-#[derive(Clone,Debug)]
-pub struct ParseGenomicRangeError (String);
-
-impl Error for ParseGenomicRangeError {
-    fn description(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl fmt::Display for ParseGenomicRangeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
 impl FromStr for GenomicRange {
-    type Err = ParseGenomicRangeError;
+    type Err = &'static str;
 
     fn from_str(s: &str) -> result::Result<Self,Self::Err> { 
-        let v1 : Vec<&str> = s.split(":").collect();
-        if v1.len() != 2 {
-            return Err( ParseGenomicRangeError (String::from("Can not parse genomic range string: can not extract reference name")) )
-        }
-        let v2 : Vec<str> = v1[1].split("-").collect();
-        if v2.len() != 2 {
-            return Err( ParseGenomicRangeError (String::from("Can not parse genomic range string: need two positions ")) )
-        }
+        let mut iter = s.split(|c| c == ':' || c == '-' );
         
-        let v3 : Vec<usize> = v2.iter().map( |n| n.parse::<usize>().unwrap() ).collect();
-        if v3[0] == 0 || v3[1] == 0 {
-            return Err( ParseGenomicRangeError (String::from("Can not parse genomic range string: position must be larger than zero")) )
-        }
-        if v3[0] < v3[1] {
-            return Err( ParseGenomicRangeError (String::from("Can not parse genomic range string: fist position must be lower than second position")) )
-        }
+        let chr = match iter.next() {
+            None => return Err("Can not extract reference name"),
+            Some(s) => s.to_string()
+        };
 
-        Ok( GenomicRange { refname: v1[0].to_string(), start: v3[0]-1, end: v3[1]-1 } )
+        let start = match iter.next() {
+            None => return Err("Can not extract start position"),
+            Some(s) => match s.parse::<usize>() {
+                    Err(e) => return Err("Can not parse start position"),
+                    Ok(v) => match v > 0 {
+                        false => return Err("Start position must be 1 or larger"),
+                        true => v
+                    }
+                }
+        
+        };
+
+        let end = match iter.next() {
+            None => return Err("Can not extract end position"),
+            Some(s) => match s.parse::<usize>() {
+                    Err(e) => return Err("Can not parse end position"),
+                    Ok(v) => match v >= start {
+                        false => return Err("End position must be greater or equal start position"),
+                        true => v
+                    }
+                }
+        
+        };
+
+        Ok( GenomicRange::new(chr.as_ref(), start-1, end-1) )
     }
 }
 
@@ -104,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_string_parse_1(){
-        let rg : Result<GenomicRange, ParseGenomicRangeError> = "chr1:1232-121144".parse();
+        let rg : Result<GenomicRange, &str> = "chr1:1232-121144".parse();
         assert!(rg.is_ok());
         let g = rg.unwrap();
         assert_eq!(g.refname(), "chr1");
@@ -114,8 +117,19 @@ mod tests {
 
     #[test]
     fn test_string_parse_2(){
-        let rg : Result<GenomicRange, ParseGenomicRangeError> = "chr1:0-123".parse();
+        let rg : Result<GenomicRange, &str> = "chr1:0-123".parse();
         assert!(! rg.is_ok());
+    }
+
+  #[test]
+    fn test_string_parse_3(){
+        let rg : Result<GenomicRange, &str> = "chr1:1-1".parse();
+        assert!(rg.is_ok());
+        let g = rg.unwrap();
+        assert_eq!(g.refname(), "chr1");
+        assert_eq!(g.start(), 0);
+        assert_eq!(g.end(), 0);
+        assert_eq!(g.length(), 1);
     }
 
 }
