@@ -4,6 +4,8 @@ use std::ops;
 use std::str::FromStr;
 use std::error::Error;
 
+use data::genomicregion::GenomicRegion;
+
 /// Implements a genomic range determined by a genomic 
 /// reference name (e.g., a specific chromosome), a offset
 /// and an end. The offset end 
@@ -46,6 +48,8 @@ impl GenomicRange {
         self.length
     }
 
+
+    /// Intersects two genomic regions
     pub fn intersect(&self, other: &GenomicRange) -> Option<GenomicRange> {
         if self.refname() != other.refname() {
             return None
@@ -74,6 +78,14 @@ impl fmt::Display for GenomicRange {
         write!(f, "{}:{}-{}", self.refname, self.offset + 1, self.offset + self.length + 1)
     }
 }
+
+
+impl<'a> From<&'a GenomicRegion> for GenomicRange {
+    fn from(gr: &GenomicRegion) -> GenomicRange {
+        GenomicRange { refname: gr.refname().to_string(), offset: gr.offset(), length: gr.length() }
+    }
+}
+
 
 impl FromStr for GenomicRange {
     type Err = &'static str;

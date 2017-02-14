@@ -14,12 +14,8 @@ pub struct GenomicRegion {
 }
 
 impl GenomicRegion {
+
     /// Create a new genomic region. 
-    ///
-    /// # Panics
-    ///
-    /// Fails if length of `range` is not equal to the length of the `seq`.
-    ///
     pub fn new(refname: &str, offset: usize, seq: DnaSequence) -> Self {
         GenomicRegion { refname: refname.to_string(), offset: offset, sequence: seq }
     }
@@ -38,12 +34,18 @@ impl GenomicRegion {
     pub fn end(&self) -> usize {
         self.offset() + self.length()
     }
+
+    /// Returns the length of the genomic region
     pub fn length(&self) -> usize {
         self.sequence.length()
     }
+
+    /// Returns true of the sequence is empty, i.e., has a length of zero.
     pub fn is_empty(&self) -> bool {
         self.length() == 0
     }
+
+    /// Returns a reference to the actual sequence
     pub fn sequence(&self) -> &DnaSequence {
         &self.sequence
     }
@@ -58,6 +60,11 @@ impl GenomicRegion {
         }
     }
 
+    /// Extract the pure sub sequence of from the region
+    ///
+    /// The `offset` must be given relative to `self.offset()`. If the parameters result in
+    /// the putative extraction of region outside of  the region that is covered by this
+    /// GenomicRegion slice, then `None` is returned.
     pub fn subsequence(&self, offset: usize, length: usize) -> Option<DnaSequence> {
         match offset + length <= self.sequence.length() {
             false => None,
