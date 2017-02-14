@@ -5,13 +5,13 @@ use std::str::FromStr;
 use std::error::Error;
 
 /// Implements a genomic range determined by a genomic 
-/// reference name (e.g., a specific chromosome), a start
-/// and an end. The start end 
+/// reference name (e.g., a specific chromosome), a offset
+/// and an end. The offset end 
 #[derive(Clone,Debug)]
 pub struct GenomicRange {
     refname: String, 
-    start: usize, 
-    end: usize
+    offset: usize, 
+    length: usize
 }
 
 impl GenomicRange {
@@ -20,17 +20,11 @@ impl GenomicRange {
     /// # Arguments
     ///
     /// * `refname` - the name of the reference template sequence
-    /// * `start` - the first position that is part of the genomic range (indexing starts at 0)
-    /// * `end` - the last position that is part of the genomic range (indexing starts at 0). Must
-    /// be greater or equal than `start`
+    /// * `offset` - the first position that is part of the genomic range (indexing starts at 0)
+    /// * `length` - the length of the genomic range
     ///
-    /// # Panic
-    ///
-    /// Fails if `start` is larger than `end`.
-    ///
-    pub fn new(refname: &str, start: usize, end: usize) -> GenomicRange {
-        assert!(start <= end);
-        GenomicRange { refname: refname.to_string(), start: start, end: end }
+    pub fn new(refname: &str, offset: usize, length: usize) -> GenomicRange {
+        GenomicRange { refname: refname.to_string(), offset: offset, length: length }
     }
 
     /// Returns the reference sequence name
@@ -38,54 +32,46 @@ impl GenomicRange {
         self.refname.as_str()
     }
 
-    /// Returns the start position of the genomic range (the first position is 0)
-    pub fn start(&self) -> usize {
-        self.start
+    /// Returns the offset position of the genomic range (indexing starts with 0, inclusive)
+    pub fn offset(&self) -> usize {
+        self.offset
     }
 
-    /// Returns the end position of the genomic range
+    /// Returns the end position of the genomic range (indexing starts with 0, exclusive)
     pub fn end(&self) -> usize{
-        self.end
+        self.offset + self.length
     }
         
     pub fn length(&self) -> usize {
-        self.end - self.start
+        self.length
     }
+
+    pub fn intersect(&self, other: &GenomicRange) -> Option<GenomicRange> {
+        if self.refname() != other.refname() {
+            return None
+        }
+
+        let s = match self.offset() > other.offset() {
+                true => self.offset(),
+                false => other.offset()
+            };
+        let e = match self.end() < other.end() {
+                true => self.end(),
+                false => other.end()
+            };
+
+        if e < s {
+            return None
+        }
+        
+        Some( GenomicRange::new(self.refname().clone(), s, e) )
+    }
+
 }
 
 impl fmt::Display for GenomicRange {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}-{}", self.refname, self.start + 1, self.end + 1)
-    }
-}
-
-impl ops::BitAnd for GenomicRange {
-    type Output = Self;
-
-    fn bitand(self, rhs: GenomicRange) -> Self::Output {
-        match self.refname() == rhs.refname() {
-            true => self & (rhs.start() .. rhs.end()),
-            false => GenomicRange::new(self.refname().clone(), self.start(), self.start())
-        }
-
-    }
-}
-impl ops::BitAnd<ops::Range<usize>> for GenomicRange {
-    type Output = Self;
-
-    fn bitand(self, rhs: ops::Range<usize>) -> Self::Output {
-        let s = match self.start > rhs.start {
-                true => self.start,
-                false => rhs.start
-            };
-        let e = match self.end < rhs.end {
-                true => self.end,
-                false => rhs.end
-            };
-        match s < e {
-            true => GenomicRange::new( self.refname().clone(), s, e),
-            false => GenomicRange::new( self.refname().clone(), s, s)
-        }
+        write!(f, "{}:{}-{}", self.refname, self.offset + 1, self.offset + self.length + 1)
     }
 }
 
@@ -100,10 +86,10 @@ impl FromStr for GenomicRange {
             Some(s) => s.to_string()
         };
 
-        let start = match iter.next() {
-            None => return Err("Can not extract start position"),
+        let offset = match iter.next() {
+            None => return Err("Can not extract offset position"),
             Some(s) => match s.parse::<usize>() {
-                    Err(e) => return Err("Can not parse start position"),
+                    Err(e) => return Err("Can not parse offset position"),
                     Ok(v) => match v > 0 {
                         false => return Err("Start position must be 1 or larger"),
                         true => v
@@ -116,7 +102,7 @@ impl FromStr for GenomicRange {
             None => return Err("Can not extract end position"),
             Some(s) => match s.parse::<usize>() {
                     Err(e) => return Err("Can not parse end position"),
-                    Ok(v) => match v >= start {
+                    Ok(v) => match v >= offset {
                         false => return Err("End position must be greater or equal start position"),
                         true => v
                     }
@@ -124,7 +110,7 @@ impl FromStr for GenomicRange {
         
         };
 
-        Ok( GenomicRange::new(chr.as_ref(), start-1, end) )
+        Ok( GenomicRange::new(chr.as_ref(), offset-1, end-offset+1) )
     }
 }
 
@@ -137,12 +123,12 @@ mod tests {
 
     #[test]
     fn test_string_parse_1(){
-        let rg : Result<GenomicRange, &str> = "chr1:1232-121144".parse();
+        let rg : Result<GenomicRange, &str> = "chr1:1232-1235".parse();
         assert!(rg.is_ok());
         let g = rg.unwrap();
         assert_eq!(g.refname(), "chr1");
-        assert_eq!(g.start(), 1231);
-        assert_eq!(g.end(), 121144);
+        assert_eq!(g.offset(), 1231);
+        assert_eq!(g.length(), 4);
     }
 
     #[test]
@@ -157,12 +143,8 @@ mod tests {
         assert!(rg.is_ok());
         let g = rg.unwrap();
         assert_eq!(g.refname(), "chr1");
-        assert_eq!(g.start(), 0);
+        assert_eq!(g.offset(), 0);
         assert_eq!(g.end(), 1);
         assert_eq!(g.length(), 1);
-    }
-
-    #[test]
-    fn test_bitand(){
     }
 }

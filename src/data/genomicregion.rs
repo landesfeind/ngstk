@@ -5,10 +5,11 @@ pub use data::dna::*;
 
 /// A genomic regions combines a genomic range with the actual DNA sequence. 
 ///
-/// **Important:** Genomic coordinates starting with 0
+/// **Important:** Genomic coordinates offseting with 0
 #[derive(Clone,Debug)]
 pub struct GenomicRegion {
-    range: GenomicRange,
+    refname: String,
+    offset: usize,
     sequence: DnaSequence
 }
 
@@ -19,22 +20,26 @@ impl GenomicRegion {
     ///
     /// Fails if length of `range` is not equal to the length of the `seq`.
     ///
-    pub fn new(range: GenomicRange, seq: DnaSequence) -> Self {
-        assert_eq!( range.length(), seq.length() );
-        GenomicRegion { range: range, sequence: seq }
+    pub fn new(refname: &str, offset: usize, seq: DnaSequence) -> Self {
+        GenomicRegion { refname: refname.to_string(), offset: offset, sequence: seq }
     }
  
+    /// Returns the genomic region name 
     pub fn refname(&self) -> &str {
-        self.range.refname()
+        self.refname.as_ref()
     }
-    pub fn start(&self) -> usize {
-        self.range.start()
+
+    /// Returns the genomic offset position (indexing starts with 0, inclusive)
+    pub fn offset(&self) -> usize {
+        self.offset
     }
+
+    /// Returns the genomic end position (indexing starts with 0, inclusive)
     pub fn end(&self) -> usize {
-        self.range.end()
+        self.offset() + self.length()
     }
     pub fn length(&self) -> usize {
-        self.end() - self.start() + 1
+        self.sequence.length()
     }
     pub fn is_empty(&self) -> bool {
         self.length() == 0
@@ -42,24 +47,23 @@ impl GenomicRegion {
     pub fn sequence(&self) -> &DnaSequence {
         &self.sequence
     }
-}
 
-impl ops::BitAnd<ops::Range<usize>> for GenomicRegion {
-    type Output = Self;
-
-    fn bitand(self, rhs: ops::Range<usize>) -> Self::Output {
-        let r = self.range.clone() & rhs;
-        let s = DnaSequence::from( self.sequence[ (r.start() - self.range.start()) .. (r.end() - self.range.start()) ].to_vec() );
-        GenomicRegion::new(r, s)
+    /// Extracts a sub-region of this genomic region. The sub-sequence starts
+    /// at `offset() + offset` and will contain `length` nucleotides. If the
+    /// requested region is out of range, `None` is returned.
+    pub fn subregion(&self, offset: usize, length: usize) -> Option<GenomicRegion> {
+        match self.subsequence(offset, length) {
+            Some(seq) => Some(GenomicRegion::new(self.refname(), self.offset() + offset, seq)),
+            None => None
+        }
     }
-}
 
-impl From<DnaSequence> for GenomicRegion {
-    
-    fn from(seq: DnaSequence) -> GenomicRegion {
-        GenomicRegion::new(GenomicRange::new("unknown", 0, seq.length()), seq)
+    pub fn subsequence(&self, offset: usize, length: usize) -> Option<DnaSequence> {
+        match offset + length <= self.sequence.length() {
+            false => None,
+            true  => Some(DnaSequence::from( self.sequence[ (offset) .. (offset+length) ].to_vec() ))
+        }
     }
-    
 }
 
 #[cfg(test)]
@@ -70,11 +74,13 @@ mod tests {
 
     #[test]
     fn test_subsequence(){
-        let gr = GenomicRegion::from(DnaSequence::from("ACGTTGCA"));
+        let gr = GenomicRegion::new("unknown", 0usize, DnaSequence::from("ACGTTGCA"));
 
-        assert_eq!( (gr.clone() & (0..1)).sequence().clone(), DnaSequence::from("A") );
-        assert_eq!( (gr.clone() & (1..1)).sequence().clone(), DnaSequence::from("") );
-        assert_eq!( (gr.clone() & (1..2)).sequence().clone(), DnaSequence::from("C") );
-        assert_eq!( (gr.clone() & (4..8)).sequence().clone(), DnaSequence::from("TGCA") );
+        assert_eq!( gr.subsequence(0,1), Some(DnaSequence::from("A")) );
+        assert_eq!( gr.subsequence(1,0), Some(DnaSequence::from("")) );
+        assert_eq!( gr.subsequence(1,2), Some(DnaSequence::from("CG")) );
+        assert_eq!( gr.subsequence(4,4), Some(DnaSequence::from("TGCA")) );
+        assert_eq!( gr.subsequence(4,5), None);
+        assert_eq!( gr.subsequence(0,9), None);
     }
 }
