@@ -27,6 +27,16 @@ pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
     fn as_vec(&self) -> Vec<T> {
         self.iter().map(|x| (*x).clone()).collect()
     }
+
+    fn subsequence(&self, offset: usize, length: usize) -> Option<Self> {
+        if offset + length > self.length() {
+            None
+        } 
+        else {
+            let v : Vec<T> = self.iter().skip(offset).take(length).map(|t| t.clone()).collect();
+            Some(Self::from( v ))
+        }
+    }
 }
 
 //#[cfg(test)]

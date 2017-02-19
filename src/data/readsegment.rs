@@ -10,6 +10,8 @@ pub struct ReadSegment {
     qualities: Option<Vec<i32>>,
     /// The offset with respect to the read position
     offset: Option<usize>,
+    /// The length of the reference that is covered by this read segment
+    ref_length: Option<usize>
 }
 
 impl ReadSegment {
@@ -22,6 +24,13 @@ impl ReadSegment {
         self.sequence.length()
     }
 
+    pub fn reference_length(&self) -> usize {
+        match self.ref_length {
+            Some(r) => r,
+            None => 0usize
+        }
+    }
+
     /// Returns the 
     pub fn qualities(&self) -> &Option<Vec<i32>> {
         &self.qualities
@@ -32,17 +41,6 @@ impl ReadSegment {
         self.qualities = Some(quals.clone());
     }
 
-    pub fn offset(&self) -> Option<usize> {
-        self.offset
-    }
-
-    pub fn set_offset(&mut self, offset: usize) {
-        self.offset = Some(offset)
-    }
-
-    pub fn is_aligned(&self) -> bool {
-        self.offset.is_some()
-    }
 }
 
 impl From<DnaSequence> for ReadSegment {
@@ -51,6 +49,7 @@ impl From<DnaSequence> for ReadSegment {
             sequence: seq,
             qualities: None,
             offset: None,
+            ref_length: None
         }
     }
 }
