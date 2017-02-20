@@ -1,92 +1,91 @@
-use data::dna::DnaSequence;
-use data::sequence::Sequence;
+use data::sequence::*;
+use data::template::*;
+use data::dna::*;
+use data::genomicregion::*;
 
-/// A segment is a DNASequence with 
 #[derive(Clone,Debug)]
 pub struct ReadSegment {
+    template: GenomicRegion,
     /// The nucleotides of this read segment
     sequence: DnaSequence, 
     /// The corresponding 
     qualities: Option<Vec<i32>>,
-    /// The offset with respect to the read position
+    /// The absolute offset starting at base 0 of the genomic region
     offset: Option<usize>,
     /// The length of the reference that is covered by this read segment
-    ref_length: Option<usize>
+    ref_length: Option<usize>,
+    /// Indicates if the alignment direction is forward or reverse. 
+    is_forward: bool
 }
 
 impl ReadSegment {
 
-    pub fn sequence(&self) -> &DnaSequence {
-        &self.sequence
-    }
-
-    pub fn length(&self) -> usize {
-        self.sequence.length()
-    }
-
-    pub fn reference_length(&self) -> usize {
-        match self.ref_length {
-            Some(r) => r,
-            None => 0usize
+    /// Creates a new unmapped read segment
+    pub fn new(t: GenomicRegion, seq: DnaSequence) -> ReadSegment {
+        ReadSegment { 
+            template: t,
+            sequence: seq,
+            qualities: None,
+            offset: None,
+            ref_length: None,
+            is_forward: true
         }
     }
 
-    /// Returns the 
+    /// Creates a new aligned read segment
+    ///
+    ///  * t: the genomic region against which the alignment was performed
+    ///  * seq: the sequence of the segment
+    ///  * offset: the absolute offset with respect to base 0 of the genomic region
+    ///  * template_length: the length of the template length that is covered by this alignment
+    ///
+    pub fn new_aligned(t: GenomicRegion, seq: DnaSequence, offset: usize, template_length: usize) -> ReadSegment {
+        assert!( offset + template_length < t.length() );
+        ReadSegment { 
+            template: t,
+            sequence: seq,
+            qualities: None,
+            offset: Some(offset),
+            ref_length: Some(template_length),
+            is_forward: true
+        }
+    }
+
+
+    /// Returns the optional per-base qualitities of the sequence.
+    /// The length of the returned vector equals the length of the 
+    /// aligned sequence.
     pub fn qualities(&self) -> &Option<Vec<i32>> {
         &self.qualities
     }
 
-    pub fn set_qualities(&mut self, quals: &Vec<i32>) {
-        assert_eq!(self.length(), quals.len() as usize);
-        self.qualities = Some(quals.clone());
+    /// Set the per-base sequencing qualities of the aligned sequence.
+    /// 
+    /// # Panics
+    /// 
+    /// If the length of the `quals` vector does not equal the length of the
+    /// sequence given in the constructor.
+    pub fn set_qualities(&mut self, quals: Vec<i32>) {
+        assert_eq!(self.sequence.length(), quals.len() as usize);
+        self.qualities = Some(quals);
     }
-
 }
 
-impl From<DnaSequence> for ReadSegment {
-    fn from(seq: DnaSequence) -> ReadSegment {
-        ReadSegment { 
-            sequence: seq,
-            qualities: None,
-            offset: None,
-            ref_length: None
+impl TemplateAlignment<DnaNucleotide, DnaSequence, GenomicRegion> for ReadSegment {
+    fn offset(&self) -> Option<usize> {
+        self.offset
+    }
+    fn template(&self) -> &GenomicRegion {
+        &self.template
+    }
+    fn template_alignment_length(&self) -> usize {
+        match self.ref_length {
+            Some(rl) => rl,
+            None => 0usize
         }
     }
-}
-
-impl<'a> From<&'a DnaSequence> for ReadSegment {
-    fn from(seq: &DnaSequence) -> ReadSegment {
-        ReadSegment::from( seq.clone() )
+    fn aligned_sequence(&self) -> &DnaSequence {
+        &self.sequence
     }
 }
 
-#[cfg(test)]
-mod tests {
-
-    use data::readsegment::ReadSegment;
-    use data::dna::DnaSequence;
-    use data::sequence::Sequence;
-
-    #[test]
-    fn test_from_dnasequence(){
-        let seq = DnaSequence::from("ACGTTGCAACGT");
-        let rs  = ReadSegment::from(&seq);
-
-        assert_eq!(rs.length(), seq.length());
-        assert_eq!(rs.sequence().clone(), seq);
-        assert_eq!(rs.offset(), None);
-    }
-
-    #[test]
-    fn test_offset_setter(){
-        let seq = DnaSequence::from("ACGTTGCAACGT");
-        let mut rs  = ReadSegment::from(&seq);
-
-        assert_eq!(rs.is_aligned(), false);
-        assert_eq!(rs.offset(), None);
-        rs.set_offset(100usize);
-        assert_eq!(rs.is_aligned(), true);
-        assert_eq!(rs.offset(), Some(100usize));
-    }
-
-}

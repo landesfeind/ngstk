@@ -3,7 +3,7 @@ use std::ops;
 use std::fmt;
 use std::slice;
 
-pub use data::sequence::{SequenceElement,Sequence};
+use data::sequence::{SequenceElement,Sequence};
 
 
 #[derive(Clone,Debug)]
@@ -201,6 +201,16 @@ impl Sequence<DnaNucleotide> for DnaSequence {
 
     fn iter(&self) -> slice::Iter<DnaNucleotide> {
         self.nucleotides.iter()
+    }
+
+    fn subsequence<DnaSequence>(&self, offset:usize, length: usize) -> Option<DnaSequence> {
+        if offset + length < self.length() {
+            let v : Vec<DnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
+            Some( DnaSequence::from(v) )
+        }
+        else {
+            None
+        }
     }
 }
 

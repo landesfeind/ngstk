@@ -1,5 +1,5 @@
-pub use data::template::*;
-pub use data::dna::*;
+use data::template::*;
+use data::dna::*;
 
 /// A genomic regions combines a genomic range with the actual DNA sequence. 
 ///
@@ -12,63 +12,10 @@ pub struct GenomicRegion {
 }
 
 impl GenomicRegion {
-
     /// Create a new genomic region. 
     pub fn new(refname: &str, offset: usize, seq: DnaSequence) -> Self {
         GenomicRegion { refname: refname.to_string(), offset: offset, sequence: seq }
     }
- 
-//    /// Returns the genomic region name 
-//    pub fn refname(&self) -> &str {
-//        self.refname.as_ref()
-//    }
-//
-//    /// Returns the genomic offset position (indexing starts with 0, inclusive)
-//    pub fn offset(&self) -> usize {
-//        self.offset
-//    }
-//
-//    /// Returns the genomic end position (indexing starts with 0, inclusive)
-//    pub fn end(&self) -> usize {
-//        self.offset() + self.length()
-//    }
-//
-//    /// Returns the length of the genomic region
-//    pub fn length(&self) -> usize {
-//        self.sequence.length()
-//    }
-//
-//    /// Returns true of the sequence is empty, i.e., has a length of zero.
-//    pub fn is_empty(&self) -> bool {
-//        self.length() == 0
-//    }
-//
-//    /// Returns a reference to the actual sequence
-//    pub fn sequence(&self) -> &DnaSequence {
-//        &self.sequence
-//    }
-//
-//    /// Extracts a sub-region of this genomic region. The sub-sequence starts
-//    /// at `offset() + offset` and will contain `length` nucleotides. If the
-//    /// requested region is out of range, `None` is returned.
-//    pub fn subregion(&self, offset: usize, length: usize) -> Option<GenomicRegion> {
-//        match self.subsequence(offset, length) {
-//            Some(seq) => Some(GenomicRegion::new(self.refname(), self.offset() + offset, seq)),
-//            None => None
-//        }
-//    }
-//
-//    /// Extract the pure sub sequence of from the region
-//    ///
-//    /// The `offset` must be given relative to `self.offset()`. If the parameters result in
-//    /// the putative extraction of region outside of  the region that is covered by this
-//    /// GenomicRegion slice, then `None` is returned.
-//    pub fn subsequence(&self, offset: usize, length: usize) -> Option<DnaSequence> {
-//        match offset + length <= self.sequence.length() {
-//            false => None,
-//            true  => Some(DnaSequence::from( self.sequence[ (offset) .. (offset+length) ].to_vec() ))
-//        }
-//    }
 }
 
 impl Template<DnaNucleotide, DnaSequence> for GenomicRegion {
@@ -83,8 +30,6 @@ impl Template<DnaNucleotide, DnaSequence> for GenomicRegion {
     fn sequence(&self) -> &DnaSequence {
         &self.sequence
     }
-
-
 }
 
 #[cfg(test)]

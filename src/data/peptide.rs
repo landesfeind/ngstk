@@ -28,10 +28,6 @@ impl Peptide {
     pub fn aminoacids(&self) -> &Vec<Aminoacid> {
         &self.aminoacids
     }
-
-    pub fn subsequence(&self, from: usize, length: usize) -> Self {
-        return Peptide { aminoacids: self.aminoacids.iter().skip(from).take(length).map(|n| n.clone() ).collect() }
-    }
 }
 
 

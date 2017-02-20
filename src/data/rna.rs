@@ -155,6 +155,17 @@ impl Sequence<RnaNucleotide> for RnaSequence {
     fn iter(&self) -> slice::Iter<RnaNucleotide> {
         self.nucleotides.iter()
     }
+
+    fn subsequence<RnaSequence>(&self, offset:usize, length: usize) -> Option<RnaSequence> {
+        if offset + length < self.length() {
+            let v : Vec<RnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
+            let r : RnaSequence = RnaSequence::from(v);
+            Some( r )
+        }
+        else {
+            None
+        }
+    }
 }
 
 impl PartialOrd for RnaSequence {

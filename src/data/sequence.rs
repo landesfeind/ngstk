@@ -9,11 +9,8 @@ use std::slice;
 pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}
 
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
-pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<T>> + Into<Vec<T>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug + Add {
-
-    /// Constructs a new empty sequence
-    fn new_empty() -> Self;
-
+pub trait Sequence<E: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<E>> + Into<Vec<E>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug + Add {
+   
     /// Returns the length of the DNA sequence which is the number of nucleotides in it.
     fn length(&self) -> usize;
 
@@ -22,22 +19,33 @@ pub trait Sequence<T: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
         self.length() == 0
     }
 
-    fn iter(&self) -> slice::Iter<T>;
-
-    fn as_vec(&self) -> Vec<T> {
-        self.iter().map(|x| (*x).clone()).collect()
+    fn as_vec(&self) -> Vec<E> {
+        self.iter().map(|n| (*n).clone()).collect()
     }
 
-    fn subsequence(&self, offset: usize, length: usize) -> Option<Self> {
-        if offset + length > self.length() {
-            None
-        } 
-        else {
-            let v : Vec<T> = self.iter().skip(offset).take(length).map(|t| t.clone()).collect();
-            Some(Self::from( v ))
-        }
-    }
+    fn iter(&self) -> slice::Iter<E>;
 }
+
+
+pub trait SequenceSlice<E: SequenceElement, S: Sequence<E>> : Sequence<E> {
+    fn slice(m: S, offset: usize, length: usize) -> Self;
+    //{
+    //    assert!(offset + length < m.length() );
+    //    SequenceSlice {
+    //        main: m,
+    //        offset: offset,
+    //        length: length
+    //    }
+    //}
+    
+    fn reference_sequence(&self) -> &S;
+
+    fn offset(&self) -> usize;
+
+    // already implemented though Sequence<E>
+    //fn length(&self) -> usize;
+}
+
 
 //#[cfg(test)]
 //mod tests {

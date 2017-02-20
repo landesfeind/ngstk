@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::collections::HashMap;
 
 pub use self::svgdom::*;
+use data::sequence::*;
 use data::dna::*;
 
 struct Scale {

@@ -286,6 +286,16 @@ impl Sequence<Aminoacid> for Peptide {
     fn iter(&self) -> slice::Iter<Aminoacid> {
         self.nucleotides.iter()
     }
+    
+    fn subsequence<Peptide>(&self, offset:usize, length: usize) -> Option<Peptide> {
+        if offset + length < self.length() {
+            let v : Vec<Aminoacid> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
+            Some( Peptide::from(v) )
+        }
+        else {
+            None
+        }
+    }
 }
 
 impl PartialOrd for Peptide {

@@ -7,6 +7,7 @@ pub trait Template<E: SequenceElement, S: Sequence<E>> {
     /// Returns the name of the template sequence
     fn name(&self) -> &str;
 
+    /// Returns the length of the template sequence.
     fn length(&self) -> usize {
         self.sequence().length()
     }
@@ -20,6 +21,7 @@ pub trait Template<E: SequenceElement, S: Sequence<E>> {
         self.offset() + self.length()
     }
 
+    /// returns the sequence of the template (without offset and name functions)
     fn sequence(&self) -> &S;
 
     fn subsequence(&self, offset: usize, length: usize) -> Option<S> {
@@ -30,13 +32,25 @@ pub trait Template<E: SequenceElement, S: Sequence<E>> {
 
 /// A template alignment represents a single part of an alignment like a match, an insertion, or an
 /// deletion.
+///
+/// **Important:** implementations must ensure that the alignment is fully covered by the template
+/// sequence.
 pub trait TemplateAlignment<E: SequenceElement, S: Sequence<E>, T: Template<E,S>> {
+
+    /// The absolute offset of the alignment with regard to the start of the
+    /// template sequence (ignoring the template offset).
+    /// Should return `None` if this object represents a sequence that is not aligned to the 
+    /// reference (i.e., it is "unmapped").
+    fn offset(&self) -> Option<usize>;
 
     /// Returns the template against which this trait is aligned against
     fn template(&self) -> &T;
 
-    /// The offset of the alignment relative to the start of the template.
-    fn template_offset(&self) -> usize;
+    /// The offset of the template. Short for
+    /// `template().offset()`
+    fn template_offset(&self) -> usize {
+        self.template().offset()
+    }
 
     /// Returns the number of elements that
     fn template_alignment_length(&self) -> usize;
@@ -47,10 +61,23 @@ pub trait TemplateAlignment<E: SequenceElement, S: Sequence<E>, T: Template<E,S>
         self.template().subsequence(self.template_offset(), self.template_alignment_length()).unwrap()
     }
 
+    /// The offset of the alignment relative to the start of the template.
+    fn offset_relative(&self) -> Option<usize> {
+        match self.offset() {
+            Some(o) => Some(o - self.template_offset()),
+            None => None
+        }
+    }
+
     /// Returns the template against which this trait is aligned against
     fn aligned_sequence(&self) -> &S;
 
-    fn is_aligned(&self) -> bool;
+    /// Returns `true` is this alignment is truly aligned to the template,
+    /// i.e., there exists a defined offset
+    fn is_aligned(&self) -> bool {
+        self.offset().is_some() && (
+            self.template_alignment_length() > 0 || self.aligned_sequence().length() > 0 )
+    }
 
     /// Returns `true` if the template sequence and the aligned sequence match.
     /// For a match, the template sequence and the aligned sequence must be identical.
