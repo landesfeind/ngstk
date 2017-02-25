@@ -3,7 +3,7 @@ use std::ops;
 use std::fmt;
 use std::slice;
 
-use data::sequence::{SequenceElement,Sequence};
+use sequence::{SequenceElement,Sequence};
 
 
 #[derive(Clone,Debug)]
@@ -288,8 +288,8 @@ impl fmt::Display for DnaSequence {
 
 #[cfg(test)]
 mod tests {
-    use data::dna::DnaNucleotide;
-    use data::dna::DnaSequence;
+    use dna::DnaNucleotide;
+    use dna::DnaSequence;
     
     #[test]
     fn test_a() {

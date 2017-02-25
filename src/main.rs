@@ -1,10 +1,8 @@
-
-mod data;
 mod svg;
 
-use data::dna::*;
-use data::rna::*;
-use data::aminoacid::*;
+use dna::*;
+use rna::*;
+use aminoacid::*;
 
 fn main() {
     sketch();

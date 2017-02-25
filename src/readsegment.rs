@@ -1,7 +1,7 @@
-use data::sequence::*;
-use data::template::*;
-use data::dna::*;
-use data::genomicregion::*;
+use sequence::*;
+use template::*;
+use dna::*;
+use genomicregion::*;
 
 #[derive(Clone,Debug)]
 pub struct ReadSegment {

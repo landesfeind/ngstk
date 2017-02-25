@@ -1,5 +1,5 @@
-use data::template::*;
-use data::dna::*;
+use template::*;
+use dna::*;
 
 /// A genomic regions combines a genomic range with the actual DNA sequence. 
 ///
@@ -35,9 +35,9 @@ impl Template<DnaNucleotide, DnaSequence> for GenomicRegion {
 #[cfg(test)]
 mod tests {
     
-    use data::dna::*;
-    use data::template::*;
-    use data::genomicregion::GenomicRegion;
+    use dna::*;
+    use template::*;
+    use genomicregion::GenomicRegion;
 
     #[test]
     fn test_subsequence(){

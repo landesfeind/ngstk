@@ -2,8 +2,8 @@ use std::fmt;
 use std::ops;
 use std::slice;
 use std::cmp::{Ord,Ordering};
-use data::sequence::{Sequence,SequenceElement};
-use data::dna::{DnaNucleotide,DnaCodon,DnaSequence};
+use sequence::{Sequence,SequenceElement};
+use dna::{DnaNucleotide,DnaCodon,DnaSequence};
 
 #[derive(Clone,Debug)]
 pub enum Aminoacid  { A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V, Unknown, Stop }

@@ -50,7 +50,7 @@ pub trait SequenceSlice<E: SequenceElement, S: Sequence<E>> : Sequence<E> {
 //#[cfg(test)]
 //mod tests {
 //    
-//    use data::sequence::*;
+//    use sequence::*;
 //
 //    #[test]
 //    fn test_from_vec(){

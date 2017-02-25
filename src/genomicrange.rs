@@ -2,7 +2,7 @@ use std::result;
 use std::fmt;
 use std::str::FromStr;
 
-use data::genomicregion::GenomicRegion;
+use genomicregion::GenomicRegion;
 
 /// Implements a genomic range determined by a genomic 
 /// reference name (e.g., a specific chromosome), a offset
@@ -129,7 +129,7 @@ impl FromStr for GenomicRange {
 #[cfg(test)]
 mod tests {
 
-    use data::genomicrange::*;
+    use genomicrange::*;
 
     #[test]
     fn test_string_parse_1(){

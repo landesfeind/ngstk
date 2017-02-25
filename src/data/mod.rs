@@ -1,9 +1,0 @@
-pub mod sequence;
-pub mod rna;
-pub mod dna;
-pub mod aminoacid;
-pub mod template;
-pub mod genomicregion;
-pub mod readsegment;
-pub mod read;
-//pub mod pileup;

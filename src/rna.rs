@@ -2,8 +2,8 @@ use std::fmt;
 use std::cmp::{Ord,Ordering};
 use std::ops;
 use std::slice;
-use data::sequence::{SequenceElement,Sequence};
-use data::dna::{DnaNucleotide,DnaSequence};
+use sequence::{SequenceElement,Sequence};
+use dna::{DnaNucleotide,DnaSequence};
 
 #[derive(Clone,Debug)]
 pub enum RnaNucleotide {
@@ -248,7 +248,7 @@ impl fmt::Display for RnaSequence {
 #[cfg(test)]
 mod tests {
 
-    use data::rna::RnaNucleotide;
+    use rna::RnaNucleotide;
     
     #[test]
     fn test_a() {

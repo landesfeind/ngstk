@@ -1,6 +1,6 @@
 
 
-use data::genomicregion::GenomicRegion;
+use genomicregion::GenomicRegion;
 
 
 pub struct Transcript {

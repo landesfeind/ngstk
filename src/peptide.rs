@@ -1,5 +1,5 @@
 
-use data::aminoacid::Aminoacid;
+use aminoacid::Aminoacid;
 
 #[derive(Clone,Debug)]
 struct Peptide {

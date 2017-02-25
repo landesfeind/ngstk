@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use data::dna::*;
-use data::read::Read;
+use dna::*;
+use read::Read;
 
 #[derive(Clone,Debug)]
 pub struct Pileup {

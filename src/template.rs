@@ -1,4 +1,4 @@
-use data::sequence::*;
+use sequence::*;
 
 /// Templates implement sequences that represent the (a portion) of
 /// some reference sequence.
