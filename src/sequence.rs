@@ -19,31 +19,16 @@ pub trait Sequence<E: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
         self.length() == 0
     }
 
+    /// Generates an iterator running over the elements of the sequence
+    fn iter(&self) -> slice::Iter<E>;
+
+    /// Converts the sequence by cloning the
+    /// the elements and collecting into a vector.
     fn as_vec(&self) -> Vec<E> {
         self.iter().map(|n| (*n).clone()).collect()
     }
 
-    fn iter(&self) -> slice::Iter<E>;
-}
-
-
-pub trait SequenceSlice<E: SequenceElement, S: Sequence<E>> : Sequence<E> {
-    fn slice(m: S, offset: usize, length: usize) -> Self;
-    //{
-    //    assert!(offset + length < m.length() );
-    //    SequenceSlice {
-    //        main: m,
-    //        offset: offset,
-    //        length: length
-    //    }
-    //}
-    
-    fn reference_sequence(&self) -> &S;
-
-    fn offset(&self) -> usize;
-
-    // already implemented though Sequence<E>
-    //fn length(&self) -> usize;
+    fn slice(&self, offset: usize, length: usize) -> Self;
 }
 
 

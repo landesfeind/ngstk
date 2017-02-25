@@ -145,10 +145,13 @@ pub struct RnaSequence {
     nucleotides: Vec<RnaNucleotide>
 }
 
-impl Sequence<RnaNucleotide> for RnaSequence {
-    fn new_empty() -> RnaSequence {
+impl RnaSequence {
+    pub fn new()-> Self {
         RnaSequence { nucleotides: Vec::new() }
     }
+}
+
+impl Sequence<RnaNucleotide> for RnaSequence {
     fn length(&self) -> usize {
         self.nucleotides.len()
     }
@@ -156,15 +159,9 @@ impl Sequence<RnaNucleotide> for RnaSequence {
         self.nucleotides.iter()
     }
 
-    fn subsequence<RnaSequence>(&self, offset:usize, length: usize) -> Option<RnaSequence> {
-        if offset + length < self.length() {
-            let v : Vec<RnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-            let r : RnaSequence = RnaSequence::from(v);
-            Some( r )
-        }
-        else {
-            None
-        }
+    fn slice(&self, offset:usize, length: usize) -> Self {
+        let v : Vec<RnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone() ).collect();
+        RnaSequence::from(v)
     }
 }
 

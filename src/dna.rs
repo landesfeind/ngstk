@@ -156,6 +156,10 @@ pub struct DnaSequence {
 
 impl DnaSequence {
 
+    pub fn new()-> Self {
+        DnaSequence { nucleotides: Vec::new() }
+    }
+
     /// Returns the reverse strand sequence
     pub fn reverse_strand(&self) -> DnaSequence {
         let r : Vec<DnaNucleotide> = self.iter().map( |n| n.complement() ).collect();
@@ -192,9 +196,7 @@ impl DnaSequence {
 }
 
 impl Sequence<DnaNucleotide> for DnaSequence {
-    fn new_empty() -> DnaSequence {
-        DnaSequence { nucleotides: Vec::new() }
-    }
+
     fn length(&self) -> usize {
         self.nucleotides.len()
     }
@@ -203,14 +205,9 @@ impl Sequence<DnaNucleotide> for DnaSequence {
         self.nucleotides.iter()
     }
 
-    fn subsequence<DnaSequence>(&self, offset:usize, length: usize) -> Option<DnaSequence> {
-        if offset + length < self.length() {
-            let v : Vec<DnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-            Some( DnaSequence::from(v) )
-        }
-        else {
-            None
-        }
+    fn slice(&self, offset:usize, length: usize) -> Self {
+        let v : Vec<DnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone() ).collect();
+        DnaSequence::from(v)
     }
 }
 

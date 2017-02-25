@@ -24,8 +24,8 @@ pub trait Template<E: SequenceElement, S: Sequence<E>> {
     /// returns the sequence of the template (without offset and name functions)
     fn sequence(&self) -> &S;
 
-    fn subsequence(&self, offset: usize, length: usize) -> Option<S> {
-        self.sequence().subsequence(offset, length)
+    fn subsequence(&self, offset: usize, length: usize) -> S {
+        self.sequence().slice(offset, length)
     }   
 }
 
@@ -58,7 +58,7 @@ pub trait TemplateAlignment<E: SequenceElement, S: Sequence<E>, T: Template<E,S>
     /// Returns the pure (sub-)sequence from the alignment that is part of
     /// the alignment
     fn template_sequence(&self) -> S {
-        self.template().subsequence(self.template_offset(), self.template_alignment_length()).unwrap()
+        self.template().subsequence(self.template_offset(), self.template_alignment_length())
     }
 
     /// The offset of the alignment relative to the start of the template.

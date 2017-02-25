@@ -1,4 +1,12 @@
-mod svg;
+pub mod sequence;
+pub mod rna;
+pub mod dna;
+pub mod aminoacid;
+pub mod template;
+pub mod genomicregion;
+pub mod readsegment;
+pub mod read;
+pub mod svg;
 
 use dna::*;
 use rna::*;
@@ -24,5 +32,5 @@ fn translate(){
 
 fn sketch(){
     let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
-    println!("{}", svg::sketch(&seq, 100f64, 10f64));
+    println!("{}", svg::sketch(&seq, None, None));
 }

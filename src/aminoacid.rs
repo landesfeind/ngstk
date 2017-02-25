@@ -276,25 +276,25 @@ pub struct Peptide {
     nucleotides: Vec<Aminoacid>
 }
 
-impl Sequence<Aminoacid> for Peptide {
-    fn new_empty() -> Peptide {
+impl Peptide {
+    pub fn new() -> Self {
         Peptide { nucleotides: Vec::new() }
     }
+}
+
+impl Sequence<Aminoacid> for Peptide {
+
     fn length(&self) -> usize {
         self.nucleotides.len()
     }
+
     fn iter(&self) -> slice::Iter<Aminoacid> {
         self.nucleotides.iter()
     }
     
-    fn subsequence<Peptide>(&self, offset:usize, length: usize) -> Option<Peptide> {
-        if offset + length < self.length() {
-            let v : Vec<Aminoacid> = self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-            Some( Peptide::from(v) )
-        }
-        else {
-            None
-        }
+    fn slice(&self, offset:usize, length: usize) -> Self {
+        let v : Vec<Aminoacid> = self.iter().skip(offset).take(length).map(|n| (*n).clone() ).collect();
+        Peptide::from(v)
     }
 }
 
