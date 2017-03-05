@@ -6,11 +6,22 @@ use std::cmp::Ord;
 use std::slice;
 
 /// An element that can be part of a sequence.
-pub trait SequenceElement:  Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}
+pub trait SequenceElement: Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized {}
 
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
-pub trait Sequence<E: SequenceElement> : Clone + Index<usize> + Index<Range<usize>> + From<Vec<E>> + Into<Vec<E>> + PartialEq + Eq + PartialOrd + Ord + Sized + fmt::Debug + Add {
-   
+pub trait Sequence<E: SequenceElement> : Clone
+    + Index<usize>
+    + Index<Range<usize>>
+    + From<Vec<E>>
+    + Into<Vec<E>>
+    + PartialEq
+    + Eq
+    + PartialOrd
+    + Ord
+    + Sized
+    + fmt::Debug
+    + Add {
+
     /// Returns the length of the DNA sequence which is the number of nucleotides in it.
     fn length(&self) -> usize;
 
@@ -32,9 +43,9 @@ pub trait Sequence<E: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
 }
 
 
-//#[cfg(test)]
-//mod tests {
-//    
+// #[cfg(test)]
+// mod tests {
+//
 //    use sequence::*;
 //
 //    #[test]
@@ -74,6 +85,6 @@ pub trait Sequence<E: SequenceElement> : Clone + Index<usize> + Index<Range<usiz
 //        assert_eq!(seq.subsequence(1,1).unwrap().to_string(), "C");
 //        assert_eq!(seq.subsequence(1,2).unwrap().to_string(), "CG");
 //        assert_eq!(seq.subsequence(3,1).unwrap().to_string(), "T");
-//    
+//
 //    }
-//}
+// }

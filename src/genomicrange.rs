@@ -2,6 +2,7 @@ use std::result;
 use std::fmt;
 use std::str::FromStr;
 
+use template::Template;
 use genomicregion::GenomicRegion;
 
 /// Implements a genomic range determined by a genomic 
@@ -80,7 +81,7 @@ impl fmt::Display for GenomicRange {
 
 impl<'a> From<&'a GenomicRegion> for GenomicRange {
     fn from(gr: &GenomicRegion) -> GenomicRange {
-        GenomicRange { refname: gr.refname().to_string(), offset: gr.offset(), length: gr.length() }
+        GenomicRange { refname: gr.name().to_string(), offset: gr.offset(), length: gr.length() }
     }
 }
 

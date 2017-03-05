@@ -3,10 +3,11 @@ pub mod rna;
 pub mod dna;
 pub mod aminoacid;
 pub mod template;
+pub mod genomicrange;
 pub mod genomicregion;
 pub mod readsegment;
 pub mod read;
-pub mod svg;
+pub mod sketch;
 
 use dna::*;
 use rna::*;
@@ -16,8 +17,8 @@ fn main() {
     sketch();
 }
 
-fn translate(){
-    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+fn translate() {
+    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
     let tra = RnaSequence::from(&seq);
     let pep = Peptide::from(&seq);
     println!("<{}", seq.reverse_strand());
@@ -30,7 +31,14 @@ fn translate(){
     println!("-> {}", pep);
 }
 
-fn sketch(){
-    let seq : DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
-    println!("{}", svg::sketch(&seq, None, None));
+
+
+
+use genomicregion::GenomicRegion;
+use sketch::GraphicsOutput;
+use sketch::svg::SVG;
+fn sketch() {
+    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+    let reference = GenomicRegion::new(&"chr", 0, seq);
+    println!("{}", sketch::svg::SVG::new(reference).to_string());
 }

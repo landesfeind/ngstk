@@ -1,13 +1,17 @@
 use std::fmt;
-use std::cmp::{Ord,Ordering};
+use std::cmp::{Ord, Ordering};
 use std::ops;
 use std::slice;
-use sequence::{SequenceElement,Sequence};
-use dna::{DnaNucleotide,DnaSequence};
+use sequence::{SequenceElement, Sequence};
+use dna::{DnaNucleotide, DnaSequence};
 
 #[derive(Clone,Debug)]
 pub enum RnaNucleotide {
-    A, C, G, U, N
+    A,
+    C,
+    G,
+    U,
+    N,
 }
 
 impl SequenceElement for RnaNucleotide {}
@@ -24,11 +28,11 @@ impl PartialEq for RnaNucleotide {
     }
 }
 
-impl Eq for RnaNucleotide { }
+impl Eq for RnaNucleotide {}
 
 impl PartialOrd for RnaNucleotide {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some( (char::from(self).cmp(& char::from(other))) )
+        Some((char::from(self).cmp(&char::from(other))))
     }
 }
 
@@ -49,7 +53,7 @@ impl From<char> for RnaNucleotide {
             'G' => RnaNucleotide::G,
             'u' => RnaNucleotide::U,
             'U' => RnaNucleotide::U,
-            _   => RnaNucleotide::N
+            _ => RnaNucleotide::N,
         }
     }
 }
@@ -61,7 +65,7 @@ impl From<RnaNucleotide> for char {
             RnaNucleotide::C => 'C',
             RnaNucleotide::G => 'G',
             RnaNucleotide::U => 'U',
-            _ => 'N'
+            _ => 'N',
         }
     }
 }
@@ -73,7 +77,7 @@ impl From<u8> for RnaNucleotide {
             2 => RnaNucleotide::C,
             3 => RnaNucleotide::G,
             4 => RnaNucleotide::U,
-            _ => RnaNucleotide::N
+            _ => RnaNucleotide::N,
         }
     }
 }
@@ -85,7 +89,7 @@ impl From<RnaNucleotide> for u8 {
             RnaNucleotide::C => 2,
             RnaNucleotide::G => 3,
             RnaNucleotide::U => 4,
-            _ => 0
+            _ => 0,
         }
     }
 }
@@ -97,7 +101,7 @@ impl<'a> From<&'a RnaNucleotide> for u8 {
             RnaNucleotide::C => 2,
             RnaNucleotide::G => 3,
             RnaNucleotide::U => 4,
-            _ => 0
+            _ => 0,
         }
     }
 }
@@ -109,7 +113,7 @@ impl<'a> From<&'a RnaNucleotide> for char {
             RnaNucleotide::C => 'C',
             RnaNucleotide::G => 'G',
             RnaNucleotide::U => 'U',
-            _ => 'N'
+            _ => 'N',
         }
     }
 }
@@ -122,7 +126,7 @@ impl From<DnaNucleotide> for RnaNucleotide {
             DnaNucleotide::C => RnaNucleotide::G,
             DnaNucleotide::G => RnaNucleotide::C,
             DnaNucleotide::T => RnaNucleotide::A,
-            DnaNucleotide::N => RnaNucleotide::N
+            DnaNucleotide::N => RnaNucleotide::N,
         }
     }
 }
@@ -134,7 +138,7 @@ impl<'a> From<&'a DnaNucleotide> for RnaNucleotide {
             DnaNucleotide::C => RnaNucleotide::G,
             DnaNucleotide::G => RnaNucleotide::C,
             DnaNucleotide::T => RnaNucleotide::A,
-            DnaNucleotide::N => RnaNucleotide::N
+            DnaNucleotide::N => RnaNucleotide::N,
         }
     }
 }
@@ -142,11 +146,11 @@ impl<'a> From<&'a DnaNucleotide> for RnaNucleotide {
 
 #[derive(Clone,Debug)]
 pub struct RnaSequence {
-    nucleotides: Vec<RnaNucleotide>
+    nucleotides: Vec<RnaNucleotide>,
 }
 
 impl RnaSequence {
-    pub fn new()-> Self {
+    pub fn new() -> Self {
         RnaSequence { nucleotides: Vec::new() }
     }
 }
@@ -159,20 +163,21 @@ impl Sequence<RnaNucleotide> for RnaSequence {
         self.nucleotides.iter()
     }
 
-    fn slice(&self, offset:usize, length: usize) -> Self {
-        let v : Vec<RnaNucleotide> = self.iter().skip(offset).take(length).map(|n| (*n).clone() ).collect();
+    fn slice(&self, offset: usize, length: usize) -> Self {
+        let v: Vec<RnaNucleotide> =
+            self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
         RnaSequence::from(v)
     }
 }
 
 impl PartialOrd for RnaSequence {
     fn partial_cmp(&self, other: &RnaSequence) -> Option<Ordering> {
-        self.nucleotides.partial_cmp( &Vec::from(other.clone()) )
+        self.nucleotides.partial_cmp(&Vec::from(other.clone()))
     }
 }
 impl Ord for RnaSequence {
     fn cmp(&self, other: &RnaSequence) -> Ordering {
-        self.partial_cmp( other ).unwrap()
+        self.partial_cmp(other).unwrap()
     }
 }
 impl PartialEq for RnaSequence {
@@ -180,11 +185,11 @@ impl PartialEq for RnaSequence {
         self.cmp(other) == Ordering::Equal
     }
 }
-impl Eq for RnaSequence { }
+impl Eq for RnaSequence {}
 impl ops::Index<usize> for RnaSequence {
     type Output = RnaNucleotide;
 
-    fn index(&self, i:usize) -> &RnaNucleotide {
+    fn index(&self, i: usize) -> &RnaNucleotide {
         &self.nucleotides[i]
     }
 }
@@ -228,14 +233,14 @@ impl From<RnaSequence> for Vec<RnaNucleotide> {
 
 impl<'a> From<&'a DnaSequence> for RnaSequence {
     fn from(s: &DnaSequence) -> RnaSequence {
-        let n : Vec<RnaNucleotide> = s.iter().map(|n| RnaNucleotide::from(n) ).collect();
+        let n: Vec<RnaNucleotide> = s.iter().map(|n| RnaNucleotide::from(n)).collect();
         RnaSequence::from(n)
     }
 }
 
 impl fmt::Display for RnaSequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s : String = self.iter().map(|n| char::from(n) ).collect();
+        let s: String = self.iter().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
@@ -246,46 +251,45 @@ impl fmt::Display for RnaSequence {
 mod tests {
 
     use rna::RnaNucleotide;
-    
+
     #[test]
     fn test_a() {
-        assert_eq!( RnaNucleotide::from('a'), RnaNucleotide::A);
-        assert_eq!( RnaNucleotide::from('A'), RnaNucleotide::A);
-        assert_eq!( char::from(RnaNucleotide::A), 'A');
+        assert_eq!(RnaNucleotide::from('a'), RnaNucleotide::A);
+        assert_eq!(RnaNucleotide::from('A'), RnaNucleotide::A);
+        assert_eq!(char::from(RnaNucleotide::A), 'A');
     }
-    
+
     #[test]
     fn test_c() {
-        assert_eq!( RnaNucleotide::from('c'), RnaNucleotide::C);
-        assert_eq!( RnaNucleotide::from('C'), RnaNucleotide::C);
-        assert_eq!( char::from(RnaNucleotide::C), 'C');
+        assert_eq!(RnaNucleotide::from('c'), RnaNucleotide::C);
+        assert_eq!(RnaNucleotide::from('C'), RnaNucleotide::C);
+        assert_eq!(char::from(RnaNucleotide::C), 'C');
     }
 
     #[test]
     fn test_g() {
-        assert_eq!( RnaNucleotide::from('g'), RnaNucleotide::G);
-        assert_eq!( RnaNucleotide::from('G'), RnaNucleotide::G);
-        assert_eq!( char::from(RnaNucleotide::G), 'G');
+        assert_eq!(RnaNucleotide::from('g'), RnaNucleotide::G);
+        assert_eq!(RnaNucleotide::from('G'), RnaNucleotide::G);
+        assert_eq!(char::from(RnaNucleotide::G), 'G');
     }
 
     #[test]
     fn test_t() {
-        assert_eq!( RnaNucleotide::from('u'), RnaNucleotide::U);
-        assert_eq!( RnaNucleotide::from('U'), RnaNucleotide::U);
-        assert_eq!( char::from(RnaNucleotide::U), 'U');
+        assert_eq!(RnaNucleotide::from('u'), RnaNucleotide::U);
+        assert_eq!(RnaNucleotide::from('U'), RnaNucleotide::U);
+        assert_eq!(char::from(RnaNucleotide::U), 'U');
     }
 
     #[test]
     fn test_n() {
-        assert_eq!( RnaNucleotide::from('n'), RnaNucleotide::N);
-        assert_eq!( RnaNucleotide::from('N'), RnaNucleotide::N);
-        assert_eq!( char::from(RnaNucleotide::N), 'N');
+        assert_eq!(RnaNucleotide::from('n'), RnaNucleotide::N);
+        assert_eq!(RnaNucleotide::from('N'), RnaNucleotide::N);
+        assert_eq!(char::from(RnaNucleotide::N), 'N');
     }
 
     #[test]
     fn test_others() {
-        assert_eq!( RnaNucleotide::from('B'), RnaNucleotide::N);
-        assert_eq!( RnaNucleotide::from('H'), RnaNucleotide::N);
+        assert_eq!(RnaNucleotide::from('B'), RnaNucleotide::N);
+        assert_eq!(RnaNucleotide::from('H'), RnaNucleotide::N);
     }
 }
-
