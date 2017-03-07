@@ -1,40 +1,55 @@
-use template::*;
-use dna::*;
+pub use dna::*;
+pub use template::*;
 
-/// A genomic regions combines a genomic range with the actual DNA sequence.
+use std::ops;
+use std::slice;
+use std::cmp::Ordering;
+
+/// A genomic regions combines a genomic range with an actual DNA sequence.
 ///
 /// **Important:** Genomic coordinates offseting with 0
 #[derive(Clone,Debug)]
-pub struct GenomicRegion {
-    refname: String,
+pub struct GenomicRegion<I : RegionIdentifier> {
+    refname: I,
     offset: usize,
     sequence: DnaSequence,
 }
 
-impl GenomicRegion {
+impl<I : RegionIdentifier> GenomicRegion<I> {
     /// Create a new genomic region.
-    pub fn new(refname: &str, offset: usize, seq: DnaSequence) -> Self {
+    pub fn new(refname: I, offset: usize, seq: DnaSequence) -> Self {
         GenomicRegion {
-            refname: refname.to_string(),
+            refname: refname,
             offset: offset,
             sequence: seq,
         }
     }
 }
 
-impl Template<DnaNucleotide, DnaSequence> for GenomicRegion {
-    fn name(&self) -> &str {
-        self.refname.as_ref()
+impl RegionIdentifier for String {}
+
+impl<I : RegionIdentifier> Template<I, DnaNucleotide, DnaSequence> for GenomicRegion<I> { 
+    fn sequence(&self) -> DnaSequence {
+        self.sequence.clone()
+    }
+}
+
+impl<I : RegionIdentifier> Region<I, DnaNucleotide> for GenomicRegion<I> {
+
+    fn reference(&self) -> I {
+        self.refname.clone()
     }
 
     fn offset(&self) -> usize {
         self.offset
     }
 
-    fn sequence(&self) -> &DnaSequence {
-        &self.sequence
+    fn end(&self) -> usize {
+        self.offset + self.sequence.length() + 1
     }
+
 }
+
 
 #[cfg(test)]
 mod tests {

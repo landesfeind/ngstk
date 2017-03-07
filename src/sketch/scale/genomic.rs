@@ -1,36 +1,38 @@
 use sketch::scale::Scale;
 use sketch::color::Color;
 
-use genomicrange::GenomicRange;
 use dna::*;
+use sequence::SequenceElement;
+use region::Region;
+use template::Template;
 
 
 #[derive(Clone,Debug)]
-pub struct GenomicScale {
-    domain: GenomicRange,
+pub struct SequenceScale<E : SequenceElement, R : Region<String, E>> {
+    domain: R,
     nuc_width: f64
 }
 
-impl GenomicScale {
-    pub fn new(domain: GenomicRange) -> Self {
-        Self::new_with_nuc_width(domain, 15f64)
+impl<E, R> SequenceScale<E, R> {
+    pub fn new(domain: R) -> Self {
+        Self::new_with_element_width(domain, 15f64)
     }
 
-    pub fn new_with_nuc_width(domain: GenomicRange, nuc_width:f64) -> Self {
-        GenomicScale {
+    pub fn new_with_element_width(domain: R, nuc_width:f64) -> Self {
+        SequenceScale {
             domain: domain,
             nuc_width: nuc_width
         }
     }
 
-    pub fn new_with_max_width(domain: GenomicRange, max_width:f64) -> Self {
+    pub fn new_with_max_width(domain: R, max_width:f64) -> Self {
         let w = max_width / (domain.length() as f64);
-        Self::new_with_nuc_width(domain, w)
+        Self::new_with_element_width(domain, w)
     }
 
 }
 
-impl Scale<usize, f64> for GenomicScale {
+impl<E, R> Scale<usize, f64> for SequenceScale<E, R> {
     fn scale(&self, d: usize) -> f64 {
         ((d - self.domain.offset()) as f64) * self.nuc_width
     }

@@ -1,7 +1,6 @@
 use std::fmt;
 use std::ops::Index;
 use std::ops::Range;
-use std::ops::Add;
 use std::cmp::Ord;
 use std::slice;
 
@@ -19,8 +18,7 @@ pub trait Sequence<E: SequenceElement> : Clone
     + PartialOrd
     + Ord
     + Sized
-    + fmt::Debug
-    + Add {
+    + fmt::Debug {
 
     /// Returns the length of the DNA sequence which is the number of nucleotides in it.
     fn length(&self) -> usize;

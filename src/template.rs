@@ -1,31 +1,10 @@
-use sequence::*;
+pub use sequence::*;
+pub use region::*;
 
-/// Templates implement sequences that represent the (a portion) of
+/// Templates implement sequences that represent
 /// some reference sequence.
-pub trait Template<E: SequenceElement, S: Sequence<E>> {
-    /// Returns the name of the template sequence
-    fn name(&self) -> &str;
-
-    /// Returns the length of the template sequence.
-    fn length(&self) -> usize {
-        self.sequence().length()
-    }
-
-    /// Returns the (optional) offset from which the template
-    /// starts. The indexing starts at zero.
-    fn offset(&self) -> usize;
-
-    /// Returns the position where the template ends
-    fn end(&self) -> usize {
-        self.offset() + self.length()
-    }
-
-    /// returns the sequence of the template (without offset and name functions)
-    fn sequence(&self) -> &S;
-
-    fn subsequence(&self, offset: usize, length: usize) -> S {
-        self.sequence().slice(offset, length)
-    }
+pub trait Template<T : RegionIdentifier, E : SequenceElement, S : Sequence<E>> : Region<T, E> {
+    fn sequence(&self) -> S;
 }
 
 
@@ -34,7 +13,7 @@ pub trait Template<E: SequenceElement, S: Sequence<E>> {
 ///
 /// **Important:** implementations must ensure that the alignment is fully covered by the template
 /// sequence.
-pub trait TemplateAlignment<E: SequenceElement, S: Sequence<E>, T: Template<E, S>>
+pub trait TemplateAlignment<I : RegionIdentifier, E: SequenceElement, S: Sequence<E>, T: Template<I, E, S>>
      {
     /// The absolute offset of the alignment with regard to the start of the
     /// template sequence (ignoring the template offset).

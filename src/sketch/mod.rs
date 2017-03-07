@@ -2,13 +2,12 @@ pub mod svg;
 pub mod color;
 mod scale;
 
-
-use genomicregion::GenomicRegion;
+use sequence::*;
+use template::Template;
 
 const FONT_SIZE: i32 = 12;
 
-pub trait GraphicsOutput {
-    fn new(reference: GenomicRegion) -> Self;
-
+pub trait GraphicsOutput<E : SequenceElement, S: Sequence<SequenceElement>, T: Template<String, E, S>> {
+    fn new(reference: T) -> Self;
 }
 

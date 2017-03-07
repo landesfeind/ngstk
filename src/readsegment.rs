@@ -1,11 +1,8 @@
-use sequence::*;
-use template::*;
-use dna::*;
 use genomicregion::*;
 
 #[derive(Clone,Debug)]
-pub struct ReadSegment {
-    template: GenomicRegion,
+pub struct ReadSegment<I : RegionIdentifier> {
+    template: GenomicRegion<I>,
     /// The nucleotides of this read segment
     sequence: DnaSequence,
     /// The corresponding
@@ -18,9 +15,9 @@ pub struct ReadSegment {
     is_forward: bool,
 }
 
-impl ReadSegment {
+impl<I : RegionIdentifier> ReadSegment<I> {
     /// Creates a new unmapped read segment
-    pub fn new(t: GenomicRegion, seq: DnaSequence) -> ReadSegment {
+    pub fn new(t: GenomicRegion<I>, seq: DnaSequence) -> Self {
         ReadSegment {
             template: t,
             sequence: seq,
@@ -38,11 +35,11 @@ impl ReadSegment {
     ///  * offset: the absolute offset with respect to base 0 of the genomic region
     ///  * template_length: the length of the template length that is covered by this alignment
     ///
-    pub fn new_aligned(t: GenomicRegion,
+    pub fn new_aligned(t: GenomicRegion<I>,
                        seq: DnaSequence,
                        offset: usize,
                        template_length: usize)
-                       -> ReadSegment {
+                       -> Self {
         assert!(offset + template_length < t.length());
         ReadSegment {
             template: t,
@@ -74,11 +71,11 @@ impl ReadSegment {
     }
 }
 
-impl TemplateAlignment<DnaNucleotide, DnaSequence, GenomicRegion> for ReadSegment {
+impl<I : RegionIdentifier> TemplateAlignment<I, DnaNucleotide, DnaSequence, GenomicRegion<I>> for ReadSegment<I> {
     fn offset(&self) -> Option<usize> {
         self.offset
     }
-    fn template(&self) -> &GenomicRegion {
+    fn template(&self) -> &GenomicRegion<I> {
         &self.template
     }
     fn template_alignment_length(&self) -> usize {

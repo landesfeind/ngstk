@@ -1,7 +1,5 @@
-
-use sequence::*;
 use dna::*;
-use template::*;
+use region::RegionIdentifier;
 use readsegment::*;
 
 ///
@@ -9,18 +7,18 @@ use readsegment::*;
 /// from a sequencing technology (Sanger, next-generation sequencing, ...).
 ///
 #[derive(Clone,Debug)]
-pub struct Read {
-    segments: Vec<ReadSegment>,
+pub struct Read<I : RegionIdentifier> {
+    segments: Vec<ReadSegment<I>>,
     mapping_quality: Option<f64>,
 }
 
-impl Read {
+impl<I : RegionIdentifier> Read<I> {
     /// Appends a ReadSegment to this read.
-    pub fn append_segment(&mut self, segment: ReadSegment) {
+    pub fn append_segment(&mut self, segment: ReadSegment<I>) {
         self.segments.push(segment);
     }
 
-    pub fn segments(&self) -> &Vec<ReadSegment> {
+    pub fn segments(&self) -> &Vec<ReadSegment<I>> {
         &self.segments
     }
 
@@ -41,8 +39,8 @@ impl Read {
     }
 }
 
-impl From<Vec<ReadSegment>> for Read {
-    fn from(read_segs: Vec<ReadSegment>) -> Self {
+impl<I : RegionIdentifier> From<Vec<ReadSegment<I>>> for Read<I> {
+    fn from(read_segs: Vec<ReadSegment<I>>) -> Self {
         Read {
             segments: read_segs,
             mapping_quality: None,
@@ -50,8 +48,8 @@ impl From<Vec<ReadSegment>> for Read {
     }
 }
 
-impl From<ReadSegment> for Read {
-    fn from(rs: ReadSegment) -> Self {
+impl<I: RegionIdentifier> From<ReadSegment<I>> for Read<I> {
+    fn from(rs: ReadSegment<I>) -> Self {
         Read::from(vec![rs])
     }
 }

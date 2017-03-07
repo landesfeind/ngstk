@@ -35,7 +35,7 @@ impl Color {
     }
 
     pub fn to_hex(&self) -> String {
-        format!("#{:x}{:x}{:x}{:x}", self.r, self.g, self.b, self.a)
+        format!("#{:x}{:x}{:x}", self.r, self.g, self.b)
     }
 
     pub fn to_rgb(&self) -> String {

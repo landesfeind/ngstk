@@ -2,43 +2,54 @@ extern crate svgdom;
 pub use self::svgdom::*;
 
 mod internal;
+mod genomicregion;
 
+use template::Template;
 use genomicregion::GenomicRegion;
-use genomicrange::GenomicRange;
+use sketch::scale::Scale;
 use sketch::scale::numerical::NumericalScale;
-use sketch::scale::genomic::GenomicScale;
+use sketch::scale::genomic::SequenceScale;
 use sketch::scale::genomic::NucleotideColorScale;
 
 pub use sketch::GraphicsOutput;
+use sketch::svg::internal::SvgDecorator;
 
-pub struct SVG {
-    reference: GenomicRegion,
+pub struct SVG<I,E,R> {
+    region: GenomicRegion<I>,
     document: Document,
     node_svg: Node,
-    xscale: GenomicScale
+    xscale: SequenceScale<E, R>,
+    yoffset: f64
 }
 
-impl GraphicsOutput for SVG {
+impl<I, E, S, T> GraphicsOutput<E, S, T> for SVG<I, E, T> {
 
-    fn new(reference: GenomicRegion) -> Self {
-        let doc = Document::new();
-        let svg = doc.create_element(ElementId::Svg);
+    fn new(gr: T) -> Self {
+        let mut doc = Document::new();
+        let mut svg = doc.create_element(ElementId::Svg);
         doc.append(&svg);
 
-        let gr = GenomicRange::from(&reference);
+        let s = SequenceScale::new(gr.clone());
 
+        let yaxis = NumericalScale::new(vec![0f64,1f64], vec![0f64,20f64], 1f64);
+        let gr_node = gr.to_node(&mut doc, &s, &yaxis);
+        svg.append(&gr_node);
+        
         SVG {
-            reference: reference,
+            region: gr,
             document: doc,
             node_svg: svg,
-            xscale: GenomicScale::new(gr)
+            xscale: s,
+            yoffset: 20f64
         }
     }
+
 }
 
-impl SVG {
-    pub fn to_string(&self) -> String {
-       self.document.to_string_with_opt(&WriteOptions::default())
+impl<I, E, T> SVG<I, E, T> {
+    pub fn to_string(&mut self) -> String {
+        self.node_svg.set_attribute(AttributeId::Width, self.xscale.scale(self.region.length()));
+        self.node_svg.set_attribute(AttributeId::Height, self.yoffset);
+        self.document.to_string_with_opt(&WriteOptions::default())
     }
-
 }
