@@ -2,42 +2,48 @@ use sketch::scale::Scale;
 use sketch::color::Color;
 
 use dna::*;
-use sequence::SequenceElement;
-use region::Region;
-use template::Template;
+use region::*;
 
-
+/// A sequence scale scales a defined region into 
+/// a coordinate.
 #[derive(Clone,Debug)]
-pub struct SequenceScale<E : SequenceElement, R : Region<String, E>> {
+pub struct SequenceScale<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> {
     domain: R,
-    nuc_width: f64
+    elem_width: f64
 }
 
-impl<E, R> SequenceScale<E, R> {
+impl<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> SequenceScale<I, E, R> {
+
+    /// Create a new scale using a default
+    /// width per element.
     pub fn new(domain: R) -> Self {
         Self::new_with_element_width(domain, 15f64)
     }
 
-    pub fn new_with_element_width(domain: R, nuc_width:f64) -> Self {
+    /// Create a new scale using a the given per element width.
+    pub fn new_with_element_width(domain: R, elem_width:f64) -> Self {
         SequenceScale {
             domain: domain,
-            nuc_width: nuc_width
+            elem_width: elem_width
         }
     }
 
-    pub fn new_with_max_width(domain: R, max_width:f64) -> Self {
-        let w = max_width / (domain.length() as f64);
+    /// Create a new scale that has a maximum width/height of `max`.
+    pub fn new_with_max_width(domain: R, max:f64) -> Self {
+        let w = max / (domain.length() as f64);
         Self::new_with_element_width(domain, w)
     }
 
 }
 
-impl<E, R> Scale<usize, f64> for SequenceScale<E, R> {
+impl<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> Scale<usize, f64> for SequenceScale<I, E, R> {
     fn scale(&self, d: usize) -> f64 {
-        ((d - self.domain.offset()) as f64) * self.nuc_width
+        ((d - self.domain.offset()) as f64) * self.elem_width
     }
 }
 
+
+/// A scale that maps a nucleotide into a color
 #[derive(Clone,Debug)]
 pub struct NucleotideColorScale {}
 
@@ -52,7 +58,6 @@ impl Scale<DnaNucleotide, Color> for NucleotideColorScale {
         self.scale(&d)
     }
 }
-
 
 impl<'a> Scale<&'a DnaNucleotide, Color> for NucleotideColorScale {
     fn scale(&self, d: &DnaNucleotide) -> Color {
@@ -78,7 +83,7 @@ mod test {
     #[test]
     fn test_simple_scale() {
         let gr = GenomicRange::new(&"chr", 0, 100);
-        let s = GenomicScale::new_with_nuc_width(gr, 1f64);
+        let s = GenomicScale::new_with_element_width(gr, 1f64);
         assert_eq!( s.scale(   0usize ),   0f64);
         assert_eq!( s.scale(   1usize ),   1f64);
         assert_eq!( s.scale(  10usize ),  10f64);

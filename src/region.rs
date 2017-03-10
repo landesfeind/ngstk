@@ -1,9 +1,10 @@
 use std::fmt::Display;
+use std::fmt::Debug;
 use std::cmp::PartialEq;
 
-use sequence::SequenceElement;
+pub use sequence::SequenceElement;
 
-pub trait RegionIdentifier : Clone + Ord + Display {}
+pub trait RegionIdentifier : Clone + Debug + Ord + Display {}
 
 pub trait Region<T: RegionIdentifier, E : SequenceElement> {
 

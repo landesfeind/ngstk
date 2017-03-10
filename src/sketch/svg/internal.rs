@@ -8,16 +8,17 @@ pub use sketch::scale::numerical::NumericalScale;
 
 use sequence::*;
 use dna::*;
+use region::*;
 
 pub trait SvgDecorator {
 
-    fn x_from<E,T>(&self, xscale: &SequenceScale<E,T>) -> f64;
-    fn x_to<E,T>(&self, xscale: &SequenceScale<E,T>) -> f64;
+    fn x_from<I : RegionIdentifier, E : SequenceElement, T : Region<I, E>>(&self, xscale: &SequenceScale<I,E,T>) -> f64;
+    fn x_to<I : RegionIdentifier, E : SequenceElement, T : Region<I, E>>(&self, xscale: &SequenceScale<I,E,T>) -> f64;
 
     fn y_from(&self, yscale: &NumericalScale) -> f64;
     fn y_to(&self  , yscale: &NumericalScale) -> f64;
 
-    fn to_node<E,T>(&self, doc: &mut Document, xscale: &SequenceScale<E,T>, yscale: &NumericalScale) -> Node;
+    fn to_node<I : RegionIdentifier, E : SequenceElement,T : Region<I, E>>(&self, doc: &mut Document, xscale: &SequenceScale<I,E,T>, yscale: &NumericalScale) -> Node;
 
     fn draw_text(&self, document: &mut Document, text: &str, pos_x: f64, pos_y: f64, font_size: usize, align_center: bool, valign_center: bool) -> Node {
         let text_node = document.create_element(ElementId::Text);
