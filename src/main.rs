@@ -2,19 +2,17 @@ pub mod sequence;
 pub mod rna;
 pub mod dna;
 pub mod aminoacid;
-pub mod region;
-pub mod template;
-pub mod genomicregion;
-pub mod readsegment;
-pub mod read;
-pub mod sketch;
+pub mod alignment;
 
 use dna::*;
 use rna::*;
 use aminoacid::*;
+use alignment::*;
 
 fn main() {
-    sketch();
+    translate();
+    align();
+    //sketch();
 }
 
 fn translate() {
@@ -30,15 +28,24 @@ fn translate() {
     println!("-> {}", tra);
     println!("-> {}", pep);
 }
+fn align() {
+    let t: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+    let s: DnaSequence = DnaSequence::from("GTGGGTAG");
+    let mut a = DefaultAlignment::new(t.clone(), s);
+    a.add_segment(0, 4,  2, 4, false);
+    a.add_segment(4, 4, 10, 4, true);
 
-
-
-
-use genomicregion::GenomicRegion;
-use sketch::GraphicsOutput;
-use sketch::svg::SVG;
-fn sketch() {
-    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
-    let reference = GenomicRegion::new(&"chr", 0, seq);
-    println!("{}", sketch::svg::SVG::new(reference).to_string());
+    println!("Alignment");
+    println!("{}", t);
+    for segment in a.segments() {
+        for _ in 0 .. segment.template_offset().unwrap() {
+            print!(" ");
+        }
+        println!("{}", segment.sequence_slice());
+    }
 }
+
+//fn sketch() {
+//    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+//    println!("{}", sketch::svg::SVG::new(reference).to_string());
+//}

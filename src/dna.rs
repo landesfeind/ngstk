@@ -162,7 +162,7 @@ impl DnaSequence {
         DnaSequence { nucleotides: Vec::new() }
     }
 
-    /// Returns the reverse strand sequence
+    /// Returns the reverse strand sequence.
     pub fn reverse_strand(&self) -> DnaSequence {
         let r: Vec<DnaNucleotide> = self.iter().map(|n| n.complement()).collect();
         DnaSequence::from(r)
@@ -208,13 +208,14 @@ impl Sequence<DnaNucleotide> for DnaSequence {
     fn iter(&self) -> slice::Iter<DnaNucleotide> {
         self.nucleotides.iter()
     }
+}
 
-    fn slice(&self, offset: usize, length: usize) -> Self {
-        let v: Vec<DnaNucleotide> =
-            self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-        DnaSequence::from(v)
+impl Default for DnaSequence {
+    fn default() -> DnaSequence {
+        DnaSequence { nucleotides: Vec::new() }
     }
 }
+
 
 impl PartialOrd for DnaSequence {
     fn partial_cmp(&self, other: &DnaSequence) -> Option<Ordering> {

@@ -336,14 +336,13 @@ impl Sequence<Aminoacid> for Peptide {
     fn iter(&self) -> slice::Iter<Aminoacid> {
         self.nucleotides.iter()
     }
-
-    fn slice(&self, offset: usize, length: usize) -> Self {
-        let v: Vec<Aminoacid> =
-            self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-        Peptide::from(v)
-    }
 }
 
+impl Default for Peptide {
+    fn default() -> Peptide {
+        Peptide { nucleotides: Vec::new() }
+    }
+}
 impl PartialOrd for Peptide {
     fn partial_cmp(&self, other: &Peptide) -> Option<Ordering> {
         self.nucleotides.partial_cmp(&other.nucleotides)
@@ -407,6 +406,15 @@ impl From<Peptide> for Vec<Aminoacid> {
 
 impl<'a> From<&'a DnaSequence> for Peptide {
     fn from(s: &DnaSequence) -> Peptide {
+        let aas: Vec<Aminoacid> = s.codons()
+            .iter()
+            .map(|c| Aminoacid::from(c))
+            .collect();
+        Peptide::from(aas)
+    }
+}
+impl From<DnaSequence> for Peptide {
+    fn from(s: DnaSequence) -> Peptide {
         let aas: Vec<Aminoacid> = s.codons()
             .iter()
             .map(|c| Aminoacid::from(c))

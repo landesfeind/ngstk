@@ -162,11 +162,11 @@ impl Sequence<RnaNucleotide> for RnaSequence {
     fn iter(&self) -> slice::Iter<RnaNucleotide> {
         self.nucleotides.iter()
     }
+}
 
-    fn slice(&self, offset: usize, length: usize) -> Self {
-        let v: Vec<RnaNucleotide> =
-            self.iter().skip(offset).take(length).map(|n| (*n).clone()).collect();
-        RnaSequence::from(v)
+impl Default for RnaSequence {
+    fn default() -> RnaSequence {
+        RnaSequence { nucleotides: Vec::new() }
     }
 }
 

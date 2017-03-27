@@ -3,13 +3,16 @@ use sketch::color::Color;
 
 use dna::*;
 use region::*;
+use std::marker::PhantomData;
 
 /// A sequence scale scales a defined region into 
 /// a coordinate.
 #[derive(Clone,Debug)]
 pub struct SequenceScale<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> {
     domain: R,
-    elem_width: f64
+    elem_width: f64,
+    _marker_I: PhantomData<I>,
+    _marker_E: PhantomData<E>,
 }
 
 impl<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> SequenceScale<I, E, R> {
