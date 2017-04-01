@@ -3,7 +3,7 @@ use std::ops;
 use std::fmt;
 use std::slice;
 
-use sequence::{SequenceElement, Sequence};
+pub use sequence::{SequenceElement, Sequence};
 use rna::*;
 use aminoacid::*;
 
@@ -207,6 +207,10 @@ impl DnaSequence for Vec<DnaNucleotide> {
             .map( |c| Aminoacid::from(c) )
             .collect()
     }
+}
+
+pub fn parse_dna_to_vec(s: &str) -> Vec<DnaNucleotide> {
+    s.chars().map( |c| DnaNucleotide::from(c) ).collect()
 }
 
 

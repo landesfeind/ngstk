@@ -23,6 +23,10 @@ pub trait Sequence<E: SequenceElement> : Clone
 
     fn from_string(seq: &str) -> Self;
 
+    fn to_string(&self) -> String {
+        self.iterator().map(|n| format!("{}", n)).collect()
+    }
+
     /// Returns the length of the DNA sequence
     /// which is the number of nucleotides in it.
     fn length(&self) -> usize;
