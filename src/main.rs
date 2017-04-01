@@ -4,6 +4,9 @@ pub mod rna;
 pub mod aminoacid;
 pub mod alignment;
 
+
+mod util;
+
 use dna::*;
 use rna::*;
 use aminoacid::*;
