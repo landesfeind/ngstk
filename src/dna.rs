@@ -4,6 +4,8 @@ use std::fmt;
 use std::slice;
 
 use sequence::{SequenceElement, Sequence};
+use rna::*;
+use aminoacid::*;
 
 #[derive(Clone,Debug)]
 pub enum DnaNucleotide {
@@ -152,142 +154,61 @@ impl<'a> From<&'a [DnaNucleotide]> for DnaCodon {
     }
 }
 
-#[derive(Clone,Debug)]
-pub struct DnaSequence {
-    nucleotides: Vec<DnaNucleotide>,
-}
-
-impl DnaSequence {
-    pub fn new() -> Self {
-        DnaSequence { nucleotides: Vec::new() }
-    }
-
+pub trait DnaSequence : Sequence<DnaNucleotide> {
+    type Transcription : RnaSequence;
+    type Translation : Peptide;
+    
     /// Returns the reverse strand sequence.
-    pub fn reverse_strand(&self) -> DnaSequence {
-        let r: Vec<DnaNucleotide> = self.iter().map(|n| n.complement()).collect();
-        DnaSequence::from(r)
+    fn reverse_strand(&self) -> Self {
+        let r: Vec<DnaNucleotide> = self.iterator().map(|n| n.complement()).collect();
+        Self::from(r)
     }
 
     /// Returns the reverse strand sequence in forward direction
-    pub fn complement(&self) -> DnaSequence {
-        let mut r: Vec<DnaNucleotide> = self.iter().map(|n| n.complement()).collect();
+    fn complement(&self) -> Self {
+        let mut r: Vec<DnaNucleotide> = self.iterator().map(|n| n.complement()).collect();
         r.reverse();
-        DnaSequence::from(r)
+        Self::from(r)
     }
 
     /// Returns an iterator on the codons. This is identical
     /// to `frame(0)`.
-    pub fn codons(&self) -> Vec<DnaCodon> {
+    fn codons(&self) -> Vec<DnaCodon> {
         self.frame(0usize)
     }
 
     /// Generates the codons that represents the frame starting
     /// at `offset`. If the sequence is not a multiple of 3, the
     /// last codon will be filled with `DnaNucleotide::N`.
-    pub fn frame(&self, offset: usize) -> Vec<DnaCodon> {
-        self.nucleotides[offset..self.nucleotides.len()]
-            .chunks(3usize)
-            .map(|e| DnaCodon::from(e))
+    fn frame(&self, offset: usize) -> Vec<DnaCodon> {
+        let v : Vec<DnaNucleotide> = self.iterator().skip(offset).map( |n| n.clone() ).collect();
+        v.chunks(3usize)
+            .map( |c| DnaCodon::from(c) )
             .collect()
     }
-    /// Generates all codons that can be generated from the DnaSequence. The
-    /// codons will be generated from the first three DnaNucleotide (position 1, 2, and 3),
-    /// then DnaNucleotides at position 2, 3, and 4, and so on.
-    /// If the DnaSequence is not a multiple of 3, the
-    /// last codon will be filled with `DnaNucleotide::N`.
-    pub fn all_codons_in_all_frames(&self) -> Vec<DnaCodon> {
-        self.nucleotides.windows(3usize).map(|e| DnaCodon::from(e)).collect()
+
+    fn transcribe(&self) -> Self::Transcription;    
+    fn translate(&self) -> Self::Translation;
+}
+
+impl DnaSequence for Vec<DnaNucleotide> {
+    type Transcription = Vec<RnaNucleotide>;
+    type Translation = Vec<Aminoacid>;
+
+    fn transcribe(&self) -> Self::Transcription {
+        self.iterator()
+            .map( |n| RnaNucleotide::from(n) )
+            .collect()
+    }
+    
+    fn translate(&self) -> Self::Translation {
+        self.frame(0usize)
+            .iter()
+            .map( |c| Aminoacid::from(c) )
+            .collect()
     }
 }
 
-impl Sequence<DnaNucleotide> for DnaSequence {
-    fn length(&self) -> usize {
-        self.nucleotides.len()
-    }
-
-    fn iter(&self) -> slice::Iter<DnaNucleotide> {
-        self.nucleotides.iter()
-    }
-}
-
-impl Default for DnaSequence {
-    fn default() -> DnaSequence {
-        DnaSequence { nucleotides: Vec::new() }
-    }
-}
-
-
-impl PartialOrd for DnaSequence {
-    fn partial_cmp(&self, other: &DnaSequence) -> Option<Ordering> {
-        self.nucleotides.partial_cmp(&other.nucleotides)
-    }
-}
-impl Ord for DnaSequence {
-    fn cmp(&self, other: &DnaSequence) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-impl PartialEq for DnaSequence {
-    fn eq(&self, other: &DnaSequence) -> bool {
-        self.cmp(other) == Ordering::Equal
-    }
-}
-impl Eq for DnaSequence {}
-impl ops::Index<usize> for DnaSequence {
-    type Output = DnaNucleotide;
-
-    fn index(&self, i: usize) -> &DnaNucleotide {
-        &self.nucleotides[i]
-    }
-}
-impl ops::Index<ops::Range<usize>> for DnaSequence {
-    type Output = [DnaNucleotide];
-
-    fn index(&self, i: ops::Range<usize>) -> &[DnaNucleotide] {
-        &self.nucleotides[i]
-    }
-}
-impl ops::Add for DnaSequence {
-    type Output = DnaSequence;
-    fn add(self, other: DnaSequence) -> DnaSequence {
-        let mut v = self.nucleotides.clone();
-        v.extend(other.nucleotides);
-        DnaSequence::from(v)
-    }
-}
-impl<'a> ops::Add<&'a DnaSequence> for DnaSequence {
-    type Output = DnaSequence;
-    fn add(self, other: &DnaSequence) -> DnaSequence {
-        let mut v = self.nucleotides.clone();
-        v.extend(other.nucleotides.clone());
-        DnaSequence::from(v)
-    }
-}
-impl From<Vec<DnaNucleotide>> for DnaSequence {
-    fn from(n: Vec<DnaNucleotide>) -> DnaSequence {
-        DnaSequence { nucleotides: n }
-    }
-}
-
-impl From<DnaSequence> for Vec<DnaNucleotide> {
-    fn from(seq: DnaSequence) -> Vec<DnaNucleotide> {
-        seq.nucleotides
-    }
-}
-
-impl<'a> From<&'a str> for DnaSequence {
-    fn from(s: &str) -> DnaSequence {
-        let v: Vec<DnaNucleotide> = s.chars().map(|c| DnaNucleotide::from(c)).collect();
-        DnaSequence::from(v)
-    }
-}
-
-impl fmt::Display for DnaSequence {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s: String = self.iter().map(|n| char::from(n)).collect();
-        write!(f, "{}", s)
-    }
-}
 
 #[cfg(test)]
 mod tests {
