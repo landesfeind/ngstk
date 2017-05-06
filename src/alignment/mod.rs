@@ -67,7 +67,7 @@ pub struct AlignmentSegment<E: SequenceElement, S: Sequence<E>> {
     sequence_offset: usize,
     sequence_length: usize,
     is_reverse: bool,
-    _marker: PhantomData<E>
+    _marker: PhantomData<E>    
 }
 
 impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {

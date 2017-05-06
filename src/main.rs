@@ -22,6 +22,7 @@ use sketch::ascii::AsciiOutput;
 use sketch::svg::SvgOutput;
 use sketch::color::SequenceColors;
 use io::fasta::FastaReader;
+use io::bam::IndexedBamReader;
 
 fn main() {
    let app_matches = App::new(env!("CARGO_PKG_NAME"))
@@ -144,13 +145,13 @@ fn align() {
 }
 
 fn sketch(matches: &clap::ArgMatches) {
-    let region = match Region::from_str( matches.value_of("region").unwrap_or("seq1") ) {
+    let region = match Region::from_str( matches.value_of("region").unwrap_or("ref") ) {
             Ok(r) => r,
             Err(e) => panic!("Error: {}", e)
         };
     
     // Read the reference sequence
-    let filename_reference = matches.value_of("reference").unwrap_or("testdata/ex1.fasta");
+    let filename_reference = matches.value_of("reference").unwrap_or("testdata/toy.fasta");
     let file_reference = match File::open(filename_reference) {
             Ok(f) => f,
             Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e)
@@ -172,13 +173,22 @@ fn sketch(matches: &clap::ArgMatches) {
             None => reference.length() * 15usize
         };
     
+
+    // Generate output SVG
     let mut out = SvgOutput::new(region.offset(), reference.length(), image_width, SequenceColors::default());
     out.append_section(format!("{}", region).as_ref());
     out.append_section(filename_reference);
     out.append_sequence(&reference);
 
-
-    
+    match matches.values_of("bam") {
+        None => {},
+        Some(values) => for filename_bam in values {
+            let alignments = IndexedBamReader::load_alignments(&region, reference.clone(), &filename_bam).expect("Can not load alignments");
+            for a in alignments.clone() {
+                out.append_alignment(&a)
+            }
+        }
+    }
 
 
     println!("{}", out);
