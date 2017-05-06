@@ -1,8 +1,33 @@
 use std::io::{BufReader,Read};
 use std::io::BufRead;
+use std::io::SeekFrom;
+use std::io::Seek;
 
 pub struct FastaReader<R: Read> {
     reader: BufReader<R>
+}
+
+impl<R: Read + Seek> FastaReader<R> {
+
+    pub fn reset(&mut self) {
+        self.reader.seek(SeekFrom::Start(0));
+        let mut s = Vec::new();
+        self.reader.read_until('>' as u8, &mut s);
+    }
+
+
+    /// Search for a sequence with the given header
+    pub fn search(&mut self, header: &str) -> Option<String> {
+        self.reset();
+
+        for (h,b) in self {
+            if h == header {
+                return Some(b)
+            }
+        }
+
+        None
+    }
 }
 
 impl<R: Read> From<R> for FastaReader<R> {

@@ -9,12 +9,14 @@ mod region;
 mod io;
 
 use std::io::stdin;
+use std::fs::File;
 
 use sequence::*;
 use sequence::dna::*;
 use sequence::rna::*;
 use sequence::aminoacid::*;
 use alignment::*;
+use region::Region;
 use sketch::GraphicsOutput;
 use sketch::ascii::AsciiOutput;
 use sketch::svg::SvgOutput;
@@ -25,7 +27,7 @@ fn main() {
    let app_matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
-        .setting(AppSettings::SubcommandRequired)
+        //.setting(AppSettings::SubcommandRequired)
         .arg(Arg::with_name("verbose")
              .short("v")
              .long("verbose")
@@ -35,6 +37,7 @@ fn main() {
                 .about("Translates a given input sequence into amino acid sequence")
                 .arg(Arg::with_name("sequence")
                      .help("The DNA sequence to translate")
+                     .multiple(true)
                     )
                 .arg(Arg::with_name("outrna")
                      .long("print-rna")
@@ -53,7 +56,6 @@ fn main() {
                      .long("region")
                      .help("Analyze the given region")
                      .takes_value(true)
-                     .required(true)
                     )
                 .arg(Arg::with_name("reference")
                      .short("f")
@@ -73,13 +75,17 @@ fn main() {
                      .takes_value(true)
                      .multiple(true)
                     )
+                .arg(Arg::with_name("image-width")
+                     .long("image-width")
+                     .help("Set the desired width of the output image")
+                    )
             )
         .get_matches();
 
    match app_matches.subcommand() {
        ("translate", Some(sub_m)) => translate(sub_m),
        ("sketch"   , Some(sub_m)) => sketch(sub_m),
-       _ => {} 
+       _ => align() 
    }
 }
 
@@ -138,5 +144,36 @@ fn align() {
 }
 
 fn sketch(matches: &clap::ArgMatches) {
-    let seq = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
+    let region = match Region::from_str( matches.value_of("region").unwrap_or("seq1") ) {
+            Ok(r) => r,
+            Err(e) => panic!("Error: {}", e)
+        };
+    
+    // Read the reference sequence
+    let filename_reference = matches.value_of("reference").unwrap_or("testdata/ex1.fasta");
+    let file_reference = match File::open(filename_reference) {
+            Ok(f) => f,
+            Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e)
+        };
+    let reference = match FastaReader::from(file_reference).search(region.name().as_ref()) {
+            Some(seq) => match DnaSequence::from_str(seq.as_ref()) {
+                Ok(dna) => dna,
+                Err(e) => panic!("Can not parse DNA sequence '{}': {}", seq, e)
+            },
+            None => panic!("Can not find reference sequence with header '{}'", region.name())
+        };
+
+    // Parse output image information
+    let image_width = match matches.value_of("image-width") {
+            Some(s) => match usize::from_str(s) {
+                Ok(w) => w,
+                Err(e) => panic!("Can not parse image width '{}': {}", s, e)
+            },
+            None => reference.length() * 15usize
+        };
+    
+    let mut out = SvgOutput::new(region.offset(), reference.length(), image_width, SequenceColors::default());
+    out.append_section(filename_reference);
+    out.append_sequence(&reference);
+    println!("{}", out);
 }

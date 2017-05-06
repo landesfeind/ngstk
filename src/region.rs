@@ -36,7 +36,10 @@ impl FromStr for Region {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let split : Vec<&str> = s.split(|c:char| c == ':' || c == '-').collect();
-        if split.len() == 2 {
+        if split.len() == 1 {
+            Ok(Region::new(split[0].to_string(), 0, usize::max_value()-1))
+        }
+        else if split.len() == 2 {
             match usize::from_str(split[1]) {
                 Ok(pos) => Ok(Region::new(split[0].to_string(), pos-1, 1)),
                 Err(e) => Err(format!("Can not parse coordinate: {}", e))
