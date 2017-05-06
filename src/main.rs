@@ -32,12 +32,13 @@ fn translate() {
 }
 
 fn align() {
-    let t = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
-    let s = DnaSequence::from_str(&"GTGGGTAG").expect("Can not parse DNA sequence string");
+    let t = DnaSequence::from_str(&"ATGTGGTCTGATG").expect("Can not parse DNA sequence string");
+    let s = DnaSequence::from_str(&"GAGGTTGTAG").expect("Can not parse DNA sequence string");
     let mut a = Alignment::new_aligned(t.clone(), s);
     a.add_segment(0, 4,  2, 4, false);
     a.add_segment(4, 0,  6, 3, false);
-    a.add_segment(4, 4, 10, 4, true);
+    a.add_segment(4, 2,  9, 0, false);
+    a.add_segment(6, 4,  9, 4, true);
 
     //let mut out = AsciiOutput::new(0usize, t.length());
     let mut out = SvgOutput::new(0usize, t.length(), 500, SequenceColors::default());

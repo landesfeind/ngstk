@@ -19,6 +19,18 @@ pub fn set_fill_color(n: &mut Node, co: Option<Color>){
     }
 }
 
+
+pub fn set_stroke(n: &mut Node, co: Option<Color>, w: Option<usize>){
+    if co.is_some() {
+        let c = co.expect("Can not extract color from option");
+        n.set_attribute(AttributeId::Stroke, c.to_hex());
+        n.set_attribute(AttributeId::StrokeOpacity, c.opacity());
+    }
+    if w.is_some() {
+        n.set_attribute(AttributeId::StrokeWidth, format!("{}", w.unwrap()));
+    }
+}
+
 pub fn draw_text(document: &mut Document, text: &str, pos_x: f64, pos_y: f64, font_size: usize, align_center: bool, valign_center: bool, color: Option<Color>) -> Node {
     let mut text_node = document.create_element(ElementId::Text);
     let mut data_node = document.create_node(NodeType::Text, text);
@@ -35,16 +47,33 @@ pub fn draw_text(document: &mut Document, text: &str, pos_x: f64, pos_y: f64, fo
         text_node.set_attribute(AttributeId::TextAnchor, "left");
     }
 
+    text_node.set_attribute(AttributeId::DominantBaseline, "bottom");
     if valign_center {
-        text_node.set_attribute(AttributeId::DominantBaseline, "middle");
-    }
-    else {
-        text_node.set_attribute(AttributeId::DominantBaseline, "bottom");
+        text_node.set_attribute(AttributeId::Y , pos_y - (font_size as f64 / 2f64));
+        text_node.set_attribute(AttributeId::Dy,          font_size as f64 / 3f64 );
     }
 
     set_fill_color(&mut text_node, color);
 
     text_node
+}
+
+pub fn draw_path(document: &mut Document, path: svgdom::types::path::Path, stroke_color: Option<Color>, fill_color: Option<Color>) -> Node {
+    let mut pn = document.create_element(ElementId::Path);
+    pn.set_attribute(AttributeId::D, path);
+    set_stroke(&mut pn, stroke_color, Some(1));
+    set_fill_color(&mut pn, fill_color);
+    pn
+}
+
+pub fn draw_line(document: &mut Document, pos_x1: f64, pos_y1: f64, pos_x2: f64, pos_y2: f64, color: Option<Color>) -> Node {
+    let mut rect = document.create_element(ElementId::Line);
+    rect.set_attribute(AttributeId::X1, pos_x1);
+    rect.set_attribute(AttributeId::Y1, pos_y1);
+    rect.set_attribute(AttributeId::X2, pos_x2);
+    rect.set_attribute(AttributeId::Y2, pos_y2);
+    set_stroke(&mut rect, color, Some(1));
+    rect
 }
 
 pub fn draw_rect(document: &mut Document, pos_x: f64, pos_y: f64, width: f64, height: f64, fill_color: Option<Color>) -> Node {

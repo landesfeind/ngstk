@@ -1,4 +1,5 @@
 use sequence::dna::*;
+use sequence::rna::*;
 use sketch::scale::Scale;
 
 #[derive(Clone,Debug)]
@@ -39,6 +40,10 @@ impl Color {
         Color::new(0, 0, 255)
     }
 
+    pub fn light_blue() -> Self {
+        Color::new(80, 80, 255)
+    }
+
     pub fn to_hex(&self) -> String {
         format!("#{:x}{:x}{:x}", self.r, self.g, self.b)
     }
@@ -65,26 +70,24 @@ impl Color {
 }
 
 
+pub fn insertion() -> Color {
+    Color::new(197,90,159)
+}
+
+pub fn deletion() -> Color {
+    Color::black()
+}
+
+pub fn border() -> Color {
+    Color::new(200,200,200)
+}
+
+pub fn clip() -> Color {
+    Color::red()
+}
+
 pub struct SequenceColors {}
 
-impl SequenceColors {
-
-    fn insert_color(&self) -> Color {
-        Color::new(197,90,159)
-    }
-
-    fn deletion_color(&self) -> Color {
-        Color::black()
-    }
-
-    fn border_color(&self) -> Color {
-        Color::new(200,200,200)
-    }
-
-    fn clip_color(&self) -> Color {
-        Color::red()
-    }
-}
 
 impl Scale<DnaNucleotide, Color> for SequenceColors {
     fn scale(&self, e: DnaNucleotide) -> Color {
@@ -93,6 +96,18 @@ impl Scale<DnaNucleotide, Color> for SequenceColors {
             DnaNucleotide::C => Color::new(119,122,205),
             DnaNucleotide::G => Color::new(173,150,61),
             DnaNucleotide::T => Color::new(202,94,74),
+            _ => Color::new(100, 100, 100)
+        }
+    }
+}
+
+impl Scale<RnaNucleotide, Color> for SequenceColors {
+    fn scale(&self, e: RnaNucleotide) -> Color {
+        match e { 
+            RnaNucleotide::A => Color::new(91,169,101),
+            RnaNucleotide::C => Color::new(119,122,205),
+            RnaNucleotide::G => Color::new(173,150,61),
+            RnaNucleotide::U => Color::new(202,94,74),
             _ => Color::new(100, 100, 100)
         }
     }
