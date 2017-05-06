@@ -24,6 +24,8 @@ impl Region {
 
     pub fn length(&self) -> usize { self.length }
 
+    pub fn end(&self) -> usize { self.offset + self.length }
+
 }
 
 impl fmt::Display for Region {
@@ -41,7 +43,7 @@ impl FromStr for Region {
         }
         else if split.len() == 2 {
             match usize::from_str(split[1]) {
-                Ok(pos) => Ok(Region::new(split[0].to_string(), pos-1, 1)),
+                Ok(pos) => Ok(Region::new(split[0].to_string(), pos-1, usize::max_value() - pos - 1)),
                 Err(e) => Err(format!("Can not parse coordinate: {}", e))
             }
         }

@@ -3,6 +3,8 @@ use std::io::BufRead;
 use std::io::SeekFrom;
 use std::io::Seek;
 
+use region::Region;
+
 pub struct FastaReader<R: Read> {
     reader: BufReader<R>
 }
@@ -17,12 +19,17 @@ impl<R: Read + Seek> FastaReader<R> {
 
 
     /// Search for a sequence with the given header
-    pub fn search(&mut self, header: &str) -> Option<String> {
+    pub fn search(&mut self, region: &Region) -> Option<String> {
         self.reset();
 
         for (h,b) in self {
-            if h == header {
-                return Some(b)
+            if h == region.name() {
+                if region.end() > b.len() {
+                   return Some(b[ region.offset() .. ].to_string())
+                }
+                else {
+                    return Some(b[ region.offset() .. (region.end()+1)].to_string() )
+                }
             }
         }
 

@@ -155,7 +155,7 @@ fn sketch(matches: &clap::ArgMatches) {
             Ok(f) => f,
             Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e)
         };
-    let reference = match FastaReader::from(file_reference).search(region.name().as_ref()) {
+    let reference = match FastaReader::from(file_reference).search(&region) {
             Some(seq) => match DnaSequence::from_str(seq.as_ref()) {
                 Ok(dna) => dna,
                 Err(e) => panic!("Can not parse DNA sequence '{}': {}", seq, e)
@@ -173,7 +173,13 @@ fn sketch(matches: &clap::ArgMatches) {
         };
     
     let mut out = SvgOutput::new(region.offset(), reference.length(), image_width, SequenceColors::default());
+    out.append_section(format!("{}", region).as_ref());
     out.append_section(filename_reference);
     out.append_sequence(&reference);
+
+
+    
+
+
     println!("{}", out);
 }
