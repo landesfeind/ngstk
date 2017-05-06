@@ -37,7 +37,7 @@ fn align() {
     a.add_segment(4, 0,  6, 3, false);
     a.add_segment(4, 4, 10, 4, true);
 
-    let mut out = AsciiOutput::new();
+    let mut out = AsciiOutput::new(0usize, t.length());
 
     out.append_section("Reference");
     out.append_sequence(&t);

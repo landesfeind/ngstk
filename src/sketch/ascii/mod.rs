@@ -11,15 +11,7 @@ pub struct AsciiOutput<E : SequenceElement> {
 
 impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
 
-    fn new() -> Self {
-        AsciiOutput { 
-            template_offset: 0usize,
-            template_length: None,
-            _marker: PhantomData
-        }
-    }
-
-    fn new_with_region(offset: usize, length: usize) -> Self {
+    fn new(offset: usize, length: usize) -> Self {
         AsciiOutput {
             template_offset: offset,
             template_length: Some(length),
