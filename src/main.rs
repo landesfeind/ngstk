@@ -1,7 +1,6 @@
 pub mod sequence;
 pub mod alignment;
-
-
+mod sketch;
 mod util;
 
 use sequence::*;
@@ -9,11 +8,12 @@ use sequence::dna::*;
 use sequence::rna::*;
 use sequence::aminoacid::*;
 use alignment::*;
+use sketch::GraphicsOutput;
+use sketch::ascii::AsciiOutput;
 
 fn main() {
     translate();
     align();
-    //sketch();
 }
 
 fn translate() {
@@ -32,21 +32,19 @@ fn translate() {
 fn align() {
     let t = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
     let s = DnaSequence::from_str(&"GTGGGTAG").expect("Can not parse DNA sequence string");
-    let mut a = Alignment::new(t.clone(), s);
+    let mut a = Alignment::new_aligned(t.clone(), s);
     a.add_segment(0, 4,  2, 4, false);
+    a.add_segment(4, 0,  6, 3, false);
     a.add_segment(4, 4, 10, 4, true);
 
-    println!("Alignment");
-    println!("{}", t);
-    for segment in a.segments() {
-        for _ in 0 .. segment.template_offset().unwrap() {
-            print!(" ");
-        }
-        println!("{}", segment.sequence_slice());
-    }
+    let mut out = AsciiOutput::new();
+
+    out.append_section("Alignment");
+    out.append_sequence(&t);
+    out.append_alignment(&a);
 }
 
 //fn sketch() {
-//    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
+//    let seq = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
 //    println!("{}", sketch::svg::SVG::new(reference).to_string());
 //}

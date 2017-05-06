@@ -15,7 +15,7 @@ use sketch::scale::genomic::NucleotideColorScale;
 pub use sketch::GraphicsOutput;
 use sketch::svg::internal::SvgDecorator;
 
-pub struct SVG<I : RegionIdentifier, E : SequenceElement, R : Region<I, E>> {
+pub struct SVG<E : SequenceElement, S : Sequence<E>> {
     region: GenomicRegion<I>,
     document: Document,
     node_svg: Node,

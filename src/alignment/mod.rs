@@ -8,25 +8,38 @@ use sequence::*;
 /// sequence.
 #[derive(Clone,Debug)]
 pub struct Alignment<E: SequenceElement, S: Sequence<E>> {
-    template: S,
+    template: Option<S>,
     sequence: S,
-    segments: Vec<AlignmentSegment<E,S>>
+    segments: Vec<AlignmentSegment<E,S>>,
+    _marker: PhantomData<E>
 }
 
 impl<E: SequenceElement, S: Sequence<E>> Alignment<E, S> {
-    pub fn new(template: S, sequence: S) -> Self {
+    /// Create a new alignment between two sequences
+    pub fn new(template: Option<S>, sequence: S) -> Self {
         Alignment {
             template: template,
             sequence: sequence,
-            segments: Vec::new()
+            segments: Vec::new(),
+            _marker: PhantomData
         }
     }
 
+    /// Create a new aligned 
+    pub fn new_aligned(template: S, sequence: S) -> Self {
+        Self::new(Some(template), sequence)
+    }
+
+    pub fn new_unaligned(sequence: S) -> Self {
+        Self::new(None, sequence)
+    }
+
+    /// Add a new sequence alignment segment
     pub fn add_segment(&mut self, sequence_offset: usize, sequence_length: usize, template_offset: usize, template_length: usize, is_reverse: bool){
         self.segments.push(
             AlignmentSegment::new(
+                self.template.clone(), Some(template_offset), Some(template_length),
                 self.sequence.clone(), sequence_offset, sequence_length,
-                Some(self.template.clone()), Some(template_offset), Some(template_length),
                 is_reverse
             )
         )
@@ -35,11 +48,6 @@ impl<E: SequenceElement, S: Sequence<E>> Alignment<E, S> {
     /// Returns the sequence that is aligned against the template
     pub fn sequence(&self) -> S {
         self.sequence.clone()
-    }
-
-    /// Returns the template against which the sequence is aligned
-    pub fn template(&self) -> S {
-        self.template.clone()
     }
 
     /// Returns the single segments 
@@ -64,9 +72,10 @@ pub struct AlignmentSegment<E: SequenceElement, S: Sequence<E>> {
 
 impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
     pub fn new(
-        sequence: S, sequence_offset:usize, sequence_length: usize,
         template: Option<S>, template_offset: Option<usize>, template_length: Option<usize>,
+        sequence: S, sequence_offset: usize, sequence_length: usize,
         is_reverse: bool) -> Self {
+
         AlignmentSegment {
             template: template,
             template_offset: template_offset,
@@ -86,11 +95,12 @@ impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
     /// Returns the template against which the sequence is aligned
     pub fn template(&self) -> Option<S> { self.template.clone() }
 
-    /// Returns the template against which this segment
-    /// is aligned against
+    /// Returns the position at the template sequence where the alignment segment starts
     pub fn template_offset(&self) -> Option<usize> { self.template_offset }
+    /// Returns the length of the alignem
     pub fn template_length(&self) -> Option<usize> { self.template_length }
 
+    /// Returns the slice that is 
     pub fn template_slice(&self) -> Option<S> {
         match self.is_aligned() {
             true => Some( self.template().unwrap().subsequence(self.template_offset().unwrap(), self.template_length().unwrap()) ),
@@ -164,5 +174,3 @@ impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
             && self.template_length().unwrap() != self.sequence_length()
     }
 }
-
-
