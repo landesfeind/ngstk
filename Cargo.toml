@@ -6,3 +6,4 @@ authors = ["Manuel Landesfeind <manuel@landesfeind.de>"]
 [dependencies]
 rust-htslib = "*"
 svgdom = "*"
+clap = "*"

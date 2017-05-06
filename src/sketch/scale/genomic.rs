@@ -34,23 +34,3 @@ impl Scale<usize, f64> for SequenceScale {
 }
 
 
-#[cfg(test)]
-mod test {
-
-    use genomicrange::GenomicRange;
-    use sketch::scale::Scale;
-    use sketch::scale::genomic::GenomicScale;
-    
-    #[test]
-    fn test_simple_scale() {
-        let s = GenomicScale::new_with_element_width(0, 100, 1f64);
-        assert_eq!( s.scale(   0usize ),   0f64);
-        assert_eq!( s.scale(   1usize ),   1f64);
-        assert_eq!( s.scale(  10usize ),  10f64);
-        assert_eq!( s.scale( 100usize ), 100f64);
-    }
-
-}
-
-
-
