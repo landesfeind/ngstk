@@ -9,15 +9,18 @@ pub struct AsciiOutput<E : SequenceElement> {
     _marker: PhantomData<E>
 }
 
-impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
+impl<E: SequenceElement> AsciiOutput<E> {
 
-    fn new(offset: usize, length: usize) -> Self {
+    pub fn new(offset: usize, length: usize) -> Self {
         AsciiOutput {
             template_offset: offset,
             template_length: Some(length),
             _marker: PhantomData
         }
     }
+}
+
+impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
 
     fn template_offset(&self) -> usize         { self.template_offset }
     fn template_length(&self) -> Option<usize> { self.template_length }

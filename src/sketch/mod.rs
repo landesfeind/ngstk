@@ -1,17 +1,16 @@
 //pub mod svg;
 //pub mod color;
 //mod scale;
+pub mod color;
+pub mod scale;
 pub mod ascii;
+pub mod svg;
 
 use sequence::*;
 use alignment::*;
 
 /// A graphics output generates a graphic for a given alignment 
 pub trait GraphicsOutput<E : SequenceElement> {
-
-    /// Create a new output using the given offset and the given length. 
-    /// Both parameters are given in number of `SequenceElement`s.
-    fn new(offset: usize, length: usize) -> Self;
 
     /// Returns the template offset to display
     fn template_offset(&self) -> usize;

@@ -19,4 +19,3 @@ pub fn sqrt(domain: Vec<f64>, range: Vec<f64>) -> numerical::NumericalScale {
 pub fn pow(domain: Vec<f64>, range: Vec<f64>, exponent: f64) -> numerical::NumericalScale {
     numerical::NumericalScale::new(domain, range, exponent)   
 }
-

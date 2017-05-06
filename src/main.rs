@@ -10,9 +10,11 @@ use sequence::aminoacid::*;
 use alignment::*;
 use sketch::GraphicsOutput;
 use sketch::ascii::AsciiOutput;
+use sketch::svg::SvgOutput;
+use sketch::color::SequenceColors;
 
 fn main() {
-    translate();
+    //translate();
     align();
 }
 
@@ -37,12 +39,15 @@ fn align() {
     a.add_segment(4, 0,  6, 3, false);
     a.add_segment(4, 4, 10, 4, true);
 
-    let mut out = AsciiOutput::new(0usize, t.length());
-
+    //let mut out = AsciiOutput::new(0usize, t.length());
+    let mut out = SvgOutput::new(0usize, t.length(), 500, SequenceColors::default());
     out.append_section("Reference");
     out.append_sequence(&t);
     out.append_section("Alignment");
     out.append_alignment(&a);
+
+    println!("{}", out);
+
 }
 
 //fn sketch() {

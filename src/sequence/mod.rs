@@ -37,6 +37,10 @@ pub trait Sequence<E: SequenceElement> : Clone
     /// the elements of the sequence
     fn iterator(&self) -> slice::Iter<E>;
 
+    fn as_vec(&self) -> Vec<E> {
+        self.iterator().map(|e| e.clone()).collect()
+    }
+
     fn subsequence(&self, offset: usize, length: usize) -> Self {
         let subs : Vec<E> = self.iterator().skip(offset).take(length).map( |x| (*x).clone() ).collect();
         Self::from(subs)
