@@ -42,7 +42,7 @@ impl<E: SequenceElement, S: Sequence<E>> Alignment<E, S> {
                 self.sequence.clone(), sequence_offset, sequence_length,
                 is_reverse
             )
-        )
+        );
     }
 
     /// Returns the sequence that is aligned against the template
@@ -174,3 +174,5 @@ impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
             && self.template_length().unwrap() != self.sequence_length()
     }
 }
+
+

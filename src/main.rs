@@ -39,8 +39,9 @@ fn align() {
 
     let mut out = AsciiOutput::new();
 
-    out.append_section("Alignment");
+    out.append_section("Reference");
     out.append_sequence(&t);
+    out.append_section("Alignment");
     out.append_alignment(&a);
 }
 

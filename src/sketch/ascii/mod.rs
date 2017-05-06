@@ -48,7 +48,6 @@ impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
     }
 
     fn append_alignment<S: Sequence<E>>(&mut self, alignment: &Alignment<E, S>){
-        println!("---");
         for seg in alignment.segments().iter().filter(|s| s.is_aligned()) {
             let toff = seg.template_offset().expect("Not aligned");
             for _ in 0 .. toff - self.template_offset() {
@@ -60,7 +59,14 @@ impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
                     print!("-")
                 }
             } else {
-                print!("{}", seg.sequence_slice())
+                print!("{}", seg.sequence_slice());
+                if seg.is_reverse() {
+                    print!("<");
+                }
+                else {
+                    print!(">");
+                }
+            
             }
             println!("");
         }
