@@ -59,9 +59,7 @@ impl<E : SequenceElement>  GraphicsOutput<E> for AsciiOutput<E> {
                 for _ in 0 .. seg.template_length().expect("Not aligned") {
                     print!("-")
                 }
-            }
-            
-            if seg.is_match() || seg.is_mismatch() {
+            } else {
                 print!("{}", seg.sequence_slice())
             }
             println!("");
