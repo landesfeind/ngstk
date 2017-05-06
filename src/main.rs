@@ -1,5 +1,5 @@
 pub mod sequence;
-//pub mod alignment;
+pub mod alignment;
 
 
 mod util;
@@ -8,16 +8,16 @@ use sequence::*;
 use sequence::dna::*;
 use sequence::rna::*;
 use sequence::aminoacid::*;
-//use alignment::*;
+use alignment::*;
 
 fn main() {
     translate();
-    //align();
+    align();
     //sketch();
 }
 
 fn translate() {
-    let seq = DnaSequence::from_str(&"ATGTGGTGCTGATG").unwrap();
+    let seq = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
     let tra = RnaSequence::from(&seq);
     let pep = Peptide::from(&seq);
     println!("<{}", seq.complement());
@@ -28,22 +28,23 @@ fn translate() {
     println!("-> {}", tra);
     println!("-> {}", pep.to_string());
 }
-//fn align() {
-//    let t: Vec<DnaNucleotide> = parse_dna_to_vec("ATGTGGTGCTGATG");
-//    let s: Vec<DnaNucleotide> = parse_dna_to_vec("GTGGGTAG");
-//    let mut a = DefaultAlignment::new(t.clone(), s);
-//    a.add_segment(0, 4,  2, 4, false);
-//    a.add_segment(4, 4, 10, 4, true);
-//
-//    println!("Alignment");
-//    println!("{}", t.to_string());
-//    for segment in a.segments() {
-//        for _ in 0 .. segment.template_offset().unwrap() {
-//            print!(" ");
-//        }
-//        println!("{}", segment.sequence_slice().to_string());
-//    }
-//}
+
+fn align() {
+    let t = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
+    let s = DnaSequence::from_str(&"GTGGGTAG").expect("Can not parse DNA sequence string");
+    let mut a = Alignment::new(t.clone(), s);
+    a.add_segment(0, 4,  2, 4, false);
+    a.add_segment(4, 4, 10, 4, true);
+
+    println!("Alignment");
+    println!("{}", t);
+    for segment in a.segments() {
+        for _ in 0 .. segment.template_offset().unwrap() {
+            print!(" ");
+        }
+        println!("{}", segment.sequence_slice());
+    }
+}
 
 //fn sketch() {
 //    let seq: DnaSequence = DnaSequence::from("ATGTGGTGCTGATG");
