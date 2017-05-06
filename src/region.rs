@@ -28,7 +28,7 @@ impl Region {
 
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}-{})", self.name, self.offset + 1, self.offset + 1 + self.length)
+        write!(f, "{}:{}-{}", self.name, self.offset + 1, self.offset + self.length)
     }
 }
 
