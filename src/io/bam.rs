@@ -47,7 +47,7 @@ impl IndexedBamReader {
 
             for c in record.cigar() {
                 match c {
-                    Cigar::Match(l) => {
+                    Cigar::Match(l) | Cigar::Equal(l) | Cigar::Diff(l) => {
                         alignment.add_segment(sequence_pos, l as usize, template_pos, l as usize, record.is_reverse());
                         sequence_pos += l as usize;
                         template_pos += l as usize;
@@ -56,10 +56,13 @@ impl IndexedBamReader {
                         alignment.add_segment(sequence_pos, l as usize, template_pos, 0usize, record.is_reverse());
                         sequence_pos += l as usize;
                     },
-                    Cigar::Del(l) => {
+                    Cigar::Del(l) | Cigar::RefSkip(l) => {
                         alignment.add_segment(sequence_pos, 0usize, template_pos, l as usize, record.is_reverse());
                         template_pos += l as usize;
                     },
+                    Cigar::SoftClip(l) => sequence_pos += l as usize,
+                    Cigar::HardClip(l) => {},
+                    Cigar::Pad(l) => {}
                     _ => {}
                 }
             }
