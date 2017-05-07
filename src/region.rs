@@ -76,7 +76,6 @@ mod tests {
         let r = Region::from_str("chr1:100").expect("Can not parse");
         assert_eq!(r.name(), "chr1");
         assert_eq!(r.offset(), 99usize);
-        assert_eq!(r.length(), 1usize);
     }
 
     #[test]

@@ -189,13 +189,16 @@ impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
     /// Returns `true` is this segment is truly aligned to the template,
     /// i.e., there exists a defined offset
     pub fn is_aligned(&self) -> bool {
-        self.template().is_some() && self.template_offset().is_some() && self.template_length().is_some()
+        self.template().is_some()
+            && self.template_offset().is_some() 
+            && self.template_length().is_some()
     }
 
     /// Returns `true` if the template sequence and the aligned sequence match.
     /// For a match, the template sequence and the aligned sequence must be identical.
     pub fn is_match(&self) -> bool {
-        self.is_aligned() && self.template_slice().unwrap() == self.sequence_slice()
+        self.is_aligned()
+            && self.template_slice().unwrap() == self.sequence_slice()
     }
 
     /// Returns `true` if this alignment represents a mismach.

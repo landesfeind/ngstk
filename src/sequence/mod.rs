@@ -41,6 +41,7 @@ pub trait Sequence<E: SequenceElement> : Clone
         self.iterator().map(|e| e.clone()).collect()
     }
 
+    /// Extracts the subsequence with a given offset and length
     fn subsequence(&self, offset: usize, length: usize) -> Self {
         let subs : Vec<E> = self.iterator().skip(offset).take(length).map( |x| (*x).clone() ).collect();
         Self::from(subs)

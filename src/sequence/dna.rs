@@ -269,6 +269,7 @@ impl<'a> From<&'a DnaSequence> for Vec<DnaNucleotide> {
 
 #[cfg(test)]
 mod tests {
+    use sequence::*;
     use dna::DnaNucleotide;
     use dna::DnaSequence;
     use std::str::FromStr;
@@ -339,6 +340,16 @@ mod tests {
         let s2 = DnaSequence::from_str(&"TGCA").expect("Can not parse DNA sequence string");
         //let s3 = s1 + s2;
         //assert_eq!(s3.to_string(), "ACGTTGCA");
+    }
 
+    #[test]
+    fn test_dna_subsequence() {
+        let s1 = DnaSequence::from_str(&"ACGT").expect("Can not parse DNA sequence string");
+        assert_eq!(s1.subsequence(0,1), DnaSequence::from_str(&"A").unwrap());
+        assert_eq!(s1.subsequence(0,2), DnaSequence::from_str(&"AC").unwrap());
+        assert_eq!(s1.subsequence(1,1), DnaSequence::from_str(&"C").unwrap());
+        assert_eq!(s1.subsequence(1,2), DnaSequence::from_str(&"CG").unwrap());
+        assert_eq!(s1.subsequence(3,1), DnaSequence::from_str(&"T").unwrap());
+        assert_eq!(s1.subsequence(3,2), DnaSequence::from_str(&"T").unwrap());
     }
 }

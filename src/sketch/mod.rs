@@ -132,6 +132,8 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
         g_alignments.append(&g_insertions);
 
         for alignment in alignments {
+            println!("ALIGNMENT: {:?}", alignment);
+
             let segments = alignment.segments();
 
             let alignment_start = segments.iter()
@@ -160,9 +162,11 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
             for idx in 0 .. segments.len() {
                 // Deletions go in the background
                 let segment = segments[idx].clone();
+                println!("      SEG: {:?}", segment);
 
 
                 if segment.is_match() || segment.is_mismatch() {
+                    println!("ALIGNING: {} {} '{}' '{}'", segment.is_match(), segment.is_mismatch(), segment.template_slice().unwrap(), segment.sequence_slice());
                     let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
                     let seg_w = self.xscale.scale(   segment.template_offset().expect("Not aligned") 
                                                    + segment.template_length().expect("Not aligned") ) - seg_x;
@@ -209,6 +213,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                     }
                 }
                 else if segment.is_deletion() {
+                    println!("DELETION");
                     let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
                     let seg_w = w * ( segment.template_length().expect("Not aligned") as f64);
                     
@@ -220,6 +225,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                     g_deletions.append(&bg);
                 }
                 else if segment.is_insertion() {
+                    println!("INSERTION");
                     let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
                     let seg_w = (w as f64) / 4f64;
 

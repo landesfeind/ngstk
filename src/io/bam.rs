@@ -77,8 +77,8 @@ impl IndexedBamReader {
                     Cigar::HardClip(l) => {
                         alignment.add_segment_unaligned(sequence_pos, 0usize);
                     },
-                    Cigar::Pad(l) => {}
-                    _ => {}
+                    Cigar::Pad(l) => {},
+                    _ => panic!("Unknown CIGAR: {:?}", c)
                 }
             }
 

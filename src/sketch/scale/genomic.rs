@@ -29,7 +29,7 @@ impl SequenceScale {
 
 impl Scale<usize, f64> for SequenceScale {
     fn scale(&self, d: usize) -> f64 {
-        ((d - self.template_offset) as f64) * self.element_width
+        (d as f64 - self.template_offset as f64) * self.element_width
     }
 }
 
