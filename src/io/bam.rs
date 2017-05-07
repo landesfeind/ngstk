@@ -39,8 +39,15 @@ impl IndexedBamReader {
 
         for r in bam.records() {
             let record = r.ok().expect("Error reading BAM file.");
-            let seq : Vec<DnaNucleotide> = record.seq().as_bytes().iter().map(|b| DnaNucleotide::from(*b as char)).collect();
+
+            /// Important: SAM/BAM lists sequence in correct order while
+            /// NgsTK alignments are 'unreversed'
+            let mut seq : Vec<DnaNucleotide> = match record.is_reverse() {
+                    true  => record.seq().as_bytes().iter().rev().map(|b| DnaNucleotide::from(*b as char)).collect(),
+                    false => record.seq().as_bytes().iter().      map(|b| DnaNucleotide::from(*b as char)).collect()
+                };
             let mut alignment = Alignment::new(Some(reference.clone()), DnaSequence::from(seq));
+
 
             let mut template_pos = record.pos() as usize;
             let mut sequence_pos = 0usize;
@@ -61,7 +68,6 @@ impl IndexedBamReader {
                         template_pos += l as usize;
                     },
                     Cigar::RefSkip(l) => {
-                        //alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, 0usize, record.is_reverse());
                         template_pos += l as usize;
                     },
                     Cigar::SoftClip(l) => {
