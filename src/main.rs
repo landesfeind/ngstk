@@ -17,9 +17,7 @@ use sequence::rna::*;
 use sequence::aminoacid::*;
 use alignment::*;
 use region::Region;
-use sketch::GraphicsOutput;
-use sketch::ascii::AsciiOutput;
-use sketch::svg::SvgOutput;
+use sketch::SvgOutput;
 use sketch::color::SequenceColors;
 use io::fasta::FastaReader;
 use io::bam::IndexedBamReader;
@@ -75,6 +73,14 @@ fn main() {
                      .value_name("filename")
                      .takes_value(true)
                      .multiple(true)
+                    )
+                .arg(Arg::with_name("outfile")
+                     .short("o")
+                     .long("out")
+                     .visible_alias("svg")
+                     .help("Write to this file instead of stdout")
+                     .value_name("filename")
+                     .takes_value(true)
                     )
                 .arg(Arg::with_name("image-width")
                      .long("image-width")
@@ -164,12 +170,15 @@ fn sketch(matches: &clap::ArgMatches) {
         None => {},
         Some(values) => for filename_bam in values {
             let alignments = IndexedBamReader::load_alignments(&region, reference.clone(), &filename_bam).expect("Can not load alignments");
-            for a in alignments.clone() {
-                out.append_alignment(&a)
-            }
+            out.append_alignments(&alignments)
         }
     }
 
-
-    println!("{}", out);
+    match matches.value_of("outfile") {
+        Some(p) => match File::create(p) {
+            Ok(mut f) => out.write(&mut f),
+            Err(e) => panic!("Can not open '{}' for writing: {}", p, e)
+        },
+        None => out.write(&mut std::io::stdout())
+    }
 }

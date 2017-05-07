@@ -60,8 +60,8 @@ impl IndexedBamReader {
                         alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, l as usize, record.is_reverse());
                         template_pos += l as usize;
                     },
-                     Cigar::RefSkip(l) => {
-                        alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, 0usize, record.is_reverse());
+                    Cigar::RefSkip(l) => {
+                        //alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, 0usize, record.is_reverse());
                         template_pos += l as usize;
                     },
                     Cigar::SoftClip(l) => {

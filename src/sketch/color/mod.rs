@@ -32,6 +32,14 @@ impl Color {
         Color::new(255, 0, 0)
     }
 
+    pub fn yellow() -> Self {
+        Color::new(255, 255, 0)
+    }
+
+    pub fn orange() -> Self {
+        Color::new(255,165,0)
+    }
+
     pub fn green() -> Self {
         Color::new(0, 255, 0)
     }

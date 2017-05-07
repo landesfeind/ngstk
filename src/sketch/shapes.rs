@@ -31,6 +31,10 @@ pub fn set_stroke(n: &mut Node, co: Option<Color>, w: Option<usize>){
     }
 }
 
+pub fn group(document: &mut Document) -> Node {
+    document.create_element(ElementId::G)
+}
+
 pub fn draw_text(document: &mut Document, text: &str, pos_x: f64, pos_y: f64, font_size: usize, align_center: bool, valign_center: bool, color: Option<Color>) -> Node {
     let mut text_node = document.create_element(ElementId::Text);
     let mut data_node = document.create_node(NodeType::Text, text);
