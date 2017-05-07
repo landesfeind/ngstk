@@ -86,7 +86,7 @@ fn main() {
    match app_matches.subcommand() {
        ("translate", Some(sub_m)) => translate(sub_m),
        ("sketch"   , Some(sub_m)) => sketch(sub_m),
-       _ => align() 
+       _ => {}
    }
 }
 
@@ -122,26 +122,6 @@ fn translate(matches: &clap::ArgMatches) {
     //println!("Frame3: {:?}", seq.frame(2usize));
     //println!("-> {}", tra);
     //println!("-> {}", pep.to_string());
-}
-
-fn align() {
-    let t = DnaSequence::from_str(&"ATGTGGTCTGATG").expect("Can not parse DNA sequence string");
-    let s = DnaSequence::from_str(&"GAGGTTGTAG").expect("Can not parse DNA sequence string");
-    let mut a = Alignment::new_aligned(t.clone(), s);
-    a.add_segment(0, 4,  2, 4, false);
-    a.add_segment(4, 0,  6, 3, false);
-    a.add_segment(4, 2,  9, 0, false);
-    a.add_segment(6, 4,  9, 4, true);
-
-    //let mut out = AsciiOutput::new(0usize, t.length());
-    let mut out = SvgOutput::new(0usize, t.length(), 500, SequenceColors::default());
-    out.append_section("Reference");
-    out.append_sequence(&t);
-    out.append_section("Alignment");
-    out.append_alignment(&a);
-
-    println!("{}", out);
-
 }
 
 fn sketch(matches: &clap::ArgMatches) {

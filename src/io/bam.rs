@@ -48,20 +48,29 @@ impl IndexedBamReader {
             for c in record.cigar() {
                 match c {
                     Cigar::Match(l) | Cigar::Equal(l) | Cigar::Diff(l) => {
-                        alignment.add_segment(sequence_pos, l as usize, template_pos, l as usize, record.is_reverse());
+                        alignment.add_segment_aligned(sequence_pos, l as usize, template_pos, l as usize, record.is_reverse());
                         sequence_pos += l as usize;
                         template_pos += l as usize;
                     },
                     Cigar::Ins(l) => {
-                        alignment.add_segment(sequence_pos, l as usize, template_pos, 0usize, record.is_reverse());
+                        alignment.add_segment_aligned(sequence_pos, l as usize, template_pos, 0usize, record.is_reverse());
                         sequence_pos += l as usize;
                     },
-                    Cigar::Del(l) | Cigar::RefSkip(l) => {
-                        alignment.add_segment(sequence_pos, 0usize, template_pos, l as usize, record.is_reverse());
+                    Cigar::Del(l) => {
+                        alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, l as usize, record.is_reverse());
                         template_pos += l as usize;
                     },
-                    Cigar::SoftClip(l) => sequence_pos += l as usize,
-                    Cigar::HardClip(l) => {},
+                     Cigar::RefSkip(l) => {
+                        alignment.add_segment_aligned(sequence_pos, 0usize, template_pos, 0usize, record.is_reverse());
+                        template_pos += l as usize;
+                    },
+                    Cigar::SoftClip(l) => {
+                        alignment.add_segment_unaligned(sequence_pos, l as usize);
+                        sequence_pos += l as usize;
+                    },
+                    Cigar::HardClip(l) => {
+                        alignment.add_segment_unaligned(sequence_pos, 0usize);
+                    },
                     Cigar::Pad(l) => {}
                     _ => {}
                 }

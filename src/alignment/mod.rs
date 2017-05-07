@@ -35,15 +35,38 @@ impl<E: SequenceElement, S: Sequence<E>> Alignment<E, S> {
     }
 
     /// Add a new sequence alignment segment
-    pub fn add_segment(&mut self, sequence_offset: usize, sequence_length: usize, template_offset: usize, template_length: usize, is_reverse: bool){
-        self.segments.push(
-            AlignmentSegment::new(
-                self.template.clone(), Some(template_offset), Some(template_length),
-                self.sequence.clone(), sequence_offset, sequence_length,
-                is_reverse
-            )
-        );
+    pub fn add_segment(&mut self, sequence_offset: usize, sequence_length: usize, template_offset: Option<usize>, template_length: Option<usize>, is_reverse: bool){
+        let s = match template_offset {
+            Some(to) => match template_length {
+                Some(tl) => AlignmentSegment::new(
+                                self.template.clone(), template_offset, template_length,
+                                self.sequence.clone(), sequence_offset, sequence_length,
+                                is_reverse
+                            ),
+                None => AlignmentSegment::new(
+                                self.template.clone(), template_offset, Some(0usize),
+                                self.sequence.clone(), sequence_offset, sequence_length,
+                                is_reverse
+                            )
+            },
+            None => AlignmentSegment::new(
+                    None, None, None,
+                    self.sequence.clone(), sequence_offset, sequence_length,
+                    is_reverse
+                )
+        };
+
+        self.segments.push(s);
     }
+
+    pub fn add_segment_aligned(&mut self, sequence_offset: usize, sequence_length: usize, template_offset: usize, template_length: usize, is_reverse: bool){
+        self.add_segment(sequence_offset, sequence_length, Some(template_offset), Some(template_length), is_reverse);
+    }
+
+    pub fn add_segment_unaligned(&mut self, sequence_offset: usize, sequence_length: usize){
+        self.add_segment(sequence_offset, sequence_length, None, None, false);
+    }
+
 
     /// Returns the sequence that is aligned against the template
     pub fn sequence(&self) -> S {
