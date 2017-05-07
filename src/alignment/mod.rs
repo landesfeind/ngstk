@@ -77,6 +77,45 @@ impl<E: SequenceElement, S: Sequence<E>> Alignment<E, S> {
     pub fn segments(&self) -> Vec<AlignmentSegment<E,S>> {
         self.segments.clone()
     }
+
+
+    pub fn canonicalize(&self) -> Self {
+        let mut new_segs = self.segments.clone();
+        let mut optimization_found = true;
+        
+        while optimization_found {
+            optimization_found = false;
+            let mut idx = 1usize;
+
+            while idx < new_segs.len() {
+                if new_segs[idx-1].is_insertion() 
+                        && new_segs[idx].is_insertion() 
+                        && new_segs[idx-1].sequence_offset() + new_segs[idx-1].sequence_length() == new_segs[idx].sequence_offset()
+                        && new_segs[idx-1].template_offset() == new_segs[idx].template_offset()
+                        && new_segs[idx-1].is_reverse() == new_segs[idx].is_reverse() {
+                    let ns = AlignmentSegment::new(
+                            self.template.clone(), new_segs[idx-1].template_offset(), Some(0usize),
+                            self.sequence.clone(), new_segs[idx-1].sequence_offset(), new_segs[idx-1].sequence_length() + new_segs[idx].sequence_length(),
+                            new_segs[idx].is_reverse()
+                        );
+                    new_segs.remove(idx);
+                    new_segs.remove(idx-1);
+                    new_segs.insert(idx-1, ns);
+                    optimization_found = true;
+                }
+                else {
+                    idx += 1;
+                }
+            }
+        }
+
+        Alignment {
+            template: self.template.clone(),
+            sequence: self.sequence.clone(),
+            segments: new_segs,
+            _marker: PhantomData
+        }
+    }
 }
 
 

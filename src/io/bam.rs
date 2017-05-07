@@ -82,7 +82,7 @@ impl IndexedBamReader {
                 }
             }
 
-            aligns.push(alignment);
+            aligns.push(alignment.canonicalize());
         }
 
         return Some(aligns);
