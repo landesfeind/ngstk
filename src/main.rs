@@ -13,9 +13,7 @@ use std::fs::File;
 
 use sequence::*;
 use sequence::dna::*;
-use sequence::rna::*;
 use sequence::aminoacid::*;
-use alignment::*;
 use region::Region;
 use sketch::SvgOutput;
 use sketch::color::SequenceColors;
@@ -155,14 +153,14 @@ fn sketch(matches: &clap::ArgMatches) {
     let image_width = match matches.value_of("image-width") {
             Some(s) => match usize::from_str(s) {
                 Ok(w) => w,
-                Err(e) => panic!("Can not parse image width '{}': {}", s, e)
+                Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e)
             },
             None => region.length() * 15usize
         };
     
 
     // Generate output SVG
-    let mut out = SvgOutput::new(region.offset(), reference.length(), image_width, SequenceColors::default());
+    let mut out = SvgOutput::new(region.offset(), region.length(), image_width, SequenceColors::default());
     out.append_section(format!("{}", region).as_ref());
     out.append_section(filename_reference);
     out.append_sequence(&reference.subsequence(region.offset(), region.length()));

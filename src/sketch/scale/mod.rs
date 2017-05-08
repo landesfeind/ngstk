@@ -1,5 +1,4 @@
 pub mod numerical;
-pub mod genomic;
 
 pub trait Scale<D, R> {
     fn scale(&self, d: D) -> R;

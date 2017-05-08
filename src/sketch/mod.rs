@@ -11,7 +11,6 @@ pub mod color;
 pub mod scale;
 mod shapes;
 use sketch::scale::Scale;
-use sketch::scale::genomic::SequenceScale;
 use sketch::shapes::*;
 
 const FONT_SIZE : usize = 12;
@@ -24,21 +23,15 @@ pub struct SvgOutput<E : SequenceElement, CS: Scale<E,Color>> {
     image_height: usize,
     document: Document,
     node_svg: Node,
-    xscale: SequenceScale,
     color_profile: CS,
     _marker: PhantomData<E>
 }
 
 impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
-    /// Create a new output using the given offset and the given length. 
-    /// Both parameters are given in number of `SequenceElement`s.
     pub fn new(template_offset: usize, template_length: usize, image_width: usize, color_profile: CS) -> Self {
         let mut doc = Document::new();
         let mut svg = doc.create_element(ElementId::Svg);
         doc.append(&svg);
-
-        let s = SequenceScale::new_with_max_width(template_offset, template_length, image_width);
-        println!("{:?}", s);
 
         SvgOutput {
             template_offset: template_offset,
@@ -47,10 +40,17 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
             image_height: 0usize,
             document: doc,
             node_svg: svg,
-            xscale: s,
             color_profile: color_profile,
             _marker: PhantomData
         }
+    }
+    
+    pub fn element_width(&self) -> f64 {
+        (self.image_width as f64) / (self.template_length as f64)
+    }
+
+    pub fn x(&self, position_abs: usize) -> f64 {
+        self.element_width() * (position_abs as f64 - self.template_offset as f64)
     }
 
     fn element_to_color(&self, e: &E) -> Option<Color> {
@@ -87,7 +87,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
     }
     pub fn append_sequence_with_offset<S: Sequence<E>>(&mut self, sequence: &S, offset: usize){
         let h = (FONT_SIZE + (2*PADDING)) as f64;
-        let w = self.xscale.element_width();
+        let w = self.element_width();
 
         let vec = sequence.as_vec();
 
@@ -96,14 +96,17 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
 
         for i in 0 .. sequence.length() {
             let n = format!("{}", vec[i]);
-            let x = self.xscale.scale(offset + i);
+            let x = self.x(offset + i);
 
             let color = self.element_to_color(&vec[i]);
             let bg   = shapes::draw_rect(&mut self.document, x, self.image_height as f64, w, h, color);
             let text = shapes::draw_text(&mut self.document, n.as_ref(), 
-                                           x + (w/2f64), (self.image_height + PADDING + FONT_SIZE) as f64,
-                                           FONT_SIZE, 
-                                           true, true, None);
+                                           x + (w/2.0),
+                                           (self.image_height + PADDING + FONT_SIZE) as f64,
+                                           FONT_SIZE,
+                                           true, // horizontal-center w.r.t. to x
+                                           true, // vertical-center w.r.t. y
+                                           None);
             g.append(&bg);
             g.append(&text);
         }
@@ -116,7 +119,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
 
     pub fn append_alignments<S: Sequence<E>>(&mut self, alignments: &Vec<Alignment<E,S>>){
         let h = (FONT_SIZE + (2*PADDING)) as f64;
-        let w = self.xscale.element_width();
+        let w = self.element_width();
 
         let g_alignments  = shapes::group(&mut self.document);
         self.node_svg.append(&g_alignments);
@@ -133,8 +136,6 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
         g_alignments.append(&g_insertions);
 
         for alignment in alignments {
-            println!("ALIGNMENT: {:?}", alignment);
-
             let segments = alignment.segments();
 
             let alignment_start = segments.iter()
@@ -146,11 +147,13 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                 .map(|s| s.template_offset().unwrap() + s.template_length().unwrap())
                 .max();
             if alignment_start.is_some() && alignment_end.is_some() {
+                let x_start = self.x(alignment_start.unwrap());
+                let x_end   = self.x(alignment_end.unwrap());
                 let mut alignment_path = shapes::draw_line(
                         &mut self.document,
-                        self.xscale.scale(alignment_start.unwrap()),
+                        x_start,
                         (self.image_height as f64) + (h/2f64),
-                        self.xscale.scale(alignment_end.unwrap()),
+                        x_end,
                         (self.image_height as f64) + (h/2f64),
                         None
                     );
@@ -163,13 +166,11 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
             for idx in 0 .. segments.len() {
                 // Deletions go in the background
                 let segment = segments[idx].clone();
-                println!("      SEG: {:?}", segment);
 
 
                 if segment.is_match() || segment.is_mismatch() {
-                    println!("ALIGNING: {} {} '{}' '{}'", segment.is_match(), segment.is_mismatch(), segment.template_slice().unwrap(), segment.sequence_slice());
-                    let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
-                    let seg_w = self.xscale.scale(   segment.template_offset().expect("Not aligned") 
+                    let seg_x = self.x(segment.template_offset().expect("Not aligned"));
+                    let seg_w = self.x(   segment.template_offset().expect("Not aligned") 
                                                    + segment.template_length().expect("Not aligned") ) - seg_x;
 
                     let path = if segment.is_reverse() {
@@ -201,7 +202,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                         if s_seq[i] != t_seq[i] {
                             let n = format!("{}", s_seq[i]);
                             let color = self.element_to_color(&s_seq[i]);
-                            let x = self.xscale.scale( segment.template_offset().expect("Not aligned") + i);
+                            let x = self.x( segment.template_offset().expect("Not aligned") + i);
 
                             let bg   = shapes::draw_rect(&mut self.document, x, self.image_height as f64, w, h, color);
                             let text = shapes::draw_text(&mut self.document, n.as_ref(), 
@@ -214,8 +215,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                     }
                 }
                 else if segment.is_deletion() {
-                    println!("DELETION");
-                    let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
+                    let seg_x = self.x(segment.template_offset().expect("Not aligned"));
                     let seg_w = w * ( segment.template_length().expect("Not aligned") as f64);
                     
                     let bg   = shapes::draw_rect(&mut self.document, 
@@ -226,8 +226,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                     g_deletions.append(&bg);
                 }
                 else if segment.is_insertion() {
-                    println!("INSERTION");
-                    let seg_x = self.xscale.scale(segment.template_offset().expect("Not aligned"));
+                    let seg_x = self.x(segment.template_offset().expect("Not aligned"));
                     let seg_w = (w as f64) / 4f64;
 
                     let path = svgdom::types::path::Builder::new()
@@ -244,8 +243,8 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
                 }
                 else if ! segment.is_aligned() {
                     let seg_x = match idx == 0 {
-                            true => self.xscale.scale(segments[idx + 1].template_offset().expect("Not aligned")),
-                            false => self.xscale.scale(segments[idx - 1].template_offset().expect("Not aligned"))
+                            true => self.x(segments[idx + 1].template_offset().expect("Not aligned")),
+                            false => self.x(segments[idx - 1].template_offset().expect("Not aligned"))
                     };
                     let seg_w = (w as f64) / 4f64;
 
@@ -272,9 +271,6 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
         }
     }
 
-
-
-
     /// Write the generated SVG to the given destination
     pub fn write<W : Write>(&self, dst: &mut W){
         write!(dst, "{}", self);
@@ -289,3 +285,23 @@ impl<E:SequenceElement, CS: Scale<E, Color>> fmt::Display for SvgOutput<E, CS> {
     }
 }
 
+
+
+
+#[cfg(test)]
+mod tests {
+    use sketch::SvgOutput;
+    use sketch::color::SequenceColors;
+    use sequence::dna::DnaNucleotide;
+
+    #[test]
+    fn test_width_calculation(){
+        let svg : SvgOutput<DnaNucleotide,SequenceColors> = SvgOutput::new(100usize, 100usize, 500usize, SequenceColors::default());
+        assert_eq!(svg.element_width(), 5.0, "Inaccurate element width calculated");
+        assert_eq!(svg.x( 99), -  5.0);
+        assert_eq!(svg.x(100),    0.0);
+        assert_eq!(svg.x(101),    5.0);
+        assert_eq!(svg.x(200),  500.0);
+        assert_eq!(svg.x(200),  500.0);
+    }
+}

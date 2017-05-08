@@ -42,7 +42,7 @@ impl IndexedBamReader {
 
             /// Important: SAM/BAM lists sequence in correct order while
             /// NgsTK alignments are 'unreversed'
-            let mut seq : Vec<DnaNucleotide> = match record.is_reverse() {
+            let seq : Vec<DnaNucleotide> = match record.is_reverse() {
                     true  => record.seq().as_bytes().iter().rev().map(|b| DnaNucleotide::from(*b as char)).collect(),
                     false => record.seq().as_bytes().iter().      map(|b| DnaNucleotide::from(*b as char)).collect()
                 };
@@ -74,10 +74,10 @@ impl IndexedBamReader {
                         alignment.add_segment_unaligned(sequence_pos, l as usize);
                         sequence_pos += l as usize;
                     },
-                    Cigar::HardClip(l) => {
+                    Cigar::HardClip(_) => {
                         alignment.add_segment_unaligned(sequence_pos, 0usize);
                     },
-                    Cigar::Pad(l) => {},
+                    Cigar::Pad(_) => {},
                     _ => panic!("Unknown CIGAR: {:?}", c)
                 }
             }
