@@ -142,6 +142,12 @@ impl From<Aminoacid> for char {
         }
     }
 }
+impl From<Aminoacid> for u8 {
+    fn from(n: Aminoacid) -> u8 {
+        char::from(n) as u8
+    }
+}
+
 
 
 impl<'a> From<&'a Aminoacid> for char {
@@ -333,6 +339,10 @@ impl Sequence<Aminoacid> for Peptide {
 
     fn iterator(&self) -> slice::Iter<Aminoacid> {
         self.elements.iter()
+    }
+    fn subsequence(&self, offset: usize, length: usize) -> Self {
+        let v : Vec<Aminoacid> = self.iterator().skip(offset).take(length).cloned().collect();
+        Self::from(v)
     }
 }
 

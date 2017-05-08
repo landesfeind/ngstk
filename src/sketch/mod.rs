@@ -38,6 +38,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
         doc.append(&svg);
 
         let s = SequenceScale::new_with_max_width(template_offset, template_length, image_width);
+        println!("{:?}", s);
 
         SvgOutput {
             template_offset: template_offset,
@@ -86,7 +87,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
     }
     pub fn append_sequence_with_offset<S: Sequence<E>>(&mut self, sequence: &S, offset: usize){
         let h = (FONT_SIZE + (2*PADDING)) as f64;
-        let w = self.xscale.scale(1) - self.xscale.scale(0);
+        let w = self.xscale.element_width();
 
         let vec = sequence.as_vec();
 
@@ -115,7 +116,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
 
     pub fn append_alignments<S: Sequence<E>>(&mut self, alignments: &Vec<Alignment<E,S>>){
         let h = (FONT_SIZE + (2*PADDING)) as f64;
-        let w = self.xscale.scale(1) - self.xscale.scale(0);
+        let w = self.xscale.element_width();
 
         let g_alignments  = shapes::group(&mut self.document);
         self.node_svg.append(&g_alignments);
@@ -282,7 +283,7 @@ impl<E : SequenceElement, CS: Scale<E,Color>> SvgOutput<E, CS> {
 
 impl<E:SequenceElement, CS: Scale<E, Color>> fmt::Display for SvgOutput<E, CS> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.node_svg.set_attribute(AttributeId::Width, self.xscale.scale(self.template_offset + self.template_length));
+        self.node_svg.set_attribute(AttributeId::Width, self.image_width as f64);
         self.node_svg.set_attribute(AttributeId::Height, self.image_height as f64);
         write!(f, "{}", self.document.to_string_with_opt(&WriteOptions::default()))
     }

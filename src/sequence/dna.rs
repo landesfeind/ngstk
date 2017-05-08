@@ -179,10 +179,16 @@ impl Sequence<DnaNucleotide> for DnaSequence {
     fn iterator(&self) -> slice::Iter<DnaNucleotide> {
         self.elements.iter()
     }
+
+    fn subsequence(&self, offset: usize, length: usize) -> Self {
+        let v : Vec<DnaNucleotide> = self.iterator().skip(offset).take(length).cloned().collect();
+        Self::from(v)
+    }
+
 }
 
 impl DnaSequence {
-    
+
     /// Returns the complementary strand sequence in reversed direction (i.e., the actual sequence
     /// that is read by DNA or RNA polymerase).
     pub fn reverse_strand(&self) -> Self {
@@ -239,7 +245,7 @@ impl FromStr for DnaSequence {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let v : Vec<DnaNucleotide> = s.chars()
-            .filter( |n| *n != '\t' && *n != '\n' && *n != ' ' )
+            .filter( |n| ! n.is_whitespace() )
             .map( |n| DnaNucleotide::from(n) ).collect();
         Ok(DnaSequence::from(v))
     }

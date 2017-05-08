@@ -85,6 +85,7 @@ fn main() {
                 .arg(Arg::with_name("image-width")
                      .long("image-width")
                      .help("Set the desired width of the output image")
+                     .takes_value(true)
                     )
             )
         .get_matches();
@@ -156,7 +157,7 @@ fn sketch(matches: &clap::ArgMatches) {
                 Ok(w) => w,
                 Err(e) => panic!("Can not parse image width '{}': {}", s, e)
             },
-            None => reference.length() * 15usize
+            None => region.length() * 15usize
         };
     
 
@@ -164,7 +165,7 @@ fn sketch(matches: &clap::ArgMatches) {
     let mut out = SvgOutput::new(region.offset(), reference.length(), image_width, SequenceColors::default());
     out.append_section(format!("{}", region).as_ref());
     out.append_section(filename_reference);
-    out.append_sequence(&reference);
+    out.append_sequence(&reference.subsequence(region.offset(), region.length()));
 
     match matches.values_of("bam") {
         None => {},

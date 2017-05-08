@@ -173,8 +173,9 @@ impl<E: SequenceElement, S: Sequence<E>> AlignmentSegment<E,S> {
     /// Returns the sequence that is aligned against the template
     pub fn sequence(&self) -> S { self.sequence.clone() }
     
-    /// Returns the length of the template that is covered by this alignment.
+    /// Returns the offset at which the alignment starts with respect to the start of the sequence.
     pub fn sequence_offset(&self) -> usize { self.sequence_offset }
+    /// Returns the length of the sequence that is covered by this alignment.
     pub fn sequence_length(&self) -> usize { self.sequence_length }
 
     /// Returns the aligned sequence slice. If the alignment `is_reverse()`

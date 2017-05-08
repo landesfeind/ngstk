@@ -24,12 +24,7 @@ impl<R: Read + Seek> FastaReader<R> {
 
         for (h,b) in self {
             if h == region.name() {
-                if region.end() > b.len() {
-                   return Some(b[ region.offset() .. ].to_string())
-                }
-                else {
-                    return Some(b[ region.offset() .. (region.end()+1)].to_string() )
-                }
+                return Some(b)
             }
         }
 

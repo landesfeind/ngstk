@@ -160,6 +160,8 @@ impl Sequence<RnaNucleotide> for RnaSequence {
     fn iterator(&self) -> slice::Iter<RnaNucleotide> {
         self.elements.iter()
     }
+    
+
 }
 
 impl RnaSequence {
