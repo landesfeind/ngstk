@@ -130,7 +130,7 @@ fn translate(matches: &clap::ArgMatches) {
 }
 
 fn sketch(matches: &clap::ArgMatches) {
-    let region = match Region::from_str( matches.value_of("region").unwrap_or("ref") ) {
+    let mut region = match Region::from_str( matches.value_of("region").unwrap_or("ref") ) {
             Ok(r) => r,
             Err(e) => panic!("Error: {}", e)
         };
@@ -149,21 +149,31 @@ fn sketch(matches: &clap::ArgMatches) {
             None => panic!("Can not find reference sequence with header '{}'", region.name())
         };
 
+
     // Parse output image information
     let image_width = match matches.value_of("image-width") {
             Some(s) => match usize::from_str(s) {
                 Ok(w) => w,
                 Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e)
             },
-            None => region.length() * 15usize
+            None => region.length().unwrap_or(reference.length()) * 15usize
         };
     
 
     // Generate output SVG
-    let mut out = SvgOutput::new(region.offset(), region.length(), image_width, SequenceColors::default());
+    let mut out = SvgOutput::new(
+            region.offset().unwrap_or(0usize),
+            region.length().unwrap_or(reference.length()), 
+            image_width, SequenceColors::default()
+        );
     out.append_section(format!("{}", region).as_ref());
     out.append_section(filename_reference);
-    out.append_sequence(&reference.subsequence(region.offset(), region.length()));
+    if region.has_coordinates() {
+        out.append_sequence(&reference.subsequence(region.offset().unwrap(), region.length().unwrap()));
+    }
+    else {
+        out.append_sequence(&reference);
+    }
 
     match matches.values_of("bam") {
         None => {},

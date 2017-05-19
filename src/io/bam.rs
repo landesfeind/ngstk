@@ -21,17 +21,23 @@ impl IndexedBamReader {
                 None => Err(format!("Can not find region {} in BAM", region)),
                 
                 Some(tid) => {
-                    let from = cmp::min( region.offset()                    as u32, bam.header.target_len(tid).unwrap());
-                    let to   = cmp::min((region.offset() + region.length()) as u32, bam.header.target_len(tid).unwrap());
-                    match bam.seek(tid, from,to) {
-                        Err(e) => return Err(format!("Can not seek the position '{}': {}", region, e)),
-
+                    let from = match region.has_coordinates() {
+                            true  => cmp::min(region.offset().unwrap()  as u32, bam.header.target_len(tid).unwrap_or(region.offset().unwrap_or(0) as u32)),
+                            false => 0
+                        };
+                    let to   = match region.has_coordinates() {
+                            true => cmp::min(region.end().unwrap()      as u32, bam.header.target_len(tid).unwrap_or(region.end().unwrap_or(0) as u32)),
+                            false => from
+                        };
+                    match bam.seek(tid, from, to) {
+                        Err(e) => Err(format!("Can not seek the position '{}': {}", region, e)),
                         Ok(_) => Ok( bam )
                     }
                 }
             }
         }
     }
+    
 
     pub fn load_alignments<P: AsRef<Path>>(region: &Region, reference: DnaSequence, bam_path: &P) -> Option<Vec<Alignment<DnaNucleotide, DnaSequence>>> {
         let mut aligns = Vec::new();

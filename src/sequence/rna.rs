@@ -151,6 +151,9 @@ pub struct RnaSequence {
     elements: Rc<Vec<RnaNucleotide>>
 }
 
+impl RnaSequence {
+}
+
 impl Sequence<RnaNucleotide> for RnaSequence {
 
     fn length(&self) -> usize {
@@ -160,11 +163,7 @@ impl Sequence<RnaNucleotide> for RnaSequence {
     fn iterator(&self) -> slice::Iter<RnaNucleotide> {
         self.elements.iter()
     }
-    
 
-}
-
-impl RnaSequence {
 }
 
 impl PartialEq for RnaSequence {

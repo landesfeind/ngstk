@@ -180,11 +180,6 @@ impl Sequence<DnaNucleotide> for DnaSequence {
         self.elements.iter()
     }
 
-    fn subsequence(&self, offset: usize, length: usize) -> Self {
-        let v : Vec<DnaNucleotide> = self.iterator().skip(offset).take(length).cloned().collect();
-        Self::from(v)
-    }
-
 }
 
 impl DnaSequence {
