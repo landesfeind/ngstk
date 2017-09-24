@@ -7,3 +7,5 @@ authors = ["Manuel Landesfeind <manuel@landesfeind.de>"]
 rust-htslib = "*"
 svgdom = "*"
 clap = "*"
+log = "*"
+pretty_env_logger = "*"

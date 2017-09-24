@@ -1,6 +1,5 @@
-use std::fmt;
-use std::ops;
 use std::cmp;
+use std::fmt;
 use std::slice;
 
 pub mod dna;
@@ -8,18 +7,21 @@ pub mod rna;
 pub mod aminoacid;
 
 /// An element that can be part of a sequence.
-pub trait SequenceElement: Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized + From<char> + Into<char> {}
+pub trait SequenceElement
+    : Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized + From<char> + Into<char>
+    {
+}
 
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
-pub trait Sequence<E: SequenceElement> : Clone
+pub trait Sequence<E: SequenceElement>
+    : Clone
     + cmp::PartialEq
     + cmp::Eq
     + cmp::PartialOrd
     + cmp::Ord
     + From<Vec<E>>
-    + fmt::Debug 
+    + fmt::Debug
     + fmt::Display {
-
     /// Returns the length of the DNA sequence
     /// which is the number of nucleotides in it.
     fn length(&self) -> usize;
@@ -39,17 +41,22 @@ pub trait Sequence<E: SequenceElement> : Clone
         self.iterator().cloned().collect()
     }
 
-    /// Extracts the subsequence with a given offset and length.  
+    /// Extracts the subsequence with a given offset and length.
     fn subsequence(&self, offset: usize, length: usize) -> Self {
-        assert!(offset + length <= self.length(), "The requested range [{} .. {}] is out of range for a sequence of length {}", offset, offset+length, self.length());
-        let v : Vec<E> = self.iterator().skip(offset).take(length).cloned().collect();
+        assert!(
+            offset + length <= self.length(),
+            "The requested range [{} .. {}] is out of range for a sequence of length {}",
+            offset,
+            offset + length,
+            self.length()
+        );
+        let v: Vec<E> = self.iterator().skip(offset).take(length).cloned().collect();
         Self::from(v)
     }
 
     /// Returns the a copy of the reversed sequence.
     fn reverse(&self) -> Self {
-        let v : Vec<E> = self.iterator().rev().cloned().collect();
+        let v: Vec<E> = self.iterator().rev().cloned().collect();
         Self::from(v)
     }
 }
-

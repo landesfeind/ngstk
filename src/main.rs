@@ -1,5 +1,10 @@
+#![allow(dead_code,unused_must_use)]
+#[macro_use]
+extern crate log;
+extern crate pretty_env_logger;
+
 extern crate clap;
-use clap::{App,AppSettings,SubCommand,Arg};
+use clap::{App, SubCommand, Arg};
 
 pub mod sequence;
 pub mod alignment;
@@ -8,20 +13,25 @@ mod util;
 mod region;
 mod io;
 
-use std::io::stdin;
-use std::fs::File;
+use io::bam::IndexedBamReader;
+use io::fasta::FastaReader;
+use region::Region;
 
 use sequence::*;
-use sequence::dna::*;
 use sequence::aminoacid::*;
-use region::Region;
+use sequence::dna::*;
 use sketch::SvgOutput;
 use sketch::color::SequenceColors;
-use io::fasta::FastaReader;
-use io::bam::IndexedBamReader;
+use std::fs::File;
+use std::io::stdin;
 
 fn main() {
-   let app_matches = App::new(env!("CARGO_PKG_NAME"))
+    match pretty_env_logger::init() {
+        Err(why) => panic!("Can not initialize logging facility: {:?}", why),
+        Ok(_) => {}
+    }
+
+    let app_matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         //.setting(AppSettings::SubcommandRequired)
@@ -88,11 +98,11 @@ fn main() {
             )
         .get_matches();
 
-   match app_matches.subcommand() {
-       ("translate", Some(sub_m)) => translate(sub_m),
-       ("sketch"   , Some(sub_m)) => sketch(sub_m),
-       _ => {}
-   }
+    match app_matches.subcommand() {
+        ("translate", Some(sub_m)) => translate(sub_m),
+        ("sketch", Some(sub_m)) => sketch(sub_m),
+        _ => {}
+    }
 }
 
 fn translate(matches: &clap::ArgMatches) {
@@ -101,93 +111,109 @@ fn translate(matches: &clap::ArgMatches) {
             for seqstring in seqs {
                 match DnaSequence::from_str(seqstring.as_ref()) {
                     Ok(dna) => println!("{}", Peptide::from(dna)),
-                    Err(e) => println!("Error: {}", e)
+                    Err(e) => println!("Error: {}", e),
                 }
             }
-        },
+        }
         None => {
             let fasta = FastaReader::from(stdin());
             for (header, sequence) in fasta {
                 println!(">{}", header);
                 match DnaSequence::from_str(sequence.as_ref()) {
                     Ok(dna) => println!("{}", Peptide::from(dna)),
-                    Err(e) => println!("Error: {}", e)
+                    Err(e) => println!("Error: {}", e),
+                }
+            }
+        }
+    }
+}
+
+fn sketch(args: &clap::ArgMatches) {
+    let region = match Region::from_str(args.value_of("region").unwrap_or("ref")) {
+        Ok(r) => {
+            debug!("Using region: {}", r);
+            r
+        }
+        Err(e) => panic!("Error: {}", e),
+    };
+
+    // Read the reference sequence
+    let filename_reference = args.value_of("reference").unwrap_or("testdata/toy.fasta");
+    let file_reference = match File::open(filename_reference) {
+        Ok(f) => {
+            debug!("Loading reference FASTA sequence from: {}", filename_reference);
+            f
+        }
+        Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
+    };
+    let reference = match FastaReader::from(file_reference).search(&region) {
+        Some(seq) => {
+            match DnaSequence::from_str(seq.as_ref()) {
+                Ok(dna) => dna,
+                Err(e) => panic!("Can not parse DNA sequence '{}': {}", seq, e),
+            }
+        },
+        None => panic!("Can not find reference sequence with header '{}'", region.name())
+    };
+    debug!("Using sequence of {} elements: {}", reference.length(), reference);
+
+
+    // Parse output image information
+    let image_width = match args.value_of("image-width") {
+        Some(s) => {
+            match usize::from_str(s) {
+                Ok(w) => w,
+                Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e),
+            }
+        }
+        None => region.length().unwrap_or(reference.length()) * 15usize,
+    };
+
+
+    // Generate output SVG
+    let mut out = SvgOutput::new(
+        region.offset().unwrap_or(0usize),
+        region.length().unwrap_or(reference.length()),
+        image_width,
+        SequenceColors::default(),
+    );
+    out.append_section(format!("{}", region).as_ref());
+    out.append_section(filename_reference);
+    if region.has_coordinates() {
+        out.append_sequence(&reference.subsequence(
+            region.offset().unwrap(),
+            region.length().unwrap(),
+        ));
+    } else {
+        out.append_sequence(&reference);
+    }
+
+    match args.values_of("bam") {
+        None => {}
+        Some(values) => {
+            for filename_bam in values {
+                debug!("Processing BAM file: {}", filename_bam);
+                match IndexedBamReader::load_alignments(&region, reference.clone(), &filename_bam) {
+                    None => panic!("Can not load alignments"),
+                    Some(alignments) => {
+                        debug!("Found {} aligned reads", alignments.len());
+                        out.append_alignments(&alignments)
+                    }
                 }
             }
         }
     }
 
-    //let seq = DnaSequence::from_str(&"ATGTGGTGCTGATG").expect("Can not parse DNA sequence string");
-    //let tra = RnaSequence::from(&seq);
-    //let pep = Peptide::from(&seq);
-    //println!("<{}", seq.complement());
-    //println!(">{}", seq);
-    //println!("Frame1: {:?}", seq.frame(0usize));
-    //println!("Frame2: {:?}", seq.frame(1usize));
-    //println!("Frame3: {:?}", seq.frame(2usize));
-    //println!("-> {}", tra);
-    //println!("-> {}", pep.to_string());
-}
-
-fn sketch(matches: &clap::ArgMatches) {
-    let mut region = match Region::from_str( matches.value_of("region").unwrap_or("ref") ) {
-            Ok(r) => r,
-            Err(e) => panic!("Error: {}", e)
-        };
-    
-    // Read the reference sequence
-    let filename_reference = matches.value_of("reference").unwrap_or("testdata/toy.fasta");
-    let file_reference = match File::open(filename_reference) {
-            Ok(f) => f,
-            Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e)
-        };
-    let reference = match FastaReader::from(file_reference).search(&region) {
-            Some(seq) => match DnaSequence::from_str(seq.as_ref()) {
-                Ok(dna) => dna,
-                Err(e) => panic!("Can not parse DNA sequence '{}': {}", seq, e)
-            },
-            None => panic!("Can not find reference sequence with header '{}'", region.name())
-        };
-
-
-    // Parse output image information
-    let image_width = match matches.value_of("image-width") {
-            Some(s) => match usize::from_str(s) {
-                Ok(w) => w,
-                Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e)
-            },
-            None => region.length().unwrap_or(reference.length()) * 15usize
-        };
-    
-
-    // Generate output SVG
-    let mut out = SvgOutput::new(
-            region.offset().unwrap_or(0usize),
-            region.length().unwrap_or(reference.length()), 
-            image_width, SequenceColors::default()
-        );
-    out.append_section(format!("{}", region).as_ref());
-    out.append_section(filename_reference);
-    if region.has_coordinates() {
-        out.append_sequence(&reference.subsequence(region.offset().unwrap(), region.length().unwrap()));
-    }
-    else {
-        out.append_sequence(&reference);
-    }
-
-    match matches.values_of("bam") {
-        None => {},
-        Some(values) => for filename_bam in values {
-            let alignments = IndexedBamReader::load_alignments(&region, reference.clone(), &filename_bam).expect("Can not load alignments");
-            out.append_alignments(&alignments)
+    match args.value_of("outfile") {
+        Some(p) => {
+            match File::create(p) {
+                Ok(mut f) => {
+                    debug!("Writing to output file: {}", p);
+                    out.write(&mut f);
+                },
+                Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
+            }
         }
-    }
-
-    match matches.value_of("outfile") {
-        Some(p) => match File::create(p) {
-            Ok(mut f) => out.write(&mut f),
-            Err(e) => panic!("Can not open '{}' for writing: {}", p, e)
-        },
-        None => out.write(&mut std::io::stdout())
+        None => out.write(&mut std::io::stdout()),
     }
 }

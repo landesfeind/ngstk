@@ -1,13 +1,13 @@
-use std::cmp::{Ord, Ordering};
-use std::ops;
-use std::fmt;
-use std::slice;
-use std::rc::Rc;
-pub use std::str::FromStr;
+
 
 pub use sequence::{SequenceElement, Sequence};
+use std::cmp::{Ord, Ordering};
+use std::fmt;
+use std::rc::Rc;
+use std::slice;
+pub use std::str::FromStr;
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum DnaNucleotide {
     A,
     C,
@@ -133,7 +133,7 @@ impl<'a> From<&'a DnaNucleotide> for char {
 }
 
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct DnaCodon(pub DnaNucleotide, pub DnaNucleotide, pub DnaNucleotide);
 
 impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for DnaCodon {
@@ -165,13 +165,12 @@ impl<'a> From<&'a Vec<DnaNucleotide>> for DnaCodon {
 }
 
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct DnaSequence {
-    elements: Rc<Vec<DnaNucleotide>>
+    elements: Rc<Vec<DnaNucleotide>>,
 }
 
 impl Sequence<DnaNucleotide> for DnaSequence {
-
     fn length(&self) -> usize {
         self.elements.len()
     }
@@ -179,11 +178,9 @@ impl Sequence<DnaNucleotide> for DnaSequence {
     fn iterator(&self) -> slice::Iter<DnaNucleotide> {
         self.elements.iter()
     }
-
 }
 
 impl DnaSequence {
-
     /// Returns the complementary strand sequence in reversed direction (i.e., the actual sequence
     /// that is read by DNA or RNA polymerase).
     pub fn reverse_strand(&self) -> Self {
@@ -207,10 +204,8 @@ impl DnaSequence {
     /// at `offset`. If the sequence is not a multiple of 3, the
     /// last codon will be filled with `DnaNucleotide::N`.
     pub fn frame(&self, offset: usize) -> Vec<DnaCodon> {
-        let v : Vec<DnaNucleotide> = self.iterator().skip(offset).map( |n| n.clone() ).collect();
-        v.chunks(3usize)
-            .map( |c| DnaCodon::from(c) )
-            .collect()
+        let v: Vec<DnaNucleotide> = self.iterator().skip(offset).map(|n| n.clone()).collect();
+        v.chunks(3usize).map(|c| DnaCodon::from(c)).collect()
     }
 }
 
@@ -223,25 +218,26 @@ impl Eq for DnaSequence {}
 
 impl PartialOrd for DnaSequence {
     fn partial_cmp(&self, other: &DnaSequence) -> Option<Ordering> {
-        self.elements.partial_cmp( &other.elements )
+        self.elements.partial_cmp(&other.elements)
     }
 }
 impl Ord for DnaSequence {
     fn cmp(&self, other: &DnaSequence) -> Ordering {
-        self.elements.cmp( &other.elements )
+        self.elements.cmp(&other.elements)
     }
 }
 impl Default for DnaSequence {
     fn default() -> DnaSequence {
-        DnaSequence::from( Vec::new() )
+        DnaSequence::from(Vec::new())
     }
 }
 impl FromStr for DnaSequence {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let v : Vec<DnaNucleotide> = s.chars()
-            .filter( |n| ! n.is_whitespace() )
-            .map( |n| DnaNucleotide::from(n) ).collect();
+        let v: Vec<DnaNucleotide> = s.chars()
+            .filter(|n| !n.is_whitespace())
+            .map(|n| DnaNucleotide::from(n))
+            .collect();
         Ok(DnaSequence::from(v))
     }
 }
@@ -252,7 +248,7 @@ impl From<Vec<DnaNucleotide>> for DnaSequence {
 }
 impl fmt::Display for DnaSequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s : String = self.iterator().map(|n| char::from(n)).collect();
+        let s: String = self.iterator().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
@@ -270,9 +266,9 @@ impl<'a> From<&'a DnaSequence> for Vec<DnaNucleotide> {
 
 #[cfg(test)]
 mod tests {
-    use sequence::*;
     use dna::DnaNucleotide;
     use dna::DnaSequence;
+    use sequence::*;
     use std::str::FromStr;
 
     #[test]
@@ -321,17 +317,20 @@ mod tests {
 
     #[test]
     fn test_dnsequence_to_string() {
-        let seq: DnaSequence = DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
+        let seq: DnaSequence =
+            DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
         assert_eq!(seq.to_string(), "AGTACGGCAAGT");
     }
     #[test]
     fn test_dnsequence_to_reverse_strand() {
-        let seq: DnaSequence = DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
+        let seq: DnaSequence =
+            DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
         assert_eq!(seq.complement().to_string(), "TCATGCCGTTCA");
     }
     #[test]
     fn test_dnsequence_to_complement() {
-        let seq: DnaSequence = DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
+        let seq: DnaSequence =
+            DnaSequence::from_str(&"AGTACGGCAAGT").expect("Can not parse DNA sequence string");
         assert_eq!(seq.reverse_strand().to_string(), "ACTTGCCGTACT");
     }
 
@@ -339,18 +338,17 @@ mod tests {
     fn test_dnasequence_add() {
         let s1 = DnaSequence::from_str(&"ACGT").expect("Can not parse DNA sequence string");
         let s2 = DnaSequence::from_str(&"TGCA").expect("Can not parse DNA sequence string");
-        //let s3 = s1 + s2;
-        //assert_eq!(s3.to_string(), "ACGTTGCA");
+        // let s3 = s1 + s2;
+        // assert_eq!(s3.to_string(), "ACGTTGCA");
     }
 
     #[test]
     fn test_dna_subsequence() {
         let s1 = DnaSequence::from_str(&"ACGT").expect("Can not parse DNA sequence string");
-        assert_eq!(s1.subsequence(0,1), DnaSequence::from_str(&"A").unwrap());
-        assert_eq!(s1.subsequence(0,2), DnaSequence::from_str(&"AC").unwrap());
-        assert_eq!(s1.subsequence(1,1), DnaSequence::from_str(&"C").unwrap());
-        assert_eq!(s1.subsequence(1,2), DnaSequence::from_str(&"CG").unwrap());
-        assert_eq!(s1.subsequence(3,1), DnaSequence::from_str(&"T").unwrap());
-        assert_eq!(s1.subsequence(3,2), DnaSequence::from_str(&"T").unwrap());
+        assert_eq!(s1.subsequence(0, 1), DnaSequence::from_str(&"A").unwrap());
+        assert_eq!(s1.subsequence(0, 2), DnaSequence::from_str(&"AC").unwrap());
+        assert_eq!(s1.subsequence(1, 1), DnaSequence::from_str(&"C").unwrap());
+        assert_eq!(s1.subsequence(1, 2), DnaSequence::from_str(&"CG").unwrap());
+        assert_eq!(s1.subsequence(3, 1), DnaSequence::from_str(&"T").unwrap());
     }
 }

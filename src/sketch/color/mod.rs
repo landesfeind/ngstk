@@ -2,24 +2,34 @@ use sequence::dna::*;
 use sequence::rna::*;
 use sketch::scale::Scale;
 
-#[derive(Clone,Debug)]
+
+/// A generalized structure for working with colors.
+/// Colors are represented in the RGBA model using short values.
+#[derive(Clone, Debug)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
     pub b: u8,
-    pub a: u8
+    pub a: u8,
 }
 
 impl Color {
-    
+    /// Create a new color with alpha set to opaque
     pub fn new(r: u8, g: u8, b: u8) -> Self {
         Color::new_with_alpha(r, g, b, 255)
     }
 
-    pub fn new_with_alpha(r: u8, g: u8, b: u8, a:u8) -> Self {
-        Color { r: r, g: g, b: b, a: a }
+    /// Create a new color with an alpha value
+    pub fn new_with_alpha(r: u8, g: u8, b: u8, a: u8) -> Self {
+        Color {
+            r: r,
+            g: g,
+            b: b,
+            a: a,
+        }
     }
 
+    /// Create a new color which is completely black
     pub fn black() -> Self {
         Color::new(0, 0, 0)
     }
@@ -37,7 +47,7 @@ impl Color {
     }
 
     pub fn orange() -> Self {
-        Color::new(255,165,0)
+        Color::new(255, 165, 0)
     }
 
     pub fn green() -> Self {
@@ -79,7 +89,7 @@ impl Color {
 
 
 pub fn insertion() -> Color {
-    Color::new(197,90,159)
+    Color::new(197, 90, 159)
 }
 
 pub fn deletion() -> Color {
@@ -87,24 +97,24 @@ pub fn deletion() -> Color {
 }
 
 pub fn border() -> Color {
-    Color::new(200,200,200)
+    Color::new(200, 200, 200)
 }
 
 pub fn clip() -> Color {
     Color::red()
 }
 
+/// Scale for transforming DnaNucleotide and RnaNucleotide into a Color
 pub struct SequenceColors {}
-
 
 impl Scale<DnaNucleotide, Color> for SequenceColors {
     fn scale(&self, e: DnaNucleotide) -> Color {
         match e { 
-            DnaNucleotide::A => Color::new(91,169,101),
-            DnaNucleotide::C => Color::new(119,122,205),
-            DnaNucleotide::G => Color::new(173,150,61),
-            DnaNucleotide::T => Color::new(202,94,74),
-            _ => Color::new(100, 100, 100)
+            DnaNucleotide::A => Color::new(91, 169, 101),
+            DnaNucleotide::C => Color::new(119, 122, 205),
+            DnaNucleotide::G => Color::new(173, 150, 61),
+            DnaNucleotide::T => Color::new(202, 94, 74),
+            _ => Color::new(100, 100, 100),
         }
     }
 }
@@ -112,17 +122,17 @@ impl Scale<DnaNucleotide, Color> for SequenceColors {
 impl Scale<RnaNucleotide, Color> for SequenceColors {
     fn scale(&self, e: RnaNucleotide) -> Color {
         match e { 
-            RnaNucleotide::A => Color::new(91,169,101),
-            RnaNucleotide::C => Color::new(119,122,205),
-            RnaNucleotide::G => Color::new(173,150,61),
-            RnaNucleotide::U => Color::new(202,94,74),
-            _ => Color::new(100, 100, 100)
+            RnaNucleotide::A => Color::new(91, 169, 101),
+            RnaNucleotide::C => Color::new(119, 122, 205),
+            RnaNucleotide::G => Color::new(173, 150, 61),
+            RnaNucleotide::U => Color::new(202, 94, 74),
+            _ => Color::new(100, 100, 100),
         }
     }
 }
 
 impl Default for SequenceColors {
     fn default() -> SequenceColors {
-        SequenceColors {} 
+        SequenceColors {}
     }
 }

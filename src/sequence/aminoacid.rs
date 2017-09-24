@@ -1,13 +1,13 @@
-use std::cmp::{Ord, Ordering};
-use std::ops;
-use std::fmt;
-use std::slice;
-use std::rc::Rc;
-pub use std::str::FromStr;
+
 
 use sequence::dna::*;
+use std::cmp::{Ord, Ordering};
+use std::fmt;
+use std::rc::Rc;
+use std::slice;
+pub use std::str::FromStr;
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum Aminoacid {
     A,
     R,
@@ -32,7 +32,7 @@ pub enum Aminoacid {
     Unknown,
     Stop,
 }
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum Aminoacid3 {
     Ala,
     Arg,
@@ -326,20 +326,18 @@ impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for Aminoacid {
 }
 
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Peptide {
-    elements: Rc<Vec<Aminoacid>>
+    elements: Rc<Vec<Aminoacid>>,
 }
 
-impl Peptide {
-}
+impl Peptide {}
 
 impl Sequence<Aminoacid> for Peptide {
-
     fn length(&self) -> usize {
         self.elements.len()
     }
-    
+
     fn iterator(&self) -> slice::Iter<Aminoacid> {
         self.elements.iter()
     }
@@ -354,12 +352,12 @@ impl Eq for Peptide {}
 
 impl PartialOrd for Peptide {
     fn partial_cmp(&self, other: &Peptide) -> Option<Ordering> {
-        self.elements.partial_cmp( &other.elements )
+        self.elements.partial_cmp(&other.elements)
     }
 }
 impl Ord for Peptide {
     fn cmp(&self, other: &Peptide) -> Ordering {
-        self.elements.cmp( &other.elements )
+        self.elements.cmp(&other.elements)
     }
 }
 impl Default for Peptide {
@@ -370,9 +368,10 @@ impl Default for Peptide {
 impl FromStr for Peptide {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let v : Vec<Aminoacid> = s.chars()
-            .filter( |n| *n != '\t' && *n != '\n' && *n != ' ' )
-            .map( |n| Aminoacid::from(n) ).collect();
+        let v: Vec<Aminoacid> = s.chars()
+            .filter(|n| *n != '\t' && *n != '\n' && *n != ' ')
+            .map(|n| Aminoacid::from(n))
+            .collect();
         Ok(Peptide::from(v))
     }
 }
@@ -383,7 +382,7 @@ impl From<Vec<Aminoacid>> for Peptide {
 }
 impl fmt::Display for Peptide {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s : String = self.iterator().map(|n| char::from(n)).collect();
+        let s: String = self.iterator().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
@@ -404,7 +403,7 @@ impl From<DnaSequence> for Peptide {
 }
 impl<'a> From<&'a DnaSequence> for Peptide {
     fn from(d: &'a DnaSequence) -> Peptide {
-        let v : Vec<Aminoacid> = d.codons().iter().map(|n| Aminoacid::from(n)).collect();
+        let v: Vec<Aminoacid> = d.codons().iter().map(|n| Aminoacid::from(n)).collect();
         Peptide::from(v)
     }
 }
@@ -415,9 +414,7 @@ impl From<Vec<DnaCodon>> for Peptide {
 }
 impl<'a> From<&'a Vec<DnaCodon>> for Peptide {
     fn from(d: &'a Vec<DnaCodon>) -> Peptide {
-        let v : Vec<Aminoacid> = d.iter().map(|c| Aminoacid::from(c)).collect();
+        let v: Vec<Aminoacid> = d.iter().map(|c| Aminoacid::from(c)).collect();
         Peptide::from(v)
     }
 }
-
-
