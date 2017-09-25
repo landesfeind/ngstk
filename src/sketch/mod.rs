@@ -168,7 +168,7 @@ impl<E: SequenceElement, CS: Scale<E, Color>> SvgOutput<E, CS> {
                     s.template_offset().unwrap() + s.template_length().unwrap()
                 })
                 .max();
-            
+
             if alignment_start.is_some() && alignment_end.is_some() {
                 let x_start = self.x(alignment_start.unwrap());
                 let x_end = self.x(alignment_end.unwrap());

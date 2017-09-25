@@ -14,7 +14,7 @@ mod region;
 mod io;
 
 use io::bam::IndexedBamReader;
-use io::fasta::FastaReader;
+use io::fasta::{FastaReader,LinearFastaReader};
 use region::Region;
 
 use sequence::*;
@@ -116,7 +116,7 @@ fn translate(matches: &clap::ArgMatches) {
             }
         }
         None => {
-            let fasta = FastaReader::from(stdin());
+            let fasta = LinearFastaReader::from(stdin());
             for (header, sequence) in fasta {
                 println!(">{}", header);
                 match DnaSequence::from_str(sequence.as_ref()) {
@@ -138,7 +138,9 @@ fn sketch(args: &clap::ArgMatches) {
     };
 
     // Read the reference sequence
-    let filename_reference = args.value_of("reference").unwrap_or("testdata/toy.fasta");
+    let filename_reference = args.
+            value_of("reference").
+            unwrap_or("testdata/toy.fasta");
     let file_reference = match File::open(filename_reference) {
         Ok(f) => {
             debug!("Loading reference FASTA sequence from: {}", filename_reference);
@@ -146,14 +148,16 @@ fn sketch(args: &clap::ArgMatches) {
         }
         Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
     };
-    let reference = match FastaReader::from(file_reference).search(&region) {
-        Some(seq) => {
-            match DnaSequence::from_str(seq.as_ref()) {
-                Ok(dna) => dna,
-                Err(e) => panic!("Can not parse DNA sequence '{}': {}", seq, e),
-            }
+    let reference = match region.has_coordinates() {
+        false => match LinearFastaReader::from(file_reference).search_dna(region.name().as_ref()) {
+            Some(seq) => seq,
+            None => panic!("Can not find reference sequence with header '{}'", region.name()),
         },
-        None => panic!("Can not find reference sequence with header '{}'", region.name())
+        true => match LinearFastaReader::from(file_reference)
+                    .search_dna_region(region.name().as_ref(), region.offset().unwrap(), region.length().unwrap()) {
+            Some(seq) => seq,
+            None => panic!("Can not find reference sequence with header '{}'", region.name()),
+        }
     };
     debug!("Using sequence of {} elements: {}", reference.length(), reference);
 

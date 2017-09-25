@@ -334,13 +334,13 @@ mod tests {
         assert_eq!(seq.reverse_strand().to_string(), "ACTTGCCGTACT");
     }
 
-    #[test]
+/*    #[test]
     fn test_dnasequence_add() {
         let s1 = DnaSequence::from_str(&"ACGT").expect("Can not parse DNA sequence string");
         let s2 = DnaSequence::from_str(&"TGCA").expect("Can not parse DNA sequence string");
         // let s3 = s1 + s2;
         // assert_eq!(s3.to_string(), "ACGTTGCA");
-    }
+    }*/
 
     #[test]
     fn test_dna_subsequence() {
