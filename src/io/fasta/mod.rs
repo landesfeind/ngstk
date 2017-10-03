@@ -1,7 +1,6 @@
-mod linear;
+mod stream;
 
-
-pub use self::linear::LinearFastaReader;
+pub use self::stream::StreamFastaReader;
 use sequence::dna::DnaSequence;
 use std::iter::Iterator;
 use std::str::FromStr;
@@ -14,7 +13,9 @@ pub trait FastaReader: Iterator {
     /// Search for a specific sequence-region and extracts the subsequence
     fn search_region(&mut self, name: &str, offset: usize, length: usize) -> Option<String>;
 
-    /// Searches for a specific sequence and parses it into a DnaSequence
+
+    /// Helper methods that searches for a specific sequence 
+    /// and parses it into a DnaSequence
     fn search_dna(&mut self, name: &str) -> Option<DnaSequence> {
         match self.search(name) {
             None => None, // name was not found
@@ -27,7 +28,8 @@ pub trait FastaReader: Iterator {
         }
     }
 
-    /// Searches for a specific sequence-region and parses it into a DnaSequence
+    /// Helper method that searches for a specific sequence-region
+    /// and parses it into a DnaSequence
     fn search_dna_region(
         &mut self,
         name: &str,

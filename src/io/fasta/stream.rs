@@ -5,11 +5,12 @@ use std::io::Seek;
 use std::io::SeekFrom;
 use std::iter::Iterator;
 
-pub struct LinearFastaReader<R: Read> {
+/// A stream reader may process only once.
+pub struct StreamFastaReader<R: Read> {
     reader: BufReader<R>,
 }
 
-impl<R: Read> Iterator for LinearFastaReader<R> {
+impl<R: Read> Iterator for StreamFastaReader<R> {
     type Item = (String, String);
 
     fn next(&mut self) -> Option<(String, String)> {
@@ -48,7 +49,7 @@ impl<R: Read> Iterator for LinearFastaReader<R> {
     }
 }
 
-impl<R: Read + Seek> LinearFastaReader<R> {
+impl<R: Read + Seek> StreamFastaReader<R> {
     /// Reset the reader to get back to the beginning
     fn reset(&mut self) {
         // Reset to beginning of file
@@ -59,7 +60,7 @@ impl<R: Read + Seek> LinearFastaReader<R> {
     }
 }
 
-impl<R: Read> FastaReader for LinearFastaReader<R> {
+impl<R: Read> FastaReader for StreamFastaReader<R> {
     /// Searches for a specific sequence
     fn search(&mut self, name: &str) -> Option<String> {
         for (h, b) in self {
@@ -81,9 +82,9 @@ impl<R: Read> FastaReader for LinearFastaReader<R> {
     }
 }
 
-impl<R: Read> From<R> for LinearFastaReader<R> {
-    fn from(r: R) -> LinearFastaReader<R> {
-        let mut fr = LinearFastaReader { reader: BufReader::new(r) };
+impl<R: Read> From<R> for StreamFastaReader<R> {
+    fn from(r: R) -> StreamFastaReader<R> {
+        let mut fr = StreamFastaReader { reader: BufReader::new(r) };
         let mut s = Vec::new();
         fr.reader.read_until('>' as u8, &mut s);
         fr
@@ -95,7 +96,7 @@ impl<R: Read> From<R> for LinearFastaReader<R> {
 mod tests {
 
     use io::fasta::FastaReader;
-    use io::fasta::linear::LinearFastaReader;
+    use io::fasta::stream::StreamFastaReader;
     use std::fs::File;
 
     #[test]
@@ -103,7 +104,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
 
         let mut read_opt = reader.next();
         assert!(read_opt.is_some());
@@ -126,7 +127,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search(&"ref");
         assert_eq!(read, Some("AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT".to_string()));
     }
@@ -136,7 +137,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search(&"ref2");
         assert_eq!(read, Some("aggttttataaaacaattaagtctacagagcaactacgcg".to_string()));
     }
@@ -146,7 +147,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search(&"ref3");
         assert_eq!(read, None);
     }
@@ -156,7 +157,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search_region(&"ref2", 0, 5);
         assert_eq!(read, Some("aggtt".to_string()));
     }
@@ -166,7 +167,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search_region(&"ref2", 1, 5);
         assert_eq!(read, Some("ggttt".to_string()));
     }
@@ -176,7 +177,7 @@ mod tests {
         let file = File::open("testdata/toy.fasta");
         assert!(file.is_ok(), "Creating file");
 
-        let mut reader = LinearFastaReader::from(file.unwrap());
+        let mut reader = StreamFastaReader::from(file.unwrap());
         let read = reader.search_region(&"ref2", 1, 0);
         assert_eq!(read, Some("".to_string()));
     }
