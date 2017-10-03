@@ -166,7 +166,7 @@ impl IndexedBamReader {
 
 #[cfg(test)]
 mod tests {
-    use IndexedBamReader;
+    use io::bam::IndexedBamReader;
     use io::bam::rust_htslib::bam::Read;
     //use io::bam::rust_htslib::bam::record::Record;
     use region::Region;

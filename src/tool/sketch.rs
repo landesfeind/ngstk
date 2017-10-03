@@ -1,11 +1,10 @@
 extern crate clap;
 use std::fs::File;
-use std::io::stdin;
 use std::io::stdout;
 
 use io::bam::IndexedBamReader;
 
-use io::fasta::{FastaReader,StreamFastaReader};
+use io::fasta::{FastaReader,FastaStreamReader};
 use sequence::aminoacid::*;
 use sequence::dna::*;
 use region::Region;
@@ -34,11 +33,11 @@ pub fn run(args: &clap::ArgMatches) {
         Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
     };
     let reference = match region.has_coordinates() {
-        false => match StreamFastaReader::from(file_reference).search_dna(region.name().as_ref()) {
+        false => match FastaStreamReader::from(file_reference).search_dna(region.name().as_ref()) {
             Some(seq) => seq,
             None => panic!("Can not find reference sequence with header '{}'", region.name()),
         },
-        true => match StreamFastaReader::from(file_reference)
+        true => match FastaStreamReader::from(file_reference)
                     .search_dna_region(region.name().as_ref(), region.offset().unwrap(), region.length().unwrap()) {
             Some(seq) => seq,
             None => panic!("Can not find reference sequence with header '{}'", region.name()),
@@ -103,6 +102,6 @@ pub fn run(args: &clap::ArgMatches) {
                 Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
             }
         }
-        None => out.write(&mut std::io::stdout()),
+        None => out.write(&mut stdout()),
     }
 }

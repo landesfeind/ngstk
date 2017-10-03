@@ -1,9 +1,13 @@
-mod stream;
+pub mod stream;
+pub mod file;
 
-pub use self::stream::StreamFastaReader;
+pub use self::stream::FastaStreamReader;
+pub use self::file::FastaFileReader;
 use sequence::dna::DnaSequence;
 use std::iter::Iterator;
 use std::str::FromStr;
+use std::io::{Read,Seek};
+
 
 /// A trait implementing a reader for FASTA files.
 pub trait FastaReader: Iterator {
@@ -46,4 +50,12 @@ pub trait FastaReader: Iterator {
             }
         }
     }
+}
+
+pub fn open_stream<R: Read>(input: R) -> FastaStreamReader<R> {
+    FastaStreamReader::from(input)
+}
+
+pub fn open_file<R: Read+Seek>(input: R) -> FastaFileReader<R> {
+    FastaFileReader::from(input)
 }

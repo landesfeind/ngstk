@@ -1,7 +1,7 @@
 extern crate clap;
 use std::io::stdin;
 
-use io::fasta::StreamFastaReader;
+use io::fasta;
 use sequence::aminoacid::*;
 use sequence::dna::*;
 
@@ -17,7 +17,8 @@ pub fn run(matches: &clap::ArgMatches) {
             }
         }
         None => {
-            let fasta = StreamFastaReader::from(stdin());
+            let fasta = fasta::open_stream(stdin());
+            
             for (header, sequence) in fasta {
                 println!(">{}", header);
                 match DnaSequence::from_str(sequence.as_ref()) {

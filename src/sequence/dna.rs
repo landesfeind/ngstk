@@ -266,8 +266,8 @@ impl<'a> From<&'a DnaSequence> for Vec<DnaNucleotide> {
 
 #[cfg(test)]
 mod tests {
-    use dna::DnaNucleotide;
-    use dna::DnaSequence;
+    use self::dna::DnaNucleotide;
+    use self::dna::DnaSequence;
     use sequence::*;
     use std::str::FromStr;
 

@@ -231,7 +231,7 @@ impl<'a> From<&'a DnaSequence> for RnaSequence {
 #[cfg(test)]
 mod tests {
 
-    use rna::RnaNucleotide;
+    use sequence::rna::RnaNucleotide;
 
     #[test]
     fn test_a() {
