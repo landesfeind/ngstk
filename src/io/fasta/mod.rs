@@ -1,5 +1,6 @@
 pub mod stream;
 pub mod file;
+pub mod index;
 
 pub use self::stream::FastaStreamReader;
 pub use self::file::FastaFileReader;
