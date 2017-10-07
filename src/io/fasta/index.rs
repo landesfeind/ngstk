@@ -4,21 +4,84 @@ use std::io::BufRead;
 use std::path::Path;
 use std::str::FromStr;
 
+/// A fasta index record as defined by http://www.htslib.org/doc/faidx.html
+#[derive(Clone, Debug)]
+pub struct FastaIndexRecord {
+    name: String,
+    length: usize,
+    offset: usize,
+    linebases: usize,
+    linewidth: usize,
+}
+
+impl FastaIndexRecord {
+	pub fn name(&self) -> String {
+		self.name.clone()
+	}	
+
+	pub fn length(&self) -> usize {
+		self.length
+	}
+
+	pub fn offset(&self) -> usize {
+		self.offset
+	}
+
+	pub fn linebases(&self) -> usize {
+		self.linebases
+	}
+
+	pub fn linewidth(&self) -> usize {
+		self.linewidth
+	}
+
+}
+
+
+impl FromStr for FastaIndexRecord {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<FastaIndexRecord, Self::Err> {
+        let entries: Vec<String> = s.split_whitespace().map(|s| s.to_string()).collect();
+        if entries.len() != 5 {
+            return Err(format!(
+                "Expecting 5 cells separated by whitespace for parsing, but found {}",
+                entries.len()
+            ));
+        }
+        let length = match entries[1].parse::<usize>() {
+            Ok(l) => l,
+            Err(e) => return Err(format!("{}", e)),
+        };
+        let offset = match entries[2].parse::<usize>() {
+            Ok(l) => l,
+            Err(e) => return Err(format!("{}", e)),
+        };
+        let linebases = match entries[3].parse::<usize>() {
+            Ok(l) => l,
+            Err(e) => return Err(format!("{}", e)),
+        };
+        let linewidth = match entries[4].parse::<usize>() {
+            Ok(l) => l,
+            Err(e) => return Err(format!("{}", e)),
+        };
+
+        Ok(FastaIndexRecord {
+            name: entries[0].clone(),
+            length: length,
+            offset: offset,
+            linebases: linebases,
+            linewidth: linewidth,
+        })
+    }
+}
+
+
+
 #[derive(Clone, Debug)]
 pub struct FastaIndex {
     records: Vec<FastaIndexRecord>,
 }
-
-/// A fasta index record as defined by http://www.htslib.org/doc/faidx.html
-#[derive(Clone, Debug)]
-pub struct FastaIndexRecord {
-    pub name: String,
-    pub length: usize,
-    pub offset: usize,
-    pub linebases: usize,
-    pub linewidth: usize,
-}
-
 
 impl FastaIndex {
     /// Returns the number of records in this index
@@ -76,7 +139,6 @@ impl FastaIndex {
     }
 }
 
-
 impl<R: BufRead> From<R> for FastaIndex {
     fn from(input: R) -> FastaIndex {
         let mut records = Vec::new();
@@ -97,44 +159,6 @@ impl<R: BufRead> From<R> for FastaIndex {
     }
 }
 
-
-impl FromStr for FastaIndexRecord {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<FastaIndexRecord, Self::Err> {
-        let entries: Vec<String> = s.split_whitespace().map(|s| s.to_string()).collect();
-        if entries.len() != 5 {
-            return Err(format!(
-                "Expecting 5 cells separated by whitespace for parsing, but found {}",
-                entries.len()
-            ));
-        }
-        let length = match entries[1].parse::<usize>() {
-            Ok(l) => l,
-            Err(e) => return Err(format!("{}", e)),
-        };
-        let offset = match entries[2].parse::<usize>() {
-            Ok(l) => l,
-            Err(e) => return Err(format!("{}", e)),
-        };
-        let linebases = match entries[3].parse::<usize>() {
-            Ok(l) => l,
-            Err(e) => return Err(format!("{}", e)),
-        };
-        let linewidth = match entries[4].parse::<usize>() {
-            Ok(l) => l,
-            Err(e) => return Err(format!("{}", e)),
-        };
-
-        Ok(FastaIndexRecord {
-            name: entries[0].clone(),
-            length: length,
-            offset: offset,
-            linebases: linebases,
-            linewidth: linewidth,
-        })
-    }
-}
 
 
 #[cfg(test)]
@@ -166,11 +190,11 @@ mod tests {
         );
 
         let record = parse_result.unwrap();
-        assert_eq!(record.name, "ref".to_string());
-        assert_eq!(record.length, 0usize);
-        assert_eq!(record.offset, 1usize);
-        assert_eq!(record.linebases, 2usize);
-        assert_eq!(record.linewidth, 3usize);
+        assert_eq!(record.name(), "ref".to_string());
+        assert_eq!(record.length(), 0usize);
+        assert_eq!(record.offset(), 1usize);
+        assert_eq!(record.linebases(), 2usize);
+        assert_eq!(record.linewidth(), 3usize);
     }
 
     #[test]
@@ -185,18 +209,18 @@ mod tests {
 
 
         let ir_ref = index.find_record("ref").unwrap();
-        assert_eq!(ir_ref.name, "ref".to_string());
-        assert_eq!(ir_ref.length, 45usize);
-        assert_eq!(ir_ref.offset, 5usize);
-        assert_eq!(ir_ref.linebases, 23usize);
-        assert_eq!(ir_ref.linewidth, 24usize);
+        assert_eq!(ir_ref.name(), "ref".to_string());
+        assert_eq!(ir_ref.length(), 45usize);
+        assert_eq!(ir_ref.offset(), 5usize);
+        assert_eq!(ir_ref.linebases(), 23usize);
+        assert_eq!(ir_ref.linewidth(), 24usize);
 
         let ir_ref2 = index.find_record("ref2").unwrap();
-        assert_eq!(ir_ref2.name, "ref2".to_string());
-        assert_eq!(ir_ref2.length, 40usize);
-        assert_eq!(ir_ref2.offset, 58usize);
-        assert_eq!(ir_ref2.linebases, 12usize);
-        assert_eq!(ir_ref2.linewidth, 13usize);
+        assert_eq!(ir_ref2.name(), "ref2".to_string());
+        assert_eq!(ir_ref2.length(), 40usize);
+        assert_eq!(ir_ref2.offset(), 58usize);
+        assert_eq!(ir_ref2.linebases(), 12usize);
+        assert_eq!(ir_ref2.linewidth(), 13usize);
 
     }
 
