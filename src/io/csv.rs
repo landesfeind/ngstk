@@ -73,10 +73,10 @@ mod tests {
         let mut csv = Csv::from(file.unwrap());
 
         let line1 = csv.next();
-        assert_eq!(line1, Some(vec!["ref".to_string(), "45".to_string(), "5".to_string(), "45".to_string(), "46".to_string() ]) );
+        assert_eq!(line1, Some(vec!["ref".to_string(), "45".to_string(), "5".to_string(), "23".to_string(), "24".to_string() ]) );
 
         let line2 = csv.next();
-        assert_eq!(line2, Some(vec!["ref2".to_string(), "40".to_string(), "57".to_string(), "40".to_string(), "41".to_string() ]) );
+        assert_eq!(line2, Some(vec!["ref2".to_string(), "40".to_string(), "58".to_string(), "12".to_string(), "13".to_string() ]) );
 
         let line3 = csv.next();
         assert_eq!(line3, None);
