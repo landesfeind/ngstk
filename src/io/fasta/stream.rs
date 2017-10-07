@@ -111,7 +111,7 @@ mod tests {
         let mut read = read_opt.unwrap();
         assert_eq!(read.0, "ref");
         assert_eq!(read.1, "AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT");
-        
+
         read_opt = reader.next();
         assert!(read_opt.is_some());
         read = read_opt.unwrap();
@@ -120,7 +120,7 @@ mod tests {
 
         read_opt = reader.next();
         assert!(read_opt.is_none());
-    }    
+    }
 
     #[test]
     pub fn test_search_first_entry() {
@@ -129,7 +129,10 @@ mod tests {
 
         let mut reader = FastaStreamReader::from(file.unwrap());
         let read = reader.search(&"ref");
-        assert_eq!(read, Some("AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT".to_string()));
+        assert_eq!(
+            read,
+            Some("AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT".to_string())
+        );
     }
 
     #[test]
@@ -139,7 +142,10 @@ mod tests {
 
         let mut reader = FastaStreamReader::from(file.unwrap());
         let read = reader.search(&"ref2");
-        assert_eq!(read, Some("aggttttataaaacaattaagtctacagagcaactacgcg".to_string()));
+        assert_eq!(
+            read,
+            Some("aggttttataaaacaattaagtctacagagcaactacgcg".to_string())
+        );
     }
 
     #[test]

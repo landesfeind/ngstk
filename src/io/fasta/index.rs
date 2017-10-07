@@ -1,6 +1,12 @@
+
+use io::fasta::FastaReader;
 use std::convert::AsRef;
+use std::fmt::Display;
 use std::fs::File;
+use std::io::Read;
 use std::io::BufRead;
+use std::io::BufReader;
+use std::io::{Seek,SeekFrom};
 use std::path::Path;
 use std::str::FromStr;
 
@@ -15,26 +21,33 @@ pub struct FastaIndexRecord {
 }
 
 impl FastaIndexRecord {
-	pub fn name(&self) -> String {
-		self.name.clone()
-	}	
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
 
-	pub fn length(&self) -> usize {
-		self.length
-	}
+    pub fn length(&self) -> usize {
+        self.length
+    }
 
-	pub fn offset(&self) -> usize {
-		self.offset
-	}
+    pub fn offset(&self) -> usize {
+        self.offset
+    }
 
-	pub fn linebases(&self) -> usize {
-		self.linebases
-	}
+    pub fn linebases(&self) -> usize {
+        self.linebases
+    }
 
-	pub fn linewidth(&self) -> usize {
-		self.linewidth
-	}
+    pub fn linewidth(&self) -> usize {
+        self.linewidth
+    }
 
+    /// Calculates the exact file offset for a given sequence offset
+    pub fn offset_region(&self, sequence_offset: usize) -> usize {
+        let n_lines = sequence_offset / self.linebases();
+        let n_bases = sequence_offset - (n_lines * self.linebases());
+
+        self.offset() + n_lines * self.linewidth() + n_bases
+    }
 }
 
 
@@ -108,7 +121,7 @@ impl FastaIndex {
     }
 
     /// Tries to discover a fasta index file for a given FASTA file.
-    pub fn find_for<P: AsRef<Path>>(fasta_filename: P) -> Option<File> {
+    pub fn find_for<P: AsRef<Path>>(fasta_filename: &P) -> Option<File> {
         // Check if the FASTA file exists
         let fasta_path = fasta_filename.as_ref();
         if !fasta_path.exists() {
@@ -160,6 +173,93 @@ impl<R: BufRead> From<R> for FastaIndex {
 }
 
 
+#[derive(Debug)]
+pub struct IndexedFastaFile {
+    index: FastaIndex,
+    fh: File,
+}
+
+impl IndexedFastaFile {
+    pub fn open<P: AsRef<Path> + Display>(fasta_filename: &P) -> Result<Self, String> {
+        let index = match FastaIndex::find_for(fasta_filename) {
+            Some(fh) => FastaIndex::from(BufReader::new(fh)),
+            None => {
+                return Err(format!(
+                    "Can not find FASTA index file for: {}",
+                    fasta_filename
+                ))
+            }
+        };
+
+        let fasta_fh = match File::open(fasta_filename) {
+            Ok(fh) => fh,
+            Err(e) => {
+                return Err(format!(
+                    "Can not open FASTA file '{}': {}",
+                    fasta_filename,
+                    e
+                ))
+            }
+        };
+
+
+        return Ok(IndexedFastaFile {
+            index: index,
+            fh: fasta_fh,
+        });
+    }
+}
+
+impl FastaReader for IndexedFastaFile {
+    /// Searches for a specific sequence
+    fn search(&mut self, name: &str) -> Option<String> {
+        match self.index.find_record(name) {
+            Some(record) => self.search_region(name, 0usize, record.length()),
+            None => None,
+        }
+    }
+
+    /// Search for a specific sequence-region and extracts the subsequence
+    fn search_region(&mut self, name: &str, offset: usize, length: usize) -> Option<String> {
+        let record = match self.index.find_record(name) {
+            None => return None,
+            Some(record) => record,
+        };
+
+        let file_offset = record.offset_region(offset);
+        match self.fh.seek(SeekFrom::Start(file_offset as u64)) {
+        	Err(e) => {
+        		warn!("Can not jump to file offset: {}", e); return None
+        	},
+        	Ok(_) => {}
+        }
+
+        let mut sequence : Vec<u8> = Vec::new();
+        let mut buffer = [0u8; 1024];
+        while sequence.len() < length {
+        	match self.fh.read(&mut buffer) {
+        		Err(e) => {
+        			warn!("Can not read from buffer: {}", e);
+        			return None
+						}
+        		Ok(l) => {
+        			let filtered = buffer.iter()
+        					.take(l) // ensure we are not running behind the buffer
+        					.take_while(|c| (**c as char) != '>' ) // ensure we are not running into the next sequence
+        					.filter(|c| ! (**c as char).is_whitespace() ); // drop whitespaces
+
+        			for c in filtered  {
+        				sequence.push(*c)
+        			}
+        		}
+        	}
+        }
+
+        Some(sequence.iter().take(length).map(|c| *c as char).collect())
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
@@ -168,8 +268,8 @@ mod tests {
 
     #[test]
     pub fn test_discovery() {
-        assert!(FastaIndex::find_for("testdata/toy.fasta").is_some());
-        assert!(FastaIndex::find_for("testdata/toy.fa").is_none());
+        assert!(FastaIndex::find_for(&"testdata/toy.fasta").is_some());
+        assert!(FastaIndex::find_for(&"testdata/toy.fa").is_none());
     }
 
     #[test]
@@ -224,4 +324,26 @@ mod tests {
 
     }
 
+    #[test]
+    pub fn test_read_fasta() {
+        let reader_result = IndexedFastaFile::open(&"testdata/toy.fasta");
+        assert!(reader_result.is_ok());
+        let mut reader = reader_result.unwrap();
+
+        assert_eq!(reader.search_region("ref", 0, 1), Some("A".to_string()));
+        assert_eq!(reader.search_region("ref", 0, 2), Some("AG".to_string()));
+        assert_eq!(reader.search_region("ref", 1, 1), Some("G".to_string()));
+
+				assert_eq!(reader.search_region("ref", 20, 3), Some("TGT".to_string()));
+				assert_eq!(reader.search_region("ref", 20, 5), Some("TGTGC".to_string()));
+				assert_eq!(reader.search_region("ref", 42, 3), Some("CAT".to_string()));
+
+
+				assert_eq!(reader.search_region("ref2", 0, 1), Some("a".to_string()));
+        assert_eq!(reader.search_region("ref2", 0, 2), Some("ag".to_string()));
+        assert_eq!(reader.search_region("ref2", 1, 1), Some("g".to_string()));
+				assert_eq!(reader.search_region("ref2", 8, 4), Some("taaa".to_string()));
+				assert_eq!(reader.search_region("ref2", 8, 6), Some("taaaac".to_string()), "Overlap ");
+				assert_eq!(reader.search_region("ref2", 38, 3), Some("gcg".to_string()), "End of second sequence");
+    }
 }

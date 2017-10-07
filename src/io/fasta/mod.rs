@@ -2,16 +2,15 @@ pub mod stream;
 pub mod file;
 pub mod index;
 
-pub use self::stream::FastaStreamReader;
 pub use self::file::FastaFileReader;
+pub use self::stream::FastaStreamReader;
 use sequence::dna::DnaSequence;
-use std::iter::Iterator;
+use std::io::{Read, Seek};
 use std::str::FromStr;
-use std::io::{Read,Seek};
 
 
 /// A trait implementing a reader for FASTA files.
-pub trait FastaReader: Iterator {
+pub trait FastaReader {
     /// Searches for a specific sequence
     fn search(&mut self, name: &str) -> Option<String>;
 
@@ -19,7 +18,7 @@ pub trait FastaReader: Iterator {
     fn search_region(&mut self, name: &str, offset: usize, length: usize) -> Option<String>;
 
 
-    /// Helper methods that searches for a specific sequence 
+    /// Helper methods that searches for a specific sequence
     /// and parses it into a DnaSequence
     fn search_dna(&mut self, name: &str) -> Option<DnaSequence> {
         match self.search(name) {
@@ -57,6 +56,6 @@ pub fn open_stream<R: Read>(input: R) -> FastaStreamReader<R> {
     FastaStreamReader::from(input)
 }
 
-pub fn open_file<R: Read+Seek>(input: R) -> FastaFileReader<R> {
+pub fn open_file<R: Read + Seek>(input: R) -> FastaFileReader<R> {
     FastaFileReader::from(input)
 }
