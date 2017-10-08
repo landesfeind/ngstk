@@ -2,8 +2,9 @@ pub mod stream;
 pub mod file;
 pub mod index;
 
-pub use self::file::FastaFileReader;
-pub use self::stream::FastaStreamReader;
+pub use self::file::FastaFile;
+pub use self::stream::FastaStream;
+pub use self::index::IndexedFastaFile;
 use sequence::dna::DnaSequence;
 use std::io::{Read, Seek};
 use std::str::FromStr;
@@ -52,10 +53,10 @@ pub trait FastaReader {
     }
 }
 
-pub fn open_stream<R: Read>(input: R) -> FastaStreamReader<R> {
-    FastaStreamReader::from(input)
+pub fn open_stream<R: Read>(input: R) -> FastaStream<R> {
+    FastaStream::from(input)
 }
 
-pub fn open_file<R: Read + Seek>(input: R) -> FastaFileReader<R> {
-    FastaFileReader::from(input)
+pub fn open_file<R: Read + Seek>(input: R) -> FastaFile<R> {
+    FastaFile::from(input)
 }

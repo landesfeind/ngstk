@@ -4,7 +4,7 @@ use std::io::stdout;
 
 use io::bam::IndexedBamReader;
 
-use io::fasta::{FastaReader,FastaStreamReader};
+use io::fasta::{FastaReader,FastaStream};
 use sequence::aminoacid::*;
 use sequence::dna::*;
 use region::Region;
@@ -33,11 +33,11 @@ pub fn run(args: &clap::ArgMatches) {
         Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
     };
     let reference = match region.has_coordinates() {
-        false => match FastaStreamReader::from(file_reference).search_dna(region.name().as_ref()) {
+        false => match FastaStream::from(file_reference).search_dna(region.name().as_ref()) {
             Some(seq) => seq,
             None => panic!("Can not find reference sequence with header '{}'", region.name()),
         },
-        true => match FastaStreamReader::from(file_reference)
+        true => match FastaStream::from(file_reference)
                     .search_dna_region(region.name().as_ref(), region.offset().unwrap(), region.length().unwrap()) {
             Some(seq) => seq,
             None => panic!("Can not find reference sequence with header '{}'", region.name()),

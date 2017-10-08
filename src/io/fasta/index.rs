@@ -243,6 +243,10 @@ impl FastaReader for IndexedFastaFile {
         			return None
 						}
         		Ok(l) => {
+        			if l == 0 { // We reached the EOF
+        				break
+        			}
+
         			let filtered = buffer.iter()
         					.take(l) // ensure we are not running behind the buffer
         					.take_while(|c| (**c as char) != '>' ) // ensure we are not running into the next sequence
@@ -343,7 +347,8 @@ mod tests {
         assert_eq!(reader.search_region("ref2", 0, 2), Some("ag".to_string()));
         assert_eq!(reader.search_region("ref2", 1, 1), Some("g".to_string()));
 				assert_eq!(reader.search_region("ref2", 8, 4), Some("taaa".to_string()));
-				assert_eq!(reader.search_region("ref2", 8, 6), Some("taaaac".to_string()), "Overlap ");
-				assert_eq!(reader.search_region("ref2", 38, 3), Some("gcg".to_string()), "End of second sequence");
+				assert_eq!(reader.search_region("ref2", 8, 6), Some("taaaac".to_string()), "One line to the next");
+				assert_eq!(reader.search_region("ref2", 37, 3), Some("gcg".to_string()), "End of second sequence");
+				assert_eq!(reader.search_region("ref2", 38, 3), Some("cg".to_string()), "Beyond end of second sequence");
     }
 }
