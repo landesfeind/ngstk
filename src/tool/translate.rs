@@ -17,7 +17,7 @@ pub fn run(matches: &clap::ArgMatches) {
             }
         }
         None => {
-            let fasta = fasta::open_stream(stdin());
+            let fasta = fasta::read_stream(stdin());
             
             for (header, sequence) in fasta {
                 println!(">{}", header);
