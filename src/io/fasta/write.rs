@@ -25,8 +25,8 @@ impl<W: Write> FastaWriter<W> {
 
     pub fn append<A: ToString, B: ToString>(
         &mut self,
-        header: &A,
-        body: &B,
+        header: A,
+        body: B,
     ) -> Result<usize, Error> {
         let mut ret;
 
