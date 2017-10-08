@@ -1,12 +1,11 @@
-
 use io::fasta::FastaReader;
 use std::convert::AsRef;
 use std::fmt::Display;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Seek, SeekFrom};
 use std::io::BufRead;
 use std::io::BufReader;
-use std::io::{Seek,SeekFrom};
+use std::io::Read;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -228,35 +227,37 @@ impl FastaReader for IndexedFastaFile {
 
         let file_offset = record.offset_region(offset);
         match self.fh.seek(SeekFrom::Start(file_offset as u64)) {
-        	Err(e) => {
-        		warn!("Can not jump to file offset: {}", e); return None
-        	},
-        	Ok(_) => {}
+            Err(e) => {
+                warn!("Can not jump to file offset: {}", e);
+                return None;
+            }
+            Ok(_) => {}
         }
 
-        let mut sequence : Vec<u8> = Vec::new();
+        let mut sequence: Vec<u8> = Vec::new();
         let mut buffer = [0u8; 1024];
         while sequence.len() < length {
-        	match self.fh.read(&mut buffer) {
-        		Err(e) => {
-        			warn!("Can not read from buffer: {}", e);
-        			return None
-						}
-        		Ok(l) => {
-        			if l == 0 { // We reached the EOF
-        				break
-        			}
+            match self.fh.read(&mut buffer) {
+                Err(e) => {
+                    warn!("Can not read from buffer: {}", e);
+                    return None;
+                }
+                Ok(l) => {
+                    if l == 0 {
+                        // We reached the EOF
+                        break;
+                    }
 
-        			let filtered = buffer.iter()
+                    let filtered = buffer.iter()
         					.take(l) // ensure we are not running behind the buffer
         					.take_while(|c| (**c as char) != '>' ) // ensure we are not running into the next sequence
         					.filter(|c| ! (**c as char).is_whitespace() ); // drop whitespaces
 
-        			for c in filtered  {
-        				sequence.push(*c)
-        			}
-        		}
-        	}
+                    for c in filtered {
+                        sequence.push(*c)
+                    }
+                }
+            }
         }
 
         Some(sequence.iter().take(length).map(|c| *c as char).collect())
@@ -338,17 +339,32 @@ mod tests {
         assert_eq!(reader.search_region("ref", 0, 2), Some("AG".to_string()));
         assert_eq!(reader.search_region("ref", 1, 1), Some("G".to_string()));
 
-				assert_eq!(reader.search_region("ref", 20, 3), Some("TGT".to_string()));
-				assert_eq!(reader.search_region("ref", 20, 5), Some("TGTGC".to_string()));
-				assert_eq!(reader.search_region("ref", 42, 3), Some("CAT".to_string()));
+        assert_eq!(reader.search_region("ref", 20, 3), Some("TGT".to_string()));
+        assert_eq!(
+            reader.search_region("ref", 20, 5),
+            Some("TGTGC".to_string())
+        );
+        assert_eq!(reader.search_region("ref", 42, 3), Some("CAT".to_string()));
 
 
-				assert_eq!(reader.search_region("ref2", 0, 1), Some("a".to_string()));
+        assert_eq!(reader.search_region("ref2", 0, 1), Some("a".to_string()));
         assert_eq!(reader.search_region("ref2", 0, 2), Some("ag".to_string()));
         assert_eq!(reader.search_region("ref2", 1, 1), Some("g".to_string()));
-				assert_eq!(reader.search_region("ref2", 8, 4), Some("taaa".to_string()));
-				assert_eq!(reader.search_region("ref2", 8, 6), Some("taaaac".to_string()), "One line to the next");
-				assert_eq!(reader.search_region("ref2", 37, 3), Some("gcg".to_string()), "End of second sequence");
-				assert_eq!(reader.search_region("ref2", 38, 3), Some("cg".to_string()), "Beyond end of second sequence");
+        assert_eq!(reader.search_region("ref2", 8, 4), Some("taaa".to_string()));
+        assert_eq!(
+            reader.search_region("ref2", 8, 6),
+            Some("taaaac".to_string()),
+            "One line to the next"
+        );
+        assert_eq!(
+            reader.search_region("ref2", 37, 3),
+            Some("gcg".to_string()),
+            "End of second sequence"
+        );
+        assert_eq!(
+            reader.search_region("ref2", 38, 3),
+            Some("cg".to_string()),
+            "Beyond end of second sequence"
+        );
     }
 }

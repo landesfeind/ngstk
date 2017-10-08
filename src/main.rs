@@ -45,6 +45,24 @@ fn main() {
                      .help("Interpret the sequence as aminoacid sequence and try to reverse translate")
                     )
             )
+        .subcommand(SubCommand::with_name("fasta-format")
+                .about("Reformats a FASTA file toward a given line length")
+                .arg(Arg::with_name("in")
+                        .short("i")
+                        .takes_value(true)
+                        .help("The input file (use standard input if not given)")
+                    )
+                .arg(Arg::with_name("out")
+                        .short("o")
+                        .takes_value(true)
+                        .help("The output file (use standard output if not given)")
+                    )
+                .arg(Arg::with_name("linelength")
+                     .short("l")
+                     .takes_value(true)
+                     .help("The length of individual sequence lines should have (defaults to 80)")
+                    )
+            )
         .subcommand(SubCommand::with_name("sketch")
                 .about("Generate a sketch of the data in the given region")
                 .arg(Arg::with_name("region")
@@ -90,7 +108,7 @@ fn main() {
     match app_matches.subcommand() {
         ("translate", Some(sub_m)) => tool::translate::run(sub_m),
         ("sketch", Some(sub_m)) => tool::sketch::run(sub_m),
+        ("fasta-format", Some(sub_m)) => tool::fasta_format::run(sub_m),
         _ => {}
     }
 }
-

@@ -4,8 +4,8 @@ pub mod index;
 pub mod write;
 
 pub use self::file::FastaFile;
-pub use self::stream::FastaStream;
 pub use self::index::IndexedFastaFile;
+pub use self::stream::FastaStream;
 pub use self::write::FastaWriter;
 use sequence::dna::DnaSequence;
 use std::io::{Read, Seek};
@@ -62,5 +62,3 @@ pub fn read_stream<R: Read>(input: R) -> FastaStream<R> {
 pub fn read_file<R: Read + Seek>(input: R) -> FastaFile<R> {
     FastaFile::from(input)
 }
-
-

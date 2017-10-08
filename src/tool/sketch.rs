@@ -1,15 +1,15 @@
 extern crate clap;
-use std::fs::File;
-use std::io::stdout;
 
 use io::bam::IndexedBamReader;
 
-use io::fasta::{FastaReader,FastaStream};
+use io::fasta::{FastaReader, FastaStream};
+use region::Region;
 use sequence::aminoacid::*;
 use sequence::dna::*;
-use region::Region;
 use sketch::SvgOutput;
 use sketch::color::SequenceColors;
+use std::fs::File;
+use std::io::stdout;
 
 
 pub fn run(args: &clap::ArgMatches) {
@@ -22,28 +22,50 @@ pub fn run(args: &clap::ArgMatches) {
     };
 
     // Read the reference sequence
-    let filename_reference = args.
-            value_of("reference").
-            unwrap_or("testdata/toy.fasta");
+    let filename_reference = args.value_of("reference").unwrap_or("testdata/toy.fasta");
     let file_reference = match File::open(filename_reference) {
         Ok(f) => {
-            debug!("Loading reference FASTA sequence from: {}", filename_reference);
+            debug!(
+                "Loading reference FASTA sequence from: {}",
+                filename_reference
+            );
             f
         }
         Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
     };
     let reference = match region.has_coordinates() {
-        false => match FastaStream::from(file_reference).search_dna(region.name().as_ref()) {
-            Some(seq) => seq,
-            None => panic!("Can not find reference sequence with header '{}'", region.name()),
-        },
-        true => match FastaStream::from(file_reference)
-                    .search_dna_region(region.name().as_ref(), region.offset().unwrap(), region.length().unwrap()) {
-            Some(seq) => seq,
-            None => panic!("Can not find reference sequence with header '{}'", region.name()),
+        false => {
+            match FastaStream::from(file_reference).search_dna(region.name().as_ref()) {
+                Some(seq) => seq,
+                None => {
+                    panic!(
+                        "Can not find reference sequence with header '{}'",
+                        region.name()
+                    )
+                }
+            }
+        }
+        true => {
+            match FastaStream::from(file_reference).search_dna_region(
+                region.name().as_ref(),
+                region.offset().unwrap(),
+                region.length().unwrap(),
+            ) {
+                Some(seq) => seq,
+                None => {
+                    panic!(
+                        "Can not find reference sequence with header '{}'",
+                        region.name()
+                    )
+                }
+            }
         }
     };
-    debug!("Using sequence of {} elements: {}", reference.length(), reference);
+    debug!(
+        "Using sequence of {} elements: {}",
+        reference.length(),
+        reference
+    );
 
 
     // Parse output image information
@@ -98,7 +120,7 @@ pub fn run(args: &clap::ArgMatches) {
                 Ok(mut f) => {
                     debug!("Writing to output file: {}", p);
                     out.write(&mut f);
-                },
+                }
                 Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
             }
         }
