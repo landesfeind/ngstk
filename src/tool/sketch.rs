@@ -80,8 +80,8 @@ impl Tool for Sketch {
         };
         let reference = match region.has_coordinates() {
             false => {
-                match FastaStream::from(file_reference).search_dna(region.name().as_ref()) {
-                    Some(seq) => seq,
+                match FastaStream::from(file_reference).search(region.name()) {
+                    Some(record) => record.as_dna(),
                     None => {
                         panic!(
                             "Can not find reference sequence with header '{}'",
@@ -91,12 +91,12 @@ impl Tool for Sketch {
                 }
             }
             true => {
-                match FastaStream::from(file_reference).search_dna_region(
-                    region.name().as_ref(),
+                match FastaStream::from(file_reference).search_region(
+                    region.name(),
                     region.offset().unwrap(),
                     region.length().unwrap(),
                 ) {
-                    Some(seq) => seq,
+                    Some(record) => record.as_dna(),
                     None => {
                         panic!(
                             "Can not find reference sequence with header '{}'",

@@ -18,12 +18,24 @@ impl Tool for Translate {
             .arg(clap::Arg::with_name("sequence").help(
                 "The DNA sequence to translate. If '-', will read FASTA from stdin.",
             ))
-            .arg(clap::Arg::with_name("in").long("in").short("i").takes_value(true).help(
-                "The input destination. If omitted or \"-\" will read from stdin",
-            ))
-            .arg(clap::Arg::with_name("out").long("out").short("o").takes_value(true).help(
-                "The output destination. If omitted or \"-\" will write to stdout",
-            ))
+            .arg(
+                clap::Arg::with_name("in")
+                    .long("in")
+                    .short("i")
+                    .takes_value(true)
+                    .help(
+                        "The input destination. If omitted or \"-\" will read from stdin",
+                    ),
+            )
+            .arg(
+                clap::Arg::with_name("out")
+                    .long("out")
+                    .short("o")
+                    .takes_value(true)
+                    .help(
+                        "The output destination. If omitted or \"-\" will write to stdout",
+                    ),
+            )
     }
 
     fn run(matches: &clap::ArgMatches) {
@@ -54,7 +66,7 @@ impl Translate {
                     "-" => {
                         debug!("Reading from standard input");
                         Translate::translate_read_write(stdin(), output);
-                    },
+                    }
                     _ => {
                         debug!("Try to read from file: {}", filename);
                         match File::open(filename) {
@@ -104,16 +116,12 @@ impl Translate {
         input: fasta::FastaStream<R>,
         mut output: fasta::FastaWriter<W>,
     ) {
-        for (header, sequence) in input {
-            match DnaSequence::from_str(sequence.as_ref()) {
-                Ok(dna) => {
-                    match output.append(header, Peptide::from(dna)) {
-                        Ok(_) => {}
-                        Err(e) => panic!("Can not write: {}", e),
-                    }
-                }
-                Err(e) => panic!("Can not parse sequence: {}", e),
+        for record in input {
+            match output.append(record.header(), Peptide::from(record.as_dna())) {
+                Ok(_) => {}
+                Err(e) => panic!("Can not write: {}", e),
             }
+
         }
     }
 }

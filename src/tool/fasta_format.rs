@@ -84,8 +84,8 @@ impl FastaFormat {
             Err(e) => panic!("Can not parse linelength: {}", e),
         }
 
-        for (h, b) in fasta_reader {
-            fasta_writer.append(&h, &b);
+        for record in fasta_reader {
+            fasta_writer.append(record.header(), record.sequence());
         }
 
         fasta_writer.flush();

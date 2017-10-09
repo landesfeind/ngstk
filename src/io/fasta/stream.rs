@@ -1,4 +1,4 @@
-use io::fasta::FastaReader;
+use io::fasta::{FastaReader,FastaRecord};
 use std::io::{BufReader, Read};
 use std::io::BufRead;
 use std::io::Seek;
@@ -11,9 +11,9 @@ pub struct FastaStream<R: Read> {
 }
 
 impl<R: Read> Iterator for FastaStream<R> {
-    type Item = (String, String);
+    type Item = FastaRecord;
 
-    fn next(&mut self) -> Option<(String, String)> {
+    fn next(&mut self) -> Option<FastaRecord> {
         // Variables for header and body
         let mut header = String::new();
         let mut body = Vec::new();
@@ -39,13 +39,13 @@ impl<R: Read> Iterator for FastaStream<R> {
         }
 
         // Trim everything
-        let h = header.trim().to_string();
+        let h = header.trim();
         let s: String = body.into_iter()
             .map(|b| b as char)
             .filter(|c| !c.is_whitespace())
             .filter(|c| *c != '>')
             .collect();
-        Some((h, s))
+        Some(FastaRecord::new(h, s))
     }
 }
 
@@ -62,11 +62,11 @@ impl<R: Read + Seek> FastaStream<R> {
 
 impl<R: Read> FastaReader for FastaStream<R> {
     /// Searches for a specific sequence
-    fn search(&mut self, name: &str) -> Option<String> {
-        for (h, b) in self {
-            if h == name {
-                debug!("Found region {} with body {}", h, b);
-                return Some(b);
+    fn search<P: ToString>(&mut self, name: P) -> Option<FastaRecord> {
+        for record in self {
+            if record.name() == name.to_string() {
+                debug!("Found region {} with body {}", record.name(), record.sequence());
+                return Some(record);
             }
         }
 
@@ -74,10 +74,13 @@ impl<R: Read> FastaReader for FastaStream<R> {
     }
 
     /// Search for a specific sequence and extracts the subsequence
-    fn search_region(&mut self, name: &str, offset: usize, length: usize) -> Option<String> {
+    fn search_region<P: ToString>(&mut self, name: P, offset: usize, length: usize) -> Option<FastaRecord> {
         match self.search(name) {
             None => None,
-            Some(s) => Some(s.chars().skip(offset).take(length).collect()),
+            Some(s) => Some(FastaRecord::new(
+                    s.name(), 
+                    s.sequence().chars().skip(offset).take(length).collect::<String>())
+                ),
         }
     }
 }
@@ -95,7 +98,7 @@ impl<R: Read> From<R> for FastaStream<R> {
 #[cfg(test)]
 mod tests {
 
-    use io::fasta::FastaReader;
+    use io::fasta::{FastaReader,FastaRecord};
     use io::fasta::stream::FastaStream;
     use std::fs::File;
 
@@ -109,14 +112,12 @@ mod tests {
         let mut read_opt = reader.next();
         assert!(read_opt.is_some());
         let mut read = read_opt.unwrap();
-        assert_eq!(read.0, "ref");
-        assert_eq!(read.1, "AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT");
+        assert_eq!(read, FastaRecord::new("ref", "AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT"));
 
         read_opt = reader.next();
         assert!(read_opt.is_some());
         read = read_opt.unwrap();
-        assert_eq!(read.0, "ref2");
-        assert_eq!(read.1, "aggttttataaaacaattaagtctacagagcaactacgcg");
+        assert_eq!(read, FastaRecord::new("ref2", "aggttttataaaacaattaagtctacagagcaactacgcg"));
 
         read_opt = reader.next();
         assert!(read_opt.is_none());
@@ -128,10 +129,10 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search(&"ref");
+        let read = reader.search("ref");
         assert_eq!(
             read,
-            Some("AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT".to_string())
+            Some(FastaRecord::new("ref", "AGCATGTTAGATAAGATAGCTGTGCTAGTAGGCAGTCAGCGCCAT" ))
         );
     }
 
@@ -141,10 +142,10 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search(&"ref2");
+        let read = reader.search("ref2");
         assert_eq!(
             read,
-            Some("aggttttataaaacaattaagtctacagagcaactacgcg".to_string())
+            Some(FastaRecord::new("ref2", "aggttttataaaacaattaagtctacagagcaactacgcg"))
         );
     }
 
@@ -154,7 +155,7 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search(&"ref3");
+        let read = reader.search("ref3");
         assert_eq!(read, None);
     }
 
@@ -164,8 +165,8 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search_region(&"ref2", 0, 5);
-        assert_eq!(read, Some("aggtt".to_string()));
+        let read = reader.search_region("ref2", 0, 5);
+        assert_eq!(read, Some(FastaRecord::new("ref2", "aggtt")));
     }
 
     #[test]
@@ -174,8 +175,8 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search_region(&"ref2", 1, 5);
-        assert_eq!(read, Some("ggttt".to_string()));
+        let read = reader.search_region("ref2", 1, 5);
+        assert_eq!(read, Some(FastaRecord::new("ref2", "ggttt")));
     }
 
     #[test]
@@ -184,7 +185,7 @@ mod tests {
         assert!(file.is_ok(), "Creating file");
 
         let mut reader = FastaStream::from(file.unwrap());
-        let read = reader.search_region(&"ref2", 1, 0);
-        assert_eq!(read, Some("".to_string()));
+        let read = reader.search_region("ref2", 1, 0);
+        assert_eq!(read, Some(FastaRecord::new("ref2", "")));
     }
 }

@@ -241,6 +241,7 @@ impl FromStr for DnaSequence {
         Ok(DnaSequence::from(v))
     }
 }
+
 impl From<Vec<DnaNucleotide>> for DnaSequence {
     fn from(v: Vec<DnaNucleotide>) -> DnaSequence {
         DnaSequence { elements: Rc::new(v) }

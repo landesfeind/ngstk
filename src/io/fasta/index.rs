@@ -1,4 +1,4 @@
-use io::fasta::FastaReader;
+use io::fasta::{FastaReader,FastaRecord};
 use std::convert::AsRef;
 use std::fmt::Display;
 use std::fs::File;
@@ -107,12 +107,13 @@ impl FastaIndex {
     }
 
     /// Searches for a record with given name and return its position in the `self.records` files.
-    pub fn find_record_index(&self, name: &str) -> Option<usize> {
-        self.records.iter().position(|r| r.name == name)
+    pub fn find_record_index<P: ToString>(&self, name: P) -> Option<usize> {
+        let name_s = name.to_string();
+        self.records.iter().position(|r| r.name == name_s)
     }
 
     /// Searches for a record with given name and returns the record.
-    pub fn find_record(&self, name: &str) -> Option<FastaIndexRecord> {
+    pub fn find_record<P: ToString>(&self, name: P) -> Option<FastaIndexRecord> {
         match self.find_record_index(name) {
             Some(pos) => Some(self.records[pos].clone()),
             None => None,
@@ -211,16 +212,16 @@ impl IndexedFastaFile {
 
 impl FastaReader for IndexedFastaFile {
     /// Searches for a specific sequence
-    fn search(&mut self, name: &str) -> Option<String> {
+    fn search<P: ToString>(&mut self, name: P) -> Option<FastaRecord> {
         match self.index.find_record(name) {
-            Some(record) => self.search_region(name, 0usize, record.length()),
+            Some(record) => self.search_region(record.name(), 0usize, record.length()),
             None => None,
         }
     }
 
     /// Search for a specific sequence-region and extracts the subsequence
-    fn search_region(&mut self, name: &str, offset: usize, length: usize) -> Option<String> {
-        let record = match self.index.find_record(name) {
+    fn search_region<P: ToString>(&mut self, name: P, offset: usize, length: usize) -> Option<FastaRecord> {
+        let record = match self.index.find_record(name.to_string()) {
             None => return None,
             Some(record) => record,
         };
@@ -260,7 +261,11 @@ impl FastaReader for IndexedFastaFile {
             }
         }
 
-        Some(sequence.iter().take(length).map(|c| *c as char).collect())
+        Some(FastaRecord::new(
+                name, 
+                sequence.iter().take(length).map(|c| *c as char).collect::<String>()
+            )
+        )
     }
 }
 
@@ -335,35 +340,35 @@ mod tests {
         assert!(reader_result.is_ok());
         let mut reader = reader_result.unwrap();
 
-        assert_eq!(reader.search_region("ref", 0, 1), Some("A".to_string()));
-        assert_eq!(reader.search_region("ref", 0, 2), Some("AG".to_string()));
-        assert_eq!(reader.search_region("ref", 1, 1), Some("G".to_string()));
+        assert_eq!(reader.search_region("ref", 0, 1), Some(FastaRecord::new("ref","A")));
+        assert_eq!(reader.search_region("ref", 0, 2), Some(FastaRecord::new("ref","AG")));
+        assert_eq!(reader.search_region("ref", 1, 1), Some(FastaRecord::new("ref","G")));
 
-        assert_eq!(reader.search_region("ref", 20, 3), Some("TGT".to_string()));
+        assert_eq!(reader.search_region("ref", 20, 3), Some(FastaRecord::new("ref","TGT")));
         assert_eq!(
             reader.search_region("ref", 20, 5),
-            Some("TGTGC".to_string())
+            Some(FastaRecord::new("ref", "TGTGC"))
         );
-        assert_eq!(reader.search_region("ref", 42, 3), Some("CAT".to_string()));
+        assert_eq!(reader.search_region("ref", 42, 3), Some(FastaRecord::new("ref","CAT")));
 
 
-        assert_eq!(reader.search_region("ref2", 0, 1), Some("a".to_string()));
-        assert_eq!(reader.search_region("ref2", 0, 2), Some("ag".to_string()));
-        assert_eq!(reader.search_region("ref2", 1, 1), Some("g".to_string()));
-        assert_eq!(reader.search_region("ref2", 8, 4), Some("taaa".to_string()));
+        assert_eq!(reader.search_region("ref2", 0, 1), Some(FastaRecord::new("ref2","a")));
+        assert_eq!(reader.search_region("ref2", 0, 2), Some(FastaRecord::new("ref2","ag")));
+        assert_eq!(reader.search_region("ref2", 1, 1), Some(FastaRecord::new("ref2","g")));
+        assert_eq!(reader.search_region("ref2", 8, 4), Some(FastaRecord::new("ref2","taaa")));
         assert_eq!(
             reader.search_region("ref2", 8, 6),
-            Some("taaaac".to_string()),
+            Some(FastaRecord::new("ref2", "taaaac")),
             "One line to the next"
         );
         assert_eq!(
             reader.search_region("ref2", 37, 3),
-            Some("gcg".to_string()),
+            Some(FastaRecord::new("ref2", "gcg")),
             "End of second sequence"
         );
         assert_eq!(
             reader.search_region("ref2", 38, 3),
-            Some("cg".to_string()),
+            Some(FastaRecord::new("ref2", "cg")),
             "Beyond end of second sequence"
         );
     }
