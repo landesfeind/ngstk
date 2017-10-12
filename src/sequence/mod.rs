@@ -6,6 +6,14 @@ pub mod dna;
 pub mod rna;
 pub mod aminoacid;
 
+pub use self::dna::DnaNucleotide;
+pub use self::dna::DnaSequence;
+pub use self::rna::RnaNucleotide;
+pub use self::rna::RnaSequence;
+pub use self::aminoacid::Aminoacid;
+pub use self::aminoacid::Peptide;
+
+
 /// An element that can be part of a sequence.
 pub trait SequenceElement
     : Ord + Eq + Clone + fmt::Debug + fmt::Display + Sized + From<char> + Into<char>

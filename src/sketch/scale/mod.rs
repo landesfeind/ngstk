@@ -1,7 +1,10 @@
 pub mod numerical;
+pub mod sequences;
+
 
 pub trait Scale<D, R> {
     fn scale(&self, d: D) -> R;
+    
     fn to(&self, d: D) -> R {
         self.scale(d)
     }

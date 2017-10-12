@@ -35,9 +35,9 @@ pub fn group(document: &mut Document) -> Node {
     document.create_element(ElementId::G)
 }
 
-pub fn draw_text(
+pub fn draw_text<S: ToString>(
     document: &mut Document,
-    text: &str,
+    text: S,
     pos_x: f64,
     pos_y: f64,
     font_size: usize,
@@ -46,7 +46,7 @@ pub fn draw_text(
     color: Option<Color>,
 ) -> Node {
     let mut text_node = document.create_element(ElementId::Text);
-    let data_node = document.create_node(NodeType::Text, text);
+    let data_node = document.create_node(NodeType::Text, text.to_string().as_ref());
     text_node.append(&data_node);
 
     text_node.set_attribute(AttributeId::X, pos_x);

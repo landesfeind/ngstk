@@ -6,10 +6,11 @@ use io::fasta::{FastaReader, FastaStream};
 use region::Region;
 use sequence::aminoacid::*;
 use sequence::dna::*;
-use sketch::SvgOutput;
-use sketch::color::SequenceColors;
 use std::fs::File;
+use std::io::Write;
 use std::io::stdout;
+
+use sketch;
 
 use tool::Tool;
 
@@ -18,43 +19,37 @@ pub struct Sketch {}
 impl Tool for Sketch {
     fn args<'a, 'b>(s: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
         s.about("Generate a sketch of the data in the given region")
-                .arg(clap::Arg::with_name("region")
-                     .short("r")
-                     .long("region")
-                     .help("Analyze the given region")
-                     .takes_value(true)
-                    )
-                .arg(clap::Arg::with_name("reference")
-                     .short("f")
-                     .long("fasta")
-                     .visible_alias("fasta-ref")
-                     .value_name("filename")
-                     .help("Show sequence from this file as reference (must be indexed with faidx)")
-                     .takes_value(true)
-                    )
-                .arg(clap::Arg::with_name("bam")
-                     .short("b")
-                     .long("bam")
-                     .visible_alias("bamfile")
-                     .multiple(true)
-                     .help("Show alignments from these mapping files (must be indexed with samtool index)")
-                     .value_name("filename")
-                     .takes_value(true)
-                     .multiple(true)
-                    )
-                .arg(clap::Arg::with_name("outfile")
-                     .short("o")
-                     .long("out")
-                     .visible_alias("svg")
-                     .help("Write to this file instead of stdout")
-                     .value_name("filename")
-                     .takes_value(true)
-                    )
-                .arg(clap::Arg::with_name("image-width")
-                     .long("image-width")
-                     .help("Set the desired width of the output image")
-                     .takes_value(true)
-                    )
+            .arg(
+                clap::Arg::with_name("region")
+                    .short("r")
+                    .long("region")
+                    .help("Visualize the given region")
+                    .takes_value(true),
+            )
+            .arg(
+                clap::Arg::with_name("outfile")
+                    .short("o")
+                    .long("out")
+                    .visible_alias("svg")
+                    .help("Write to this file instead of stdout")
+                    .value_name("filename")
+                    .takes_value(true),
+            )
+            .arg(
+                clap::Arg::with_name("image-width")
+                    .long("image-width")
+                    .help("Set the desired width of the output image")
+                    .takes_value(true),
+            )
+            .arg(
+                clap::Arg::with_name("tracks")
+                    .help("Visualize these files")
+                    .value_name("filename")
+                    .takes_value(true)
+                    .multiple(true)
+                    .required(true)
+            )
+
     }
 
     fn run(args: &clap::ArgMatches) {
@@ -65,7 +60,38 @@ impl Tool for Sketch {
             }
             Err(e) => panic!("Error: {}", e),
         };
+        debug!("Start visualization of region: {}", region);
 
+        // Parse output image information
+        let mut style = sketch::Style::default();
+        style = match args.value_of("image-width") {
+            Some(s) => {
+                match u64::from_str(s) {
+                    Ok(w) => style.with_image_width(w),
+                    Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e),
+                }
+            }
+            None => style //style.with_image_width(region.length().unwrap() as u64 * 15u64),
+        };
+
+        debug!("Style is: {:?}", style);
+
+        let mut drawing = sketch::Sketch::new().with_style(style);
+
+        match args.values_of("tracks") {
+            None => {}
+            Some(values) => {
+                for filename in values {
+                    debug!("Processing track: {}", filename);
+                    drawing.append_section(filename);
+                }
+            }
+        }
+
+
+
+
+/*
         // Read the reference sequence
         let filename_reference = args.value_of("reference").unwrap_or("testdata/toy.fasta");
         let file_reference = match File::open(filename_reference) {
@@ -112,19 +138,6 @@ impl Tool for Sketch {
             reference
         );
 
-
-        // Parse output image information
-        let image_width = match args.value_of("image-width") {
-            Some(s) => {
-                match usize::from_str(s) {
-                    Ok(w) => w,
-                    Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e),
-                }
-            }
-            None => region.length().unwrap_or(reference.length()) * 15usize,
-        };
-
-
         // Generate output SVG
         let mut out = SvgOutput::new(
             region.offset().unwrap_or(0usize),
@@ -162,18 +175,19 @@ impl Tool for Sketch {
                 }
             }
         }
-
+        */
+        
         match args.value_of("outfile") {
             Some(p) => {
                 match File::create(p) {
                     Ok(mut f) => {
                         debug!("Writing to output file: {}", p);
-                        out.write(&mut f);
+                        write!(f, "{}", drawing);
                     }
                     Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
                 }
             }
-            None => out.write(&mut stdout()),
+            None => println!( "{}",drawing)
         }
     }
 }

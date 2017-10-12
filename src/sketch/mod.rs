@@ -1,21 +1,72 @@
 extern crate svgdom;
 pub use self::svgdom::*;
-use alignment::*;
 
-use sequence::*;
 use std::fmt;
-use std::io::Write;
-use std::marker::PhantomData;
 
-pub mod color;
-pub mod scale;
-mod shapes;
-use sketch::scale::Scale;
-use sketch::shapes::*;
+mod color;
+mod scale;
+mod style;
+mod decorator;
+pub use self::color::Color;
+pub use self::scale::Scale;
+pub use self::style::Style;
 
-const FONT_SIZE: usize = 12;
-const PADDING: usize = 2;
+use self::decorator::Decorator;
 
+pub struct Sketch {
+    style: Style,
+    document: Document,
+    node_svg: Node,
+    current_height: u64
+}
+
+
+impl Sketch {
+
+    pub fn new() -> Self {
+        let doc = Document::new();
+        let svg = doc.create_element(ElementId::Svg);
+        doc.append(&svg);
+
+        Sketch {
+            document: doc,
+            node_svg: svg,
+            current_height: 0u64,
+            style: Style::default()
+        }
+    }
+
+    pub fn with_style(mut self, style: Style) -> Self {
+        self.style = style;
+        self
+    }
+
+    pub fn append_section<S: ToString>(&mut self, title: S) {
+        let d = decorator::SectionHeaderDecorator::new(title).with_style(self.style);
+        let (g, height) = d.append(&mut self.document, self.current_height);
+        self.node_svg.append(&g);
+        self.current_height += height;
+    }
+
+}
+
+impl fmt::Display for Sketch {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.node_svg.set_attribute(
+            AttributeId::Height,
+            self.current_height as f64,
+        );
+        write!(
+            f,
+            "{}",
+            self.document.to_string_with_opt(&WriteOptions::default())
+        )
+    }
+}
+
+
+
+/*
 pub struct SvgOutput<E: SequenceElement, CS: Scale<E, Color>> {
     template_offset: usize,
     template_length: usize,
@@ -70,7 +121,7 @@ impl<E: SequenceElement, CS: Scale<E, Color>> SvgOutput<E, CS> {
         Some(self.template_length)
     }
 
-    pub fn append_section(&mut self, title: &str) {
+    pub fn append_section<S: ToString>(&mut self, title: S) {
         let bg = shapes::draw_rect(
             &mut self.document,
             0f64,
@@ -380,3 +431,6 @@ mod tests {
         assert_eq!(svg.x(200), 500.0);
     }
 }
+
+
+*/
