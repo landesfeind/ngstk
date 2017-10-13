@@ -1,39 +1,41 @@
-extern crate svgdom;
-pub use self::svgdom::*;
-
-use std::fmt;
+use std::io::Write;
 
 mod color;
 mod scale;
 mod style;
+mod canvas;
 mod decorator;
 pub use self::color::Color;
 pub use self::scale::Scale;
 pub use self::style::Style;
+pub use self::canvas::Canvas;
 
 use self::decorator::Decorator;
 
-pub struct Sketch {
+pub struct Sketch<C : Canvas> {
     style: Style,
-    document: Document,
-    node_svg: Node,
-    current_height: u64
+    current_height: u64,
+    canvas: C
 }
 
+impl Default for Sketch<canvas::svg::Svg> {
+    fn default() -> Self {
+        Self::new_with_canvas(self::canvas::Svg::default())
+    }
+}
 
-impl Sketch {
+impl<C: Canvas> Sketch<C> {
 
-    pub fn new() -> Self {
-        let doc = Document::new();
-        let svg = doc.create_element(ElementId::Svg);
-        doc.append(&svg);
-
+    pub fn new_with_canvas(c: C) -> Self {
         Sketch {
-            document: doc,
-            node_svg: svg,
             current_height: 0u64,
-            style: Style::default()
+            style: Style::default(),
+            canvas: c
         }
+    }
+
+    pub fn write<W : Write>(&self, out: W){
+        self.canvas.write(out);
     }
 
     pub fn with_style(mut self, style: Style) -> Self {
@@ -43,26 +45,11 @@ impl Sketch {
 
     pub fn append_section<S: ToString>(&mut self, title: S) {
         let d = decorator::SectionHeaderDecorator::new(title).with_style(self.style);
-        let (g, height) = d.append(&mut self.document, self.current_height);
-        self.node_svg.append(&g);
-        self.current_height += height;
+        self.current_height += d.append(&mut self.canvas, self.current_height);
     }
 
 }
 
-impl fmt::Display for Sketch {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.node_svg.set_attribute(
-            AttributeId::Height,
-            self.current_height as f64,
-        );
-        write!(
-            f,
-            "{}",
-            self.document.to_string_with_opt(&WriteOptions::default())
-        )
-    }
-}
 
 
 

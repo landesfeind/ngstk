@@ -1,6 +1,4 @@
-extern crate svgdom;
-pub use self::svgdom::*;
-
+use sketch::Canvas;
 use sketch::Style;
 use sketch::decorator::Decorator;
 
@@ -33,11 +31,10 @@ impl Decorator for SectionHeaderDecorator {
         }
     }
 
-    fn append(&self, document: &mut svgdom::Document, offset_y: u64) -> (svgdom::Node, u64) {
+    fn append<C: Canvas>(&self, canvas: &mut C, offset_y: u64) -> u64 {
         debug!("Appending section header with label '{}' at offset {}", self.title, offset_y);
-        let g = document.create_element(ElementId::G);
-        let bg = Self::add_rect(
-            document,
+        //let g = canvas.layer();
+        canvas.draw_rect(
             0f64,
             offset_y as f64,
             self.style().image_width() as f64,
@@ -45,8 +42,7 @@ impl Decorator for SectionHeaderDecorator {
             Some(self.style().background_color_section()),
         );
         
-        let text = Self::add_text(
-            document,
+        canvas.draw_text(
             &self.title,
             self.style().font_padding() as f64,
             (offset_y + self.style().font_padding() + self.style().font_size()) as f64,
@@ -56,9 +52,6 @@ impl Decorator for SectionHeaderDecorator {
             Some(self.style().font_color_section()),
         );
         
-        g.append(&bg);
-        g.append(&text);
-
-        (g, self.style().font_size() + 2 * self.style().font_padding())    
+        self.style().font_size() + 2 * self.style().font_padding()   
     }
 }

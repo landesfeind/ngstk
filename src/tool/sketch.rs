@@ -7,7 +7,6 @@ use region::Region;
 use sequence::aminoacid::*;
 use sequence::dna::*;
 use std::fs::File;
-use std::io::Write;
 use std::io::stdout;
 
 use sketch;
@@ -76,7 +75,7 @@ impl Tool for Sketch {
 
         debug!("Style is: {:?}", style);
 
-        let mut drawing = sketch::Sketch::new().with_style(style);
+        let mut drawing = sketch::Sketch::default().with_style(style);
 
         match args.values_of("tracks") {
             None => {}
@@ -180,14 +179,14 @@ impl Tool for Sketch {
         match args.value_of("outfile") {
             Some(p) => {
                 match File::create(p) {
-                    Ok(mut f) => {
+                    Ok(f) => {
                         debug!("Writing to output file: {}", p);
-                        write!(f, "{}", drawing);
+                        drawing.write(f);
                     }
                     Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
                 }
             }
-            None => println!( "{}",drawing)
+            None => drawing.write(stdout())
         }
     }
 }
