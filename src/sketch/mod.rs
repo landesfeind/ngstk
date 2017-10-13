@@ -45,9 +45,8 @@ impl<C: Canvas> Sketch<C> {
 
     pub fn append_section<S: ToString>(&mut self, title: S) {
         let d = decorator::SectionHeaderDecorator::new(title).with_style(self.style);
-        self.current_height += d.append(&mut self.canvas, self.current_height);
+        self.current_height += d.draw(&mut self.canvas, self.current_height);
     }
-
 }
 
 
@@ -133,10 +132,6 @@ impl<E: SequenceElement, CS: Scale<E, Color>> SvgOutput<E, CS> {
         self.image_height += FONT_SIZE + (2 * PADDING);
     }
 
-    pub fn append_sequence<S: Sequence<E>>(&mut self, sequence: &S) {
-        let to = self.template_offset();
-        self.append_sequence_with_offset(sequence, to);
-    }
     pub fn append_sequence_with_offset<S: Sequence<E>>(&mut self, sequence: &S, offset: usize) {
         let h = (FONT_SIZE + (2 * PADDING)) as f64;
         let w = self.element_width();

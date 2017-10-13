@@ -31,7 +31,7 @@ impl Decorator for SectionHeaderDecorator {
         }
     }
 
-    fn append<C: Canvas>(&self, canvas: &mut C, offset_y: u64) -> u64 {
+    fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: u64) -> u64 {
         debug!("Appending section header with label '{}' at offset {}", self.title, offset_y);
         //let g = canvas.layer();
         canvas.draw_rect(

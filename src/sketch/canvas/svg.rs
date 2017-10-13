@@ -1,13 +1,13 @@
 extern crate svgdom;
 use self::svgdom::*;
-use std::io::Write;
+use sketch::Color;
 
 use sketch::canvas::Canvas;
-use sketch::Color;
+use std::io::Write;
 
 pub struct Svg {
     document: Document,
-    node_svg: Node
+    node_svg: Node,
 }
 
 impl Svg {
@@ -47,11 +47,24 @@ impl Svg {
         }
     }
 
+
+
+    pub fn draw_path(
+        &mut self,
+        path: svgdom::types::path::Path,
+        stroke_color: Option<Color>,
+        fill_color: Option<Color>,
+    ) {
+        let mut pn = self.document.create_element(ElementId::Path);
+        pn.set_attribute(AttributeId::D, path);
+        Self::set_stroke(&mut pn, stroke_color, Some(1));
+        Self::set_fill_color(&mut pn, fill_color);
+        self.node_svg.append(&pn);
+    }
 }
 
 
 impl Default for Svg {
-
     fn default() -> Self {
         let doc = Document::new();
         let svg = doc.create_element(ElementId::Svg);
@@ -67,8 +80,7 @@ impl Default for Svg {
 
 
 impl Canvas for Svg {
-
-    fn write<W: Write>(&self, mut out: W){
+    fn write<W: Write>(&self, mut out: W) {
         write!(out, "{}", self.document.to_string());
     }
 
@@ -83,7 +95,10 @@ impl Canvas for Svg {
         color: Option<Color>,
     ) {
         let mut text_node = self.document.create_element(ElementId::Text);
-        let data_node = self.document.create_node(NodeType::Text, text.to_string().as_ref());
+        let data_node = self.document.create_node(
+            NodeType::Text,
+            text.to_string().as_ref(),
+        );
         text_node.append(&data_node);
 
         debug!(
@@ -120,7 +135,7 @@ impl Canvas for Svg {
         width: f64,
         height: f64,
         fill_color: Option<Color>,
-    ){
+    ) {
         let mut rect = self.document.create_element(ElementId::Rect);
         rect.set_attribute(AttributeId::Fill, "none");
         rect.set_attribute(AttributeId::Stroke, "black");
@@ -131,7 +146,37 @@ impl Canvas for Svg {
         rect.set_attribute(AttributeId::Height, height);
         Self::set_fill_color(&mut rect, fill_color);
 
+        self.node_svg.append(&rect);
+    }
 
+    fn draw_circ(&mut self, pos_cx: f64, pos_cy: f64, radius: f64, fill_color: Option<Color>) {
+        let mut circ = self.document.create_element(ElementId::Rect);
+        circ.set_attribute(AttributeId::Fill, "none");
+        circ.set_attribute(AttributeId::Stroke, "black");
+        circ.set_attribute(AttributeId::StrokeWidth, "1");
+        circ.set_attribute(AttributeId::Cx, pos_cx);
+        circ.set_attribute(AttributeId::Cy, pos_cy);
+        circ.set_attribute(AttributeId::Radius, radius);
+        Self::set_fill_color(&mut circ, fill_color);
+
+        self.node_svg.append(&circ);
+    }
+
+
+    fn draw_line(
+        &mut self,
+        pos_x1: f64,
+        pos_y1: f64,
+        pos_x2: f64,
+        pos_y2: f64,
+        color: Option<Color>,
+    ) {
+        let mut rect = self.document.create_element(ElementId::Line);
+        rect.set_attribute(AttributeId::X1, pos_x1);
+        rect.set_attribute(AttributeId::Y1, pos_y1);
+        rect.set_attribute(AttributeId::X2, pos_x2);
+        rect.set_attribute(AttributeId::Y2, pos_y2);
+        Self::set_stroke(&mut rect, color, Some(1));
         self.node_svg.append(&rect);
     }
 }

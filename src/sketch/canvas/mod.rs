@@ -5,9 +5,8 @@ pub mod svg;
 pub use self::svg::Svg;
 use sketch::Color;
 
-pub trait Canvas : Default {
-
-    fn write<W:Write>(&self, out: W);
+pub trait Canvas: Default {
+    fn write<W: Write>(&self, out: W);
 
     fn draw_text<S: ToString>(
         &self,
@@ -28,4 +27,17 @@ pub trait Canvas : Default {
         height: f64,
         fill_color: Option<Color>,
     );
+
+    fn draw_circ(&mut self, pos_cx: f64, pos_cy: f64, radius: f64, fill_color: Option<Color>);
+
+
+    fn draw_line(
+        &mut self,
+        pos_x1: f64,
+        pos_y1: f64,
+        pos_x2: f64,
+        pos_y2: f64,
+        color: Option<Color>,
+    );
+
 }
