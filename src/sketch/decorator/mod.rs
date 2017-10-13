@@ -3,6 +3,8 @@ use sketch::Style;
 
 mod sectionheader;
 pub use self::sectionheader::SectionHeaderDecorator;
+mod sequence;
+pub use self::sequence::SequenceDecorator;
 
 pub trait Decorator {
     fn with_style(self, style: Style) -> Self;

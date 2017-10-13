@@ -12,6 +12,8 @@ pub use self::canvas::Canvas;
 
 use self::decorator::Decorator;
 
+use sequence::{Sequence,SequenceElement};
+
 pub struct Sketch<C : Canvas> {
     style: Style,
     current_height: u64,
@@ -44,8 +46,15 @@ impl<C: Canvas> Sketch<C> {
     }
 
     pub fn append_section<S: ToString>(&mut self, title: S) {
-        let d = decorator::SectionHeaderDecorator::new(title).with_style(self.style);
-        self.current_height += d.draw(&mut self.canvas, self.current_height);
+        self.current_height += decorator::SectionHeaderDecorator::new(title)
+            .with_style(self.style)
+            .draw(&mut self.canvas, self.current_height);
+    }
+
+    pub fn append_sequence<E: SequenceElement, S : Sequence<E>>(&mut self, sequence : &S) {
+     self.current_height += decorator::SectionHeaderDecorator::new(sequence)
+            .with_style(self.style)
+            .draw(&mut self.canvas, self.current_height);   
     }
 }
 

@@ -64,9 +64,6 @@ impl Style {
         self.background_color_section
     }
 
-
-
-
     pub fn with_font_padding(mut self, new_font_padding: u64) -> Self {
         self.font_padding = new_font_padding;
         self
@@ -98,3 +95,4 @@ impl Style {
         self.font_color_section
     }
 }
+

@@ -7,7 +7,6 @@ pub struct SectionHeaderDecorator {
     title: String
 }
 
-
 impl SectionHeaderDecorator {
     pub fn new<S: ToString>(title: S) -> Self {
         SectionHeaderDecorator {

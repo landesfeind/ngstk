@@ -83,98 +83,11 @@ impl Tool for Sketch {
                 for filename in values {
                     debug!("Processing track: {}", filename);
                     drawing.append_section(filename);
+
+                    // TODO: Implement loading and drawing of tracks
                 }
             }
         }
-
-
-
-
-/*
-        // Read the reference sequence
-        let filename_reference = args.value_of("reference").unwrap_or("testdata/toy.fasta");
-        let file_reference = match File::open(filename_reference) {
-            Ok(f) => {
-                debug!(
-                    "Loading reference FASTA sequence from: {}",
-                    filename_reference
-                );
-                f
-            }
-            Err(e) => panic!("Can not open file '{}' for read: {}", filename_reference, e),
-        };
-        let reference = match region.has_coordinates() {
-            false => {
-                match FastaStream::from(file_reference).search(region.name()) {
-                    Some(record) => record.as_dna(),
-                    None => {
-                        panic!(
-                            "Can not find reference sequence with header '{}'",
-                            region.name()
-                        )
-                    }
-                }
-            }
-            true => {
-                match FastaStream::from(file_reference).search_region(
-                    region.name(),
-                    region.offset().unwrap(),
-                    region.length().unwrap(),
-                ) {
-                    Some(record) => record.as_dna(),
-                    None => {
-                        panic!(
-                            "Can not find reference sequence with header '{}'",
-                            region.name()
-                        )
-                    }
-                }
-            }
-        };
-        debug!(
-            "Using sequence of {} elements: {}",
-            reference.length(),
-            reference
-        );
-
-        // Generate output SVG
-        let mut out = SvgOutput::new(
-            region.offset().unwrap_or(0usize),
-            region.length().unwrap_or(reference.length()),
-            image_width,
-            SequenceColors::default(),
-        );
-        out.append_section(format!("{}", region).as_ref());
-        out.append_section(filename_reference);
-        if region.has_coordinates() {
-            out.append_sequence(&reference.subsequence(
-                region.offset().unwrap(),
-                region.length().unwrap(),
-            ));
-        } else {
-            out.append_sequence(&reference);
-        }
-
-        match args.values_of("bam") {
-            None => {}
-            Some(values) => {
-                for filename_bam in values {
-                    debug!("Processing BAM file: {}", filename_bam);
-                    match IndexedBamReader::load_alignments(
-                        &region,
-                        reference.clone(),
-                        &filename_bam,
-                    ) {
-                        None => panic!("Can not load alignments"),
-                        Some(alignments) => {
-                            debug!("Found {} aligned reads", alignments.len());
-                            out.append_alignments(&alignments)
-                        }
-                    }
-                }
-            }
-        }
-        */
         
         match args.value_of("outfile") {
             Some(p) => {
