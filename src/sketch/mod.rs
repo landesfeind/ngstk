@@ -2,20 +2,18 @@ use std::io::Write;
 
 mod color;
 mod scale;
-mod style;
 mod canvas;
 mod decorator;
 pub use self::color::Color;
 pub use self::scale::Scale;
-pub use self::style::Style;
 pub use self::canvas::Canvas;
 
 use self::decorator::Decorator;
 
-use sequence::{Sequence,SequenceElement};
+use sequence::*;
 
 pub struct Sketch<C : Canvas> {
-    current_height: u64,
+    current_height: f64,
     canvas: C
 }
 
@@ -29,27 +27,27 @@ impl<C: Canvas> Sketch<C> {
 
     pub fn new_with_canvas(c: C) -> Self {
         Sketch {
-            current_height: 0u64,
+            current_height: 0f64,
             canvas: c
         }
-    }
-
-    pub fn with_canvas_style(mut self, s:Style) -> Self {
-        self.canvas = self.canvas.with_style(s);
-        self
     }
 
     pub fn write<W : Write>(&self, out: W){
         self.canvas.write(out);
     }
 
+    pub fn with_canvas_width(mut self, image_width: f64) -> Self {
+        self.canvas = self.canvas.with_image_width(image_width);
+        self
+    }
+
     pub fn append_section<S: ToString>(&mut self, title: S) {
-        self.current_height += decorator::SectionHeaderDecorator::new(title)
+        self.current_height += decorator::HeaderDecorator::H2(title)
             .draw(&mut self.canvas, self.current_height);
     }
 
-    pub fn append_sequence<E: SequenceElement, S : Sequence<E>>(&mut self, sequence : &S) {
-     self.current_height += decorator::SectionHeaderDecorator::new(sequence)
+    pub fn append_dna_sequence(&mut self, sequence : DnaSequence) {
+     self.current_height += decorator::DnaSequenceDecorator::new(sequence)
             .draw(&mut self.canvas, self.current_height);   
     }
 }

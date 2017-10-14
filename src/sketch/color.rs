@@ -144,3 +144,4 @@ impl Color {
         Self::new_with_alpha(255, 255, 255, 255)
     }
 }
+

@@ -4,13 +4,12 @@ pub mod svg;
 
 pub use self::svg::Svg;
 use sketch::Color;
-use sketch::Style;
 
 pub trait Canvas: Default {
 
-    fn with_style(self, style: Style) -> Self;
+    fn with_image_width(self, new_width: f64) -> Self;
 
-    fn style(&self) -> Style;
+    fn image_width(&self) -> f64;
 
     fn write<W: Write>(&self, out: W);
 
@@ -19,7 +18,7 @@ pub trait Canvas: Default {
         text: S,
         pos_x: f64,
         pos_y: f64,
-        font_size: u64,
+        font_size: f64,
         align_center: bool,
         valign_center: bool,
         color: Option<Color>,

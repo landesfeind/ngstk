@@ -65,21 +65,20 @@ impl Tool for Sketch {
         };
         debug!("Start visualization of region: {}", region);
 
+        
+        let mut drawing = sketch::Sketch::default();
+        
         // Parse output image information
-        let mut style = sketch::Style::default();
-        style = match args.value_of("image-width") {
+        drawing = match args.value_of("image-width") {
             Some(s) => {
-                match u64::from_str(s) {
-                    Ok(w) => style.with_image_width(w),
+                match f64::from_str(s) {
+                    Ok(w) => drawing.with_canvas_width(w),
                     Err(e) => { error!("Can not parse --image-width parameter '{}': {}", s, e); return },
                 }
             }
-            None => style //style.with_image_width(region.length().unwrap() as u64 * 15u64),
+            None => drawing
         };
 
-        //debug!("Style is: {:?}", style);
-
-        let mut drawing = sketch::Sketch::default().with_canvas_style(style);
 
         match args.values_of("tracks") {
             None => {}
@@ -136,17 +135,19 @@ impl Sketch {
             Err(e) => { error!("{}", e); return drawing }
         };
 
-        let seq = match fasta.search_region_as_dna(region.name(), region.offset().unwrap(), region.length().unwrap()) {
-            Some(s) => s,
-            None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+        let seq = match region.has_coordinates() {
+            true => match fasta.search_region_as_dna(region.name(), region.offset().unwrap(), region.length().unwrap()) {
+                Some(s) => s,
+                None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+            },
+            false => match fasta.search_as_dna(region.name()) {
+                Some(s) => s,
+                None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+            }
         };
 
-        drawing.append_sequence(&seq);
+        drawing.append_dna_sequence(seq);
 
         drawing
     }
-
-
-
-
 }

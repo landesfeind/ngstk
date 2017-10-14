@@ -1,12 +1,11 @@
 extern crate svgdom;
 use self::svgdom::*;
 use sketch::Color;
-use sketch::Style;
 use sketch::canvas::Canvas;
 use std::io::Write;
 
 pub struct Svg {
-    style: Option<Style>,
+    image_width: f64,
     document: Document,
     node_svg: Node,
 }
@@ -72,7 +71,7 @@ impl Default for Svg {
         doc.append(&svg);
 
         Svg {
-            style: None,
+            image_width: 720f64,
             document: doc,
             node_svg: svg,
         }
@@ -86,24 +85,22 @@ impl Canvas for Svg {
         write!(out, "{}", self.document.to_string());
     }
 
-    fn with_style(mut self, style: Style) -> Self {
-        self.style = Some(style);
+    fn with_image_width(mut self, new_width: f64) -> Self {
+        self.image_width = new_width;
         self
     }
 
-    fn style(&self) -> Style {
-        match self.style {
-            Some(s) => s,
-            None => Style::default()
-        }
+    fn image_width(&self) -> f64 {
+        self.image_width
     }
+
 
     fn draw_text<S: ToString>(
         &self,
         text: S,
         pos_x: f64,
         pos_y: f64,
-        font_size: u64,
+        font_size: f64,
         align_center: bool,
         valign_center: bool,
         color: Option<Color>,
