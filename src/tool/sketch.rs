@@ -57,7 +57,7 @@ impl Tool for Sketch {
                 debug!("Using region: {}", r);
                 r
             }
-            Err(e) => panic!("Error: {}", e),
+            Err(e) => { error!("{}", e); return },
         };
         debug!("Start visualization of region: {}", region);
 
@@ -67,22 +67,23 @@ impl Tool for Sketch {
             Some(s) => {
                 match u64::from_str(s) {
                     Ok(w) => style.with_image_width(w),
-                    Err(e) => panic!("Can not parse --image-width parameter '{}': {}", s, e),
+                    Err(e) => { error!("Can not parse --image-width parameter '{}': {}", s, e); return },
                 }
             }
             None => style //style.with_image_width(region.length().unwrap() as u64 * 15u64),
         };
 
-        debug!("Style is: {:?}", style);
+        //debug!("Style is: {:?}", style);
 
-        let mut drawing = sketch::Sketch::default().with_style(style);
+        let mut drawing = sketch::Sketch::default().with_canvas_style(style);
 
         match args.values_of("tracks") {
             None => {}
             Some(values) => {
                 for filename in values {
                     debug!("Processing track: {}", filename);
-                    drawing.append_section(filename);
+                    drawing.append_section(filename);  
+                    
 
                     // TODO: Implement loading and drawing of tracks
                 }
@@ -96,7 +97,7 @@ impl Tool for Sketch {
                         debug!("Writing to output file: {}", p);
                         drawing.write(f);
                     }
-                    Err(e) => panic!("Can not open '{}' for writing: {}", p, e),
+                    Err(e) => { error!("Can not open '{}' for writing: {}", p, e); return }
                 }
             }
             None => drawing.write(stdout())

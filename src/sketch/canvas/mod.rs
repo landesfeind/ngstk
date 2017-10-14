@@ -4,8 +4,14 @@ pub mod svg;
 
 pub use self::svg::Svg;
 use sketch::Color;
+use sketch::Style;
 
 pub trait Canvas: Default {
+
+    fn with_style(self, style: Style) -> Self;
+
+    fn style(&self) -> Style;
+
     fn write<W: Write>(&self, out: W);
 
     fn draw_text<S: ToString>(
