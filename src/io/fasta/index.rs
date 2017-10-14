@@ -1,12 +1,12 @@
 use io::fasta::{FastaReader,FastaRecord};
-use std::convert::AsRef;
 use std::fmt::Display;
-use std::fs::File;
 use std::io::{Seek, SeekFrom};
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
+use std::convert::AsRef;
 use std::path::Path;
+use std::fs::File;
 use std::str::FromStr;
 
 /// A fasta index record as defined by http://www.htslib.org/doc/faidx.html

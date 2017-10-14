@@ -1,13 +1,18 @@
 extern crate clap;
 
+use std::io::stdout;
+use std::convert::AsRef;
+use std::path::Path;
+use std::fs::File;
+use std::fmt::Display;
+
+
 use io::bam::IndexedBamReader;
 
-use io::fasta::{FastaReader, FastaStream};
+use io::fasta::{FastaReader, FastaStream, IndexedFastaFile};
 use region::Region;
 use sequence::aminoacid::*;
 use sequence::dna::*;
-use std::fs::File;
-use std::io::stdout;
 
 use sketch;
 
@@ -48,7 +53,6 @@ impl Tool for Sketch {
                     .multiple(true)
                     .required(true)
             )
-
     }
 
     fn run(args: &clap::ArgMatches) {
@@ -83,9 +87,8 @@ impl Tool for Sketch {
                 for filename in values {
                     debug!("Processing track: {}", filename);
                     drawing.append_section(filename);  
-                    
 
-                    // TODO: Implement loading and drawing of tracks
+                    drawing = Self::draw_from_file(drawing, &region, &filename);
                 }
             }
         }
@@ -103,4 +106,47 @@ impl Tool for Sketch {
             None => drawing.write(stdout())
         }
     }
+
+}
+
+impl Sketch {
+
+    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+        let fss = filename.to_string();
+
+        if fss.ends_with("fa") 
+            || fss.ends_with("fasta")
+            || fss.ends_with("fn")
+            || fss.ends_with("fa.gz") 
+            || fss.ends_with("fasta.gz")
+            || fss.ends_with("fn.gz") {
+            Self::draw_from_fasta(drawing, region, filename)
+        }
+        else {
+            error!("Don't know how to visualize file: {}", fss);
+            drawing
+        }
+    }
+
+
+
+    fn draw_from_fasta<P: AsRef<Path> + Display, C: sketch::Canvas>(mut drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+        let mut fasta = match IndexedFastaFile::open(filename) {
+            Ok(f) => f,
+            Err(e) => { error!("{}", e); return drawing }
+        };
+
+        let seq = match fasta.search_region_as_dna(region.name(), region.offset().unwrap(), region.length().unwrap()) {
+            Some(s) => s,
+            None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+        };
+
+        drawing.append_sequence(&seq);
+
+        drawing
+    }
+
+
+
+
 }
