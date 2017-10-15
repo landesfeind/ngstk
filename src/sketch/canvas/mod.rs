@@ -19,6 +19,7 @@ pub trait Canvas: Default {
         pos_x: f64,
         pos_y: f64,
         font_size: f64,
+        font_weight: &str,
         align_center: bool,
         valign_center: bool,
         color: Option<Color>,

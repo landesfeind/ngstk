@@ -14,19 +14,19 @@ pub struct HeaderDecorator {
 }
 
 impl HeaderDecorator {
-    pub fn H1<S : ToString>(title: S) -> Self {
+    pub fn h1<S : ToString>(title: S) -> Self {
         Self::new(title).with_level(SectionLevel::H1)
     }
 
-    pub fn H2<S : ToString>(title: S) -> Self {
+    pub fn h2<S : ToString>(title: S) -> Self {
         Self::new(title).with_level(SectionLevel::H2)
     }
 
-    pub fn H3<S : ToString>(title: S) -> Self {
+    pub fn h3<S : ToString>(title: S) -> Self {
         Self::new(title).with_level(SectionLevel::H3)
     }
 
-    pub fn H4<S : ToString>(title: S) -> Self {
+    pub fn h4<S : ToString>(title: S) -> Self {
         Self::new(title).with_level(SectionLevel::H4)
     }
 
@@ -42,15 +42,23 @@ impl HeaderDecorator {
         self
     }
 
-    fn font_size_section_header(&self) -> f64 {
+    fn font_size_header(&self) -> f64 {
         self.font_size() * match self.level {
-            SectionLevel::H1 => 2.0,
-            SectionLevel::H2 => 1.4,
-            SectionLevel::H3 => 1.2,
+            SectionLevel::H1 => 1.2,
+            SectionLevel::H2 => 1.2,
+            SectionLevel::H3 => 1.1,
             _ => 1.0,
         }
     }
 
+    fn font_weight_header(&self) -> &str {
+        match self.level {
+            SectionLevel::H1 => "bold",
+            SectionLevel::H2 => "normal",
+            SectionLevel::H3 => "bold",
+            _ => "normal",
+        }
+    }
     fn background_color(&self) -> Color {
         Color::black().lighten_by(20u8)
     }
@@ -63,11 +71,12 @@ impl HeaderDecorator {
 
 impl Decorator for HeaderDecorator {
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
-        debug!("Appending section header with label '{}' at offset {}", self.title, offset_y);
+        debug!("Appending {:?} header with label '{}' and font-size {}", self.level, self.title, self.font_size_header());
         //let g = canvas.layer();
         
+        let font_size = self.font_size_header();
         let bg_width  = canvas.image_width() as f64;
-        let bg_height = (2.0 * self.font_padding() + self.font_size()) as f64;
+        let bg_height = 2.0 * self.font_padding() + font_size;
 
         canvas.draw_rect(
             0f64,
@@ -79,17 +88,18 @@ impl Decorator for HeaderDecorator {
         
 
         let text_x = self.font_padding() as f64;
-        let text_y = (offset_y as f64 + self.font_padding() + self.font_size()) as f64;
+        let text_y = (offset_y as f64 + self.font_padding() + font_size) as f64;
         canvas.draw_text(
             &self.title,
             text_x,
             text_y,
-            self.font_size(),
+            font_size,
+            self.font_weight_header(),
             false,
             true,
             Some(self.font_color_section()),
         );
         
-        2.0 * self.font_padding() + self.font_size()
+        bg_height
     }
 }

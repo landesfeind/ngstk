@@ -31,6 +31,13 @@ impl Tool for Sketch {
                     .takes_value(true),
             )
             .arg(
+                clap::Arg::with_name("title")
+                    .short("t")
+                    .long("title")
+                    .help("Use the given title (defaults to visualized region)")
+                    .takes_value(true),
+            )
+            .arg(
                 clap::Arg::with_name("outfile")
                     .short("o")
                     .long("out")
@@ -46,6 +53,16 @@ impl Tool for Sketch {
                     .takes_value(true),
             )
             .arg(
+                clap::Arg::with_name("reference")
+                    .short("f")
+                    .long("fasta-reference")
+                    .visible_alias("reference")
+                    .help("Use this file to load the reference sequence from (must be a faidx-indexed FASTA file)")
+                    .value_name("filename")
+                    .takes_value(true)
+                    .required(true)
+            )
+            .arg(
                 clap::Arg::with_name("tracks")
                     .help("Visualize these files")
                     .value_name("filename")
@@ -56,7 +73,8 @@ impl Tool for Sketch {
     }
 
     fn run(args: &clap::ArgMatches) {
-        let region = match Region::from_str(args.value_of("region").unwrap_or("ref")) {
+        // Check for a given region
+        let mut region = match Region::from_str(args.value_of("region").unwrap_or("ref")) {
             Ok(r) => {
                 debug!("Using region: {}", r);
                 r
@@ -65,9 +83,21 @@ impl Tool for Sketch {
         };
         debug!("Start visualization of region: {}", region);
 
-        
+        // Load the reference sequence
+        let reference_filename = match args.value_of("reference") {
+            None => { error!("Did not found reference file parameter"); return; },
+            Some(s) => s
+        };
+        let reference = match Self::load_reference_sequence(&reference_filename, &region) {
+                Err(e) => { error!("{}", e); return }
+                Ok(r) => r
+        };
+        if ! region.has_coordinates() {
+            region = Region::new_with_coordinates(region.name(), 0usize, reference.length())
+        }
+
+        // Create the drawing
         let mut drawing = sketch::Sketch::default();
-        
         // Parse output image information
         drawing = match args.value_of("image-width") {
             Some(s) => {
@@ -76,9 +106,23 @@ impl Tool for Sketch {
                     Err(e) => { error!("Can not parse --image-width parameter '{}': {}", s, e); return },
                 }
             }
-            None => drawing
+            None => drawing.with_canvas_width(reference.length() as f64 * 10f64)
         };
 
+        // Write given title or use the region to display
+        match args.value_of("title") {
+            Some(s) => {
+                drawing.append_title(s);
+            }
+            None => drawing.append_title(format!("{}: {} - {} ({} bp)", 
+                region.name(), 
+                region.offset().unwrap() + 1usize, 
+                region.end().unwrap(), 
+                region.length().unwrap()))
+        }
+        drawing.append_section(&reference_filename);
+        drawing.append_dna_sequence(reference);
+        
 
         match args.values_of("tracks") {
             None => {}
@@ -110,43 +154,41 @@ impl Tool for Sketch {
 
 impl Sketch {
 
-    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
-        let fss = filename.to_string();
-
-        if fss.ends_with("fa") 
-            || fss.ends_with("fasta")
-            || fss.ends_with("fn")
-            || fss.ends_with("fa.gz") 
-            || fss.ends_with("fasta.gz")
-            || fss.ends_with("fn.gz") {
-            Self::draw_from_fasta(drawing, region, filename)
-        }
-        else {
-            error!("Don't know how to visualize file: {}", fss);
-            drawing
-        }
-    }
-
-
-
-    fn draw_from_fasta<P: AsRef<Path> + Display, C: sketch::Canvas>(mut drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+    fn load_reference_sequence<P: AsRef<Path> + Display>(filename: &P, region: &Region) -> Result<DnaSequence,String> {
         let mut fasta = match IndexedFastaFile::open(filename) {
             Ok(f) => f,
-            Err(e) => { error!("{}", e); return drawing }
+            Err(e) => return Err(format!("{}", e))
         };
 
         let seq = match region.has_coordinates() {
             true => match fasta.search_region_as_dna(region.name(), region.offset().unwrap(), region.length().unwrap()) {
                 Some(s) => s,
-                None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+                None => return Err(format!("Can not find region '{}' in: {}", region, filename))
             },
             false => match fasta.search_as_dna(region.name()) {
                 Some(s) => s,
-                None => { error!("Can not find region '{}' in: {}", region, filename); return drawing}
+                None => return Err(format!("Can not find region '{}' in: {}", region, filename))
             }
         };
 
-        drawing.append_dna_sequence(seq);
+        return Ok(seq);
+    }
+
+    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+        let fss = filename.to_string();
+
+        if fss.ends_with("bam") {
+            error!("BAM visualization not yet implemented: {}", fss);
+        }
+        else if fss.ends_with("bed") || fss.ends_with("bed.gz") {
+            error!("BED visualization not yet implemented: {}", fss);
+        }
+        else if fss.ends_with("vcf") || fss.ends_with("vcf.gz") {
+            error!("VCF visualization not yet implemented: {}", fss);
+        }
+        else {
+            error!("Don't know how to visualize file: {}", fss);
+        }
 
         drawing
     }

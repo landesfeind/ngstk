@@ -101,6 +101,7 @@ impl Canvas for Svg {
         pos_x: f64,
         pos_y: f64,
         font_size: f64,
+        font_weight: &str,
         align_center: bool,
         valign_center: bool,
         color: Option<Color>,
@@ -122,6 +123,7 @@ impl Canvas for Svg {
         text_node.set_attribute(AttributeId::Y, pos_y);
 
         text_node.set_attribute(AttributeId::FontSize, format!("{}px", font_size));
+        text_node.set_attribute(AttributeId::FontWeight, font_weight);
         if align_center {
             text_node.set_attribute(AttributeId::TextAnchor, "middle");
         } else {

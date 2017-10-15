@@ -41,8 +41,13 @@ impl<C: Canvas> Sketch<C> {
         self
     }
 
+    pub fn append_title<S: ToString>(&mut self, title: S) {
+        self.current_height += decorator::HeaderDecorator::h1(title)
+            .draw(&mut self.canvas, self.current_height);
+    }
+
     pub fn append_section<S: ToString>(&mut self, title: S) {
-        self.current_height += decorator::HeaderDecorator::H2(title)
+        self.current_height += decorator::HeaderDecorator::h2(title)
             .draw(&mut self.canvas, self.current_height);
     }
 

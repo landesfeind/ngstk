@@ -41,6 +41,7 @@ impl Decorator for DnaSequenceDecorator {
                     (box_width * i as f64) + (box_width/2f64),
                     (offset_y + self.font_size() + self.font_padding()) as f64,
                     self.font_size(),
+                    "normal",
                     true,
                     true,
                     Some(self.font_color())
