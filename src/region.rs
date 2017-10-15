@@ -9,16 +9,16 @@ pub struct Region {
 }
 
 impl Region {
-    pub fn new(name: String) -> Self {
+    pub fn new<S: ToString>(name: S) -> Self {
         Region {
-            name: name,
+            name: name.to_string(),
             offset: None,
             length: None,
         }
     }
-    pub fn new_with_coordinates(name: String, offset: usize, length: usize) -> Self {
+    pub fn new_with_coordinates<S: ToString>(name: S, offset: usize, length: usize) -> Self {
         Region {
-            name: name,
+            name: name.to_string(),
             offset: Some(offset),
             length: Some(length),
         }
@@ -48,7 +48,7 @@ impl Region {
     /// position being part of the region.
     pub fn end(&self) -> Option<usize> {
         if self.has_coordinates() {
-            Some(self.offset.unwrap() + self.length.unwrap())
+            Some(self.offset.unwrap() + self.length.unwrap() - 1usize)
         } else {
             None
         }
@@ -143,4 +143,9 @@ mod tests {
         assert_eq!(r.length(), Some(101usize));
     }
 
+    #[test]
+    fn test_calculation_end() {
+        let r = Region::new_with_coordinates(&"ref", 0, 100);
+        assert_eq!(r.end(), Some(99usize), "Last inclusive element is 99");
+    }
 }
