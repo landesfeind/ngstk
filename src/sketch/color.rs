@@ -1,6 +1,9 @@
+use std::cmp::*;
+
+
 /// A generalized structure for working with colors.
 /// Colors are represented in the RGBA model using short values.
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -145,3 +148,29 @@ impl Color {
     }
 }
 
+
+impl PartialEq for Color {
+    fn eq(&self, other: &Color) -> bool {
+        self.r == other.r && self.g == other.g && self.b == other.b
+    }
+}
+impl Eq for Color {}
+
+
+impl PartialOrd<Color> for Color {
+    fn partial_cmp(&self, other: &Color) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Color {
+    fn cmp(&self, other: &Color) -> Ordering {
+        if self.r != other.r {
+            self.r.cmp(&other.r)
+        } else if self.g != other.g {
+            self.g.cmp(&other.g)
+        } else {
+            self.b.cmp(&other.b)
+        }
+    }
+}

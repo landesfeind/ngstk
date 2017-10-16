@@ -1,5 +1,6 @@
 use std::io::{BufReader, Read};
 use std::io::BufRead;
+use util;
 
 pub struct Csv<R: Read> {
     reader: BufReader<R>,
@@ -39,15 +40,12 @@ impl<R: Read> Iterator for Csv<R> {
 
         let record_string: String = record
             .into_iter()
-            .filter(|x| *x as char != self.record_separator)
             .map(|x| x as char)
+            .filter(|x| *x != self.record_separator)
             .collect();
 
-        let cells: Vec<String> = record_string
-            .split(self.cell_separator as char)
-            .map(|x| x.to_string())
-            .collect();
-        Some(cells)
+
+        Some(util::split(record_string, self.cell_separator))
     }
 }
 

@@ -1,2 +1,2 @@
 mod record;
-pub use self::record::BedRecord;
+pub use self::record::*;
