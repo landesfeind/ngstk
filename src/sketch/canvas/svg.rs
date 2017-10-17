@@ -1,7 +1,7 @@
 extern crate svgdom;
 use self::svgdom::*;
 use sketch::Color;
-use sketch::canvas::Canvas;
+use sketch::canvas::*;
 use std::io::Write;
 
 pub struct Svg {
@@ -46,21 +46,6 @@ impl Svg {
             Some(w) => n.set_attribute(AttributeId::StrokeWidth, format!("{}", w)),
             None => {}
         }
-    }
-
-
-
-    pub fn draw_path(
-        &mut self,
-        path: svgdom::types::path::Path,
-        stroke_color: Option<Color>,
-        fill_color: Option<Color>,
-    ) {
-        let mut pn = self.document.create_element(ElementId::Path);
-        pn.set_attribute(AttributeId::D, path);
-        Self::set_stroke(&mut pn, stroke_color, Some(1));
-        Self::set_fill_color(&mut pn, fill_color);
-        self.node_svg.append(&pn);
     }
 }
 
@@ -210,5 +195,20 @@ impl Canvas for Svg {
         rect.set_attribute(AttributeId::Y2, pos_y2);
         Self::set_stroke(&mut rect, color, Some(1));
         self.node_svg.append(&rect);
+    }
+
+    fn draw_path(&mut self, path: Vec<DrawOperation>, stroke_color: Option<Color>, fill_color: Option<Color>) {
+        let mut svgpath = svgdom::types::path::Builder::new();
+        for op in path {
+            match op {
+                DrawOperation::MoveTo(x,y) => svgpath = svgpath.move_to(x,y),
+                DrawOperation::LineTo(x,y) => svgpath = svgpath.line_to(x,y)
+            }
+        }
+        let mut pn = self.document.create_element(ElementId::Path);
+        pn.set_attribute(AttributeId::D, svgpath.finalize());
+        Self::set_stroke(&mut pn, stroke_color, Some(1));
+        Self::set_fill_color(&mut pn, fill_color);
+        self.node_svg.append(&pn);
     }
 }

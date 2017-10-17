@@ -2,6 +2,7 @@
 use io::bed::BedRecord;
 use region::Region;
 use sketch::Canvas;
+use sketch::canvas::DrawOperation;
 use sketch::Color;
 use sketch::Decorator;
 
@@ -73,8 +74,23 @@ impl Decorator for BedRecordDecorator {
 
             if record.has_strand() {
                 let num_arrows = record.length() / 3;
-                for 0 .. num_arrows {
-                    
+                for i in 0 .. num_arrows {
+                    let arrow_min_x = start + (3*i+1) as f64 * element_width + self.font_padding();
+                    let arrow_max_x = start + (3*i+2) as f64 * element_width - self.font_padding();
+
+                    let mut path = Vec::new();
+                    if record.is_forward_strand().unwrap() {
+                        path.push(DrawOperation::MoveTo(arrow_min_x, offset_y + offset_y_here + self.font_padding()));
+                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y + offset_y_here + bg_height/2.0      ));
+                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y + offset_y_here + bg_height - self.font_padding()));
+                    }
+                    else {
+                        path.push(DrawOperation::MoveTo(arrow_max_x, offset_y + offset_y_here + self.font_padding()));
+                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y + offset_y_here + bg_height/2.0      ));
+                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y + offset_y_here + bg_height - self.font_padding()));
+                    }
+
+                    canvas.draw_path(path, Some(Color::gray()), Some(Color::transparent()));
                 }
             }
 

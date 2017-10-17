@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use sketch::canvas;
-use sketch::decorator;
+use sketch::decorator::*;
 
 use sequence::*;
 use region::*;
@@ -40,22 +40,22 @@ impl<C: canvas::Canvas> Sketch<C> {
     }
 
     pub fn append_title<S: ToString>(&mut self, title: S) {
-        self.current_height += decorator::HeaderDecorator::h1(title)
+        self.current_height += HeaderDecorator::h1(title)
             .draw(&mut self.canvas, self.current_height);
     }
 
     pub fn append_section<S: ToString>(&mut self, title: S) {
-        self.current_height += decorator::HeaderDecorator::h2(title)
+        self.current_height += HeaderDecorator::h2(title)
             .draw(&mut self.canvas, self.current_height);
     }
 
     pub fn append_dna_sequence(&mut self, sequence : DnaSequence) {
-     self.current_height += decorator::DnaSequenceDecorator::new(sequence)
+     self.current_height += DnaSequenceDecorator::new(sequence)
             .draw(&mut self.canvas, self.current_height);   
     }
 
     pub fn append_bed_records(&mut self, records :Vec<BedRecord>, region: &Region){
-        self.current_height += decorator::BedRecordDecorator::new(region.clone())
+        self.current_height += BedRecordDecorator::new(region.clone())
             .with_records(records)
             .draw(&mut self.canvas, self.current_height);
     }

@@ -1,18 +1,21 @@
 use std::io::Write;
 pub mod svg;
 
-
 pub use self::svg::Svg;
 use sketch::Color;
 
-pub trait Canvas: Default {
+pub enum DrawOperation {
+    MoveTo(f64, f64),
+    LineTo(f64, f64),
+}
 
+pub trait Canvas: Default {
     fn with_image_width(self, new_width: f64) -> Self;
 
     fn image_width(&self) -> f64;
-    
+
     fn with_image_height(self, new_width: f64) -> Self;
-    
+
     fn image_height(&self) -> f64;
 
     fn write<W: Write>(&self, out: W);
@@ -50,4 +53,5 @@ pub trait Canvas: Default {
         color: Option<Color>,
     );
 
+    fn draw_path(&mut self, path: Vec<DrawOperation>, stroke_color: Option<Color>, fill_color: Option<Color>);
 }

@@ -1,4 +1,4 @@
-ref	2	25	GeneA_Exon1
-ref	29	37	GeneA_Exon2
-ref	34	41	GeneB
-ref2	14	42	GeneC
+ref	2	25	GeneA_Exon1	0	+
+ref	29	37	GeneA_Exon2	0	+
+ref	34	41	GeneB	0	-
+ref2	14	42	GeneC	0	+

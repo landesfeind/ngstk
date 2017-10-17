@@ -14,7 +14,7 @@ pub struct Color {
 impl Color {
     /// Create a new color with alpha set to opaque
     pub fn new(r: u8, g: u8, b: u8) -> Self {
-        Self::new_with_alpha(r, g, b, 255)
+        Self::new_with_alpha(r, g, b, 0)
     }
 
     /// Create a new color with an alpha value
@@ -43,7 +43,7 @@ impl Color {
     }
 
     pub fn opacity(&self) -> f64 {
-        (self.a as f64) / 255f64
+        (255.0 - (self.a as f64)) / 255.0
     }
 
     pub fn to_hex(&self) -> String {
@@ -173,4 +173,19 @@ impl Ord for Color {
             self.b.cmp(&other.b)
         }
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use sketch::Color;
+
+    #[test]
+    fn test_opacity_calculation(){
+        assert_eq!(Color::transparent().opacity(), 0.0);
+        assert_eq!(Color::new(255,255,255).opacity(), 1.0);       
+    }
+
+
+
 }
