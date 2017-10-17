@@ -71,6 +71,13 @@ impl Decorator for BedRecordDecorator {
                 Some(block_background),
             );
 
+            if record.has_strand() {
+                let num_arrows = record.length() / 3;
+                for 0 .. num_arrows {
+                    
+                }
+            }
+
             if record.has_name() {
                 let text_x = start + self.font_padding() as f64;
                 let text_y = (offset_y + offset_y_here + self.font_padding() + font_size) as f64;
@@ -85,6 +92,10 @@ impl Decorator for BedRecordDecorator {
                     Some(Color::black()),
                 );
             }
+
+            // FIXME:
+            // - thick 
+            // - blocks
 
             offset_y_here += bg_height;
         }
