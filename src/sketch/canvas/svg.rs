@@ -6,6 +6,7 @@ use std::io::Write;
 
 pub struct Svg {
     image_width: f64,
+    image_height: f64,
     document: Document,
     node_svg: Node,
 }
@@ -72,6 +73,7 @@ impl Default for Svg {
 
         Svg {
             image_width: 720f64,
+            image_height: 1024f64,
             document: doc,
             node_svg: svg,
         }
@@ -82,6 +84,14 @@ impl Default for Svg {
 
 impl Canvas for Svg {
     fn write<W: Write>(&self, mut out: W) {
+        self.node_svg.set_attribute(
+            AttributeId::Height,
+            format!("{}", self.image_height),
+        );
+        self.node_svg.set_attribute(
+            AttributeId::Width,
+            format!("{}", self.image_width),
+        );
         write!(out, "{}", self.document.to_string());
     }
 
@@ -92,6 +102,15 @@ impl Canvas for Svg {
 
     fn image_width(&self) -> f64 {
         self.image_width
+    }
+
+    fn with_image_height(mut self, new_height: f64) -> Self {
+        self.image_height = new_height;
+        self
+    }
+
+    fn image_height(&self) -> f64 {
+        self.image_height
     }
 
 

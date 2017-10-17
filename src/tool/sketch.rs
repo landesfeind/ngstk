@@ -106,7 +106,7 @@ impl Tool for Sketch {
                     Err(e) => { error!("Can not parse --image-width parameter '{}': {}", s, e); return },
                 }
             }
-            None => drawing.with_canvas_width(reference.length() as f64 * 10f64)
+            None => drawing.with_canvas_width(reference.length() as f64 * 15f64)
         };
 
         // Write given title or use the region to display
@@ -143,10 +143,10 @@ impl Tool for Sketch {
                         debug!("Writing to output file: {}", p);
                         drawing.write(f);
                     }
-                    Err(e) => { error!("Can not open '{}' for writing: {}", p, e); return }
+                    Err(e) => { error!("Can not open '{}' for writing: {}", p, e); }
                 }
             }
-            None => drawing.write(stdout())
+            None => { drawing.write(stdout()); }
         }
     }
 

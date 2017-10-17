@@ -10,6 +10,10 @@ pub trait Canvas: Default {
     fn with_image_width(self, new_width: f64) -> Self;
 
     fn image_width(&self) -> f64;
+    
+    fn with_image_height(self, new_width: f64) -> Self;
+    
+    fn image_height(&self) -> f64;
 
     fn write<W: Write>(&self, out: W);
 

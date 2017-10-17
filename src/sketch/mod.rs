@@ -34,8 +34,10 @@ impl<C: Canvas> Sketch<C> {
         }
     }
 
-    pub fn write<W : Write>(&self, out: W){
+    pub fn write<W : Write>(mut self, out: W) -> Self{
+        self.canvas = self.canvas.with_image_height(self.current_height);
         self.canvas.write(out);
+        self
     }
 
     pub fn with_canvas_width(mut self, image_width: f64) -> Self {
