@@ -38,13 +38,17 @@ impl BedRecordDecorator {
     }
 
 
-    fn default_block_color(&self) -> Color {
+    fn default_bg_color(&self) -> Color {
         Color::blue().lighten_by(50u8)
+    }
+    fn default_block_color(&self) -> Color {
+        Color::blue().lighten_by(80u8)
     }
 }
 
 
 impl Decorator for BedRecordDecorator {
+    
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
         let font_size = self.font_size();
         let bg_height = 2.0 * self.font_padding() + font_size;
@@ -61,7 +65,7 @@ impl Decorator for BedRecordDecorator {
 
             let block_background = match record.item_rgb() {
                 Some(c) => c,
-                None => self.default_block_color(),
+                None => self.default_bg_color(),
             };
 
             canvas.draw_rect(
@@ -71,6 +75,10 @@ impl Decorator for BedRecordDecorator {
                 bg_height,
                 Some(block_background),
             );
+
+            // FIXME:
+            // - thick 
+            // - blocks
 
             if record.has_strand() {
                 let num_arrows = record.length() / 3;
@@ -94,6 +102,7 @@ impl Decorator for BedRecordDecorator {
                 }
             }
 
+
             if record.has_name() {
                 let text_x = start + self.font_padding() as f64;
                 let text_y = (offset_y + offset_y_here + self.font_padding() + font_size) as f64;
@@ -108,10 +117,6 @@ impl Decorator for BedRecordDecorator {
                     Some(Color::black()),
                 );
             }
-
-            // FIXME:
-            // - thick 
-            // - blocks
 
             offset_y_here += bg_height;
         }
