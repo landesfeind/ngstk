@@ -11,6 +11,8 @@ use std::path::Path;
 use std::fs::File;
 use std::io;
 
+use region::Region;
+
 pub struct BedStream<R: Read> {
     inner: BufReader<R>,
 }
@@ -21,13 +23,17 @@ impl<R: Read> BedStream<R> {
     }
 
     pub fn read_records(&mut self) -> Vec<BedRecord> {
-    	self.collect()
+        self.collect()
+    }
+
+    pub fn read_records_in_region(&mut self, region: &Region) -> Vec<BedRecord> {
+        self.filter(|r| region.overlaps(Region::from(r))).collect()
     }
 
 }
 
 impl BedStream<File> {
-	pub fn open<A: AsRef<Path>>(filename: &A) -> Result<Self,io::Error> {
+	pub fn open<A: AsRef<Path>>(filename: A) -> Result<Self,io::Error> {
 		match File::open(filename) {
 			Ok(fh) => Ok(Self::new(fh)),
 			Err(e) => Err(e)

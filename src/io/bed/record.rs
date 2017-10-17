@@ -245,6 +245,14 @@ impl From<BedRecord> for Region {
     }
 }
 
+impl<'a> From<&'a BedRecord> for Region {
+    fn from(r: &'a BedRecord) -> Region {
+        Region::new_with_coordinates(r.chrom(), r.chrom_start(), r.length())
+    }
+}
+
+
+
 impl fmt::Display for BedRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut cells: Vec<String> = Vec::new();

@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
@@ -22,6 +23,10 @@ impl Region {
             offset: Some(offset),
             length: Some(length),
         }
+    }
+
+    pub fn with_coordinates(&self, offset: usize, length: usize) -> Self {
+        Self::new_with_coordinates(self.name(), offset, length)
     }
 
     /// Returns the name of the (template) region
@@ -52,6 +57,31 @@ impl Region {
         } else {
             None
         }
+    }
+
+    pub fn overlaps<O: Into<Region>>(&self, other: O) -> bool {
+        let other_region : Region = other.into();
+        if self.name() != other_region.name() {
+            return false
+        }
+
+        if ! self.has_coordinates() || ! other_region.has_coordinates() {
+            return true;
+        }
+
+
+        let self_offset = self.offset().unwrap();
+        let self_end    = self.end().unwrap();
+        let other_offset = other_region.offset().unwrap();
+        let other_end    = other_region.end().unwrap();
+
+        if self_offset < other_offset {
+            self_end >= other_offset
+        }
+        else {
+            self_offset <= other_end   
+        }
+
     }
 }
 
@@ -123,10 +153,62 @@ impl FromStr for Region {
 }
 
 
+impl<'a> From<&'a Region> for Region {
+    fn from(r: &'a Region) -> Region {
+        r.clone()
+    }
+}
+
+
+impl PartialEq for Region {
+    fn eq(&self, other: &Self) -> bool {
+        self.partial_cmp(other) == Some(Ordering::Equal)
+    }
+}
+
+impl Eq for Region {}
+
+impl PartialOrd<Self> for Region {
+
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        // They have different names, so sort by name
+        if self.name() != other.name() {
+            return self.name().partial_cmp(&other.name())
+        }
+
+        // They both have same name but no coordinates -> consider them equal
+        if ! self.has_coordinates() && ! other.has_coordinates() {
+            return Some(Ordering::Equal)
+        }
+        else if ! self.has_coordinates() {
+            return Some(Ordering::Less)
+        }
+        else if ! other.has_coordinates() {
+            return Some(Ordering::Greater)
+        }
+        else {
+            if self.offset() != other.offset() {
+                return self.offset.partial_cmp(&other.offset());
+            }
+            else {
+                return self.length().partial_cmp(&other.length())
+            }
+        }
+    }
+}
+
+impl Ord for Region {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
     use region::*;
+    use std::cmp::Ordering;
 
     #[test]
     fn test_parse_single_coord() {
@@ -148,4 +230,44 @@ mod tests {
         let r = Region::new_with_coordinates(&"ref", 0, 100);
         assert_eq!(r.end(), Some(99usize), "Last inclusive element is 99");
     }
+
+    #[test]
+    fn test_equality() {
+        let mut region = Region::new(&"foo");
+        assert_eq!(region, region, "Identical object without coordinates");
+        region = Region::new_with_coordinates(&"foo", 100, 2);
+        assert_eq!(region, region, "Identical object with coordinates");
+        
+        assert!( Region::new(&"ref" ) == Region::new(&"ref" ), "Same name no coordinates" );
+        assert!( Region::new(&"ref" ) != Region::new(&"ref2"), "Different names no coordinates" );
+        assert!( Region::new(&"ref2") != Region::new(&"ref" ), "Different names no coordinates" );
+    }
+
+    #[test]
+    fn test_comparisons() {
+        assert_eq!(Region::new(&"ref" ).partial_cmp(&Region::new(&"ref" )), Some(Ordering::Equal));
+        assert_eq!(Region::new(&"ref" ).partial_cmp(&Region::new(&"ref2")), Some(Ordering::Less));
+        assert_eq!(Region::new(&"ref2").partial_cmp(&Region::new(&"ref" )), Some(Ordering::Greater));
+    
+        assert_eq!(Region::new_with_coordinates(&"ref" , 1, 2).partial_cmp(&Region::new(&"ref" )), Some(Ordering::Greater));
+        assert_eq!(Region::new_with_coordinates(&"ref" , 1, 2).partial_cmp(&Region::new(&"ref2")), Some(Ordering::Less));
+        assert_eq!(Region::new_with_coordinates(&"ref2", 1, 2).partial_cmp(&Region::new(&"ref" )), Some(Ordering::Greater));
+    }
+
+
+    #[test]
+    fn test_overlap() {
+        assert!( ! Region::new_with_coordinates(&"ref" ,  0, 10).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "Two regions right after each other");
+        assert!(   Region::new_with_coordinates(&"ref" ,  0, 11).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "Two regions right after each other but 1bp overlap");
+        assert!(   Region::new_with_coordinates(&"ref" , 10, 10).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "First region is second region");
+        assert!(   Region::new_with_coordinates(&"ref" , 11,  9).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "First region in second region");
+
+        assert!(   Region::new_with_coordinates(&"ref" , 19,  10).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "Region one at end of second region but 1bp overlap");
+        assert!( ! Region::new_with_coordinates(&"ref" , 20,  10).overlaps(&Region::new_with_coordinates(&"ref", 10, 10)), "Region one at end of second region no overlap");
+
+
+    }
+
+
+    
 }

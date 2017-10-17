@@ -11,6 +11,8 @@ pub use self::canvas::Canvas;
 use self::decorator::Decorator;
 
 use sequence::*;
+use region::*;
+use io::bed::BedRecord;
 
 pub struct Sketch<C : Canvas> {
     current_height: f64,
@@ -54,6 +56,12 @@ impl<C: Canvas> Sketch<C> {
     pub fn append_dna_sequence(&mut self, sequence : DnaSequence) {
      self.current_height += decorator::DnaSequenceDecorator::new(sequence)
             .draw(&mut self.canvas, self.current_height);   
+    }
+
+    pub fn append_bed_records(&mut self, records :Vec<BedRecord>, region: &Region){
+        self.current_height += decorator::BedRecordDecorator::new(region.clone())
+            .with_records(records)
+            .draw(&mut self.canvas, self.current_height);
     }
 }
 

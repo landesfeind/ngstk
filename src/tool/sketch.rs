@@ -7,7 +7,7 @@ use std::fs::File;
 use std::fmt::Display;
 
 
-use io::bam::IndexedBamReader;
+use io::bed::*;
 
 use io::fasta::{FastaReader, FastaStream, IndexedFastaFile};
 use region::Region;
@@ -174,14 +174,17 @@ impl Sketch {
         return Ok(seq);
     }
 
-    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(mut drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
         let fss = filename.to_string();
 
         if fss.ends_with("bam") {
             error!("BAM visualization not yet implemented: {}", fss);
         }
         else if fss.ends_with("bed") || fss.ends_with("bed.gz") {
-            error!("BED visualization not yet implemented: {}", fss);
+            match BedStream::open(fss.clone()) {
+                Ok(mut r) => drawing.append_bed_records(r.read_records_in_region(region), region),
+                Err(e) => error!("Can not read BED records from '{}': {}", fss, e)
+            }
         }
         else if fss.ends_with("vcf") || fss.ends_with("vcf.gz") {
             error!("VCF visualization not yet implemented: {}", fss);
