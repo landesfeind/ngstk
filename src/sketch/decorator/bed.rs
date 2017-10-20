@@ -29,18 +29,16 @@ impl BedRecordDecorator {
         self
     }
 
-    pub fn add_record(&mut self, record: BedRecord) {
-        self.records.push(record)
-    }
-
     pub fn region(&self) -> Region {
         self.region.clone()
     }
 
-
+    /// Defines the default color per BedRecord
     fn default_bg_color(&self) -> Color {
         Color::blue().lighten_by(50u8)
     }
+
+    /// Defines the default color for BedRecord sub-blocks
     fn default_block_color(&self) -> Color {
         Color::blue().lighten_by(80u8)
     }
@@ -48,7 +46,7 @@ impl BedRecordDecorator {
 
 
 impl Decorator for BedRecordDecorator {
-    
+
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
         let font_size = self.font_size();
         let bg_height = 2.0 * self.font_padding() + font_size;
@@ -68,6 +66,7 @@ impl Decorator for BedRecordDecorator {
                 None => self.default_bg_color(),
             };
 
+            // Draw the full block
             canvas.draw_rect(
                 start,
                 offset_y + offset_y_here,
@@ -80,6 +79,7 @@ impl Decorator for BedRecordDecorator {
             // - thick 
             // - blocks
 
+            // Draw "arrows" showing the direction
             if record.has_strand() {
                 let num_arrows = record.length() / 3;
                 for i in 0 .. num_arrows {
