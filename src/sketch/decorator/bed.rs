@@ -1,4 +1,6 @@
 
+use std::collections::BTreeMap;
+
 use io::bed::BedRecord;
 use region::Region;
 use sketch::Canvas;
@@ -48,18 +50,22 @@ impl BedRecordDecorator {
 impl Decorator for BedRecordDecorator {
 
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
+        let mut offsets : BTreeMap<usize, Region> = BTreeMap::new();
+
         let font_size = self.font_size();
         let bg_height = 2.0 * self.font_padding() + font_size;
         let element_width = self.element_width(canvas, &self.region);
 
-        let mut offset_y_here = 0.0;
-
         for record in &self.records {
             debug!("Appending BedRecord: {:?}", record);
+            let row = self.find_offset_row(&mut offsets, Region::from(record)) as f64;
+            debug!(" -> will be placed in row {}", row);
 
             let start = element_width *
                 (record.chrom_start() - self.region.offset().unwrap()) as f64;
             let end = element_width * (record.chrom_end() - self.region.offset().unwrap()) as f64;
+
+            let offset_y_here = offset_y + row * bg_height;
 
             let block_background = match record.item_rgb() {
                 Some(c) => c,
@@ -69,7 +75,7 @@ impl Decorator for BedRecordDecorator {
             // Draw the full block
             canvas.draw_rect(
                 start,
-                offset_y + offset_y_here,
+                offset_y_here,
                 end - start,
                 bg_height,
                 Some(block_background),
@@ -88,24 +94,24 @@ impl Decorator for BedRecordDecorator {
 
                     let mut path = Vec::new();
                     if record.is_forward_strand().unwrap() {
-                        path.push(DrawOperation::MoveTo(arrow_min_x, offset_y + offset_y_here + self.font_padding()));
-                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y + offset_y_here + bg_height/2.0      ));
-                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y + offset_y_here + bg_height - self.font_padding()));
+                        path.push(DrawOperation::MoveTo(arrow_min_x, offset_y_here + self.font_padding()));
+                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y_here + bg_height/2.0      ));
+                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y_here + bg_height - self.font_padding()));
                     }
                     else {
-                        path.push(DrawOperation::MoveTo(arrow_max_x, offset_y + offset_y_here + self.font_padding()));
-                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y + offset_y_here + bg_height/2.0      ));
-                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y + offset_y_here + bg_height - self.font_padding()));
+                        path.push(DrawOperation::MoveTo(arrow_max_x, offset_y_here + self.font_padding()));
+                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y_here + bg_height/2.0      ));
+                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y_here + bg_height - self.font_padding()));
                     }
 
                     canvas.draw_path(path, Some(Color::gray()), Some(Color::transparent()));
                 }
             }
 
-
+            // If the record has a name, it is drawn 
             if record.has_name() {
                 let text_x = start + self.font_padding() as f64;
-                let text_y = (offset_y + offset_y_here + self.font_padding() + font_size) as f64;
+                let text_y = (offset_y_here + self.font_padding() + font_size) as f64;
                 canvas.draw_text(
                     record.name().unwrap(),
                     text_x,
@@ -117,10 +123,11 @@ impl Decorator for BedRecordDecorator {
                     Some(Color::black()),
                 );
             }
-
-            offset_y_here += bg_height;
         }
 
-        offset_y_here
+        match offsets.keys().max() {
+            Some(row) => (row + 1) as f64 * bg_height,
+            None => 0f64
+        }
     }
 }
