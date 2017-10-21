@@ -5,6 +5,7 @@ extern crate pretty_env_logger;
 
 extern crate clap;
 
+mod strand;
 mod sequence;
 mod alignment;
 mod sketch;

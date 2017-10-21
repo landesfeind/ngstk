@@ -1,9 +1,9 @@
 pub mod matrix;
 
-pub fn split<S: ToString>(record: S, cell_separator: char) -> Vec<String> {
+pub fn split<S: ToString, P: ToString>(record: S, cell_separator: P) -> Vec<String> {
     record
         .to_string()
-        .split(cell_separator)
+        .split(&cell_separator.to_string())
         .map(|x| x.to_string())
         .collect::<Vec<String>>()
 }

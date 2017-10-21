@@ -1,12 +1,12 @@
 
-use std::collections::BTreeMap;
 
 use io::bed::BedRecord;
 use region::Region;
 use sketch::Canvas;
-use sketch::canvas::DrawOperation;
 use sketch::Color;
 use sketch::Decorator;
+use sketch::canvas::DrawOperation;
+use std::collections::BTreeMap;
 
 pub struct BedRecordDecorator {
     records: Vec<BedRecord>,
@@ -48,9 +48,8 @@ impl BedRecordDecorator {
 
 
 impl Decorator for BedRecordDecorator {
-
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
-        let mut offsets : BTreeMap<usize, Region> = BTreeMap::new();
+        let mut offsets: BTreeMap<usize, Region> = BTreeMap::new();
 
         let font_size = self.font_size();
         let bg_height = 2.0 * self.font_padding() + font_size;
@@ -82,33 +81,52 @@ impl Decorator for BedRecordDecorator {
             );
 
             // FIXME:
-            // - thick 
+            // - thick
             // - blocks
 
             // Draw "arrows" showing the direction
             if record.has_strand() {
                 let num_arrows = record.length() / 3;
-                for i in 0 .. num_arrows {
-                    let arrow_min_x = start + (3*i+1) as f64 * element_width + self.font_padding();
-                    let arrow_max_x = start + (3*i+2) as f64 * element_width - self.font_padding();
+                for i in 0..num_arrows {
+                    let arrow_min_x = start + (3 * i + 1) as f64 * element_width +
+                        self.font_padding();
+                    let arrow_max_x = start + (3 * i + 2) as f64 * element_width -
+                        self.font_padding();
 
                     let mut path = Vec::new();
                     if record.is_forward_strand().unwrap() {
-                        path.push(DrawOperation::MoveTo(arrow_min_x, offset_y_here + self.font_padding()));
-                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y_here + bg_height/2.0      ));
-                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y_here + bg_height - self.font_padding()));
-                    }
-                    else {
-                        path.push(DrawOperation::MoveTo(arrow_max_x, offset_y_here + self.font_padding()));
-                        path.push(DrawOperation::LineTo(arrow_min_x, offset_y_here + bg_height/2.0      ));
-                        path.push(DrawOperation::LineTo(arrow_max_x, offset_y_here + bg_height - self.font_padding()));
+                        path.push(DrawOperation::MoveTo(
+                            arrow_min_x,
+                            offset_y_here + self.font_padding(),
+                        ));
+                        path.push(DrawOperation::LineTo(
+                            arrow_max_x,
+                            offset_y_here + bg_height / 2.0,
+                        ));
+                        path.push(DrawOperation::LineTo(
+                            arrow_min_x,
+                            offset_y_here + bg_height - self.font_padding(),
+                        ));
+                    } else {
+                        path.push(DrawOperation::MoveTo(
+                            arrow_max_x,
+                            offset_y_here + self.font_padding(),
+                        ));
+                        path.push(DrawOperation::LineTo(
+                            arrow_min_x,
+                            offset_y_here + bg_height / 2.0,
+                        ));
+                        path.push(DrawOperation::LineTo(
+                            arrow_max_x,
+                            offset_y_here + bg_height - self.font_padding(),
+                        ));
                     }
 
                     canvas.draw_path(path, Some(Color::gray()), Some(Color::transparent()));
                 }
             }
 
-            // If the record has a name, it is drawn 
+            // If the record has a name, it is drawn
             if record.has_name() {
                 let text_x = start + self.font_padding() as f64;
                 let text_y = (offset_y_here + self.font_padding() + font_size) as f64;
@@ -127,7 +145,7 @@ impl Decorator for BedRecordDecorator {
 
         match offsets.keys().max() {
             Some(row) => (row + 1) as f64 * bg_height,
-            None => 0f64
+            None => 0f64,
         }
     }
 }
