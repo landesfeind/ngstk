@@ -1,4 +1,3 @@
-use std::cmp;
 use std::str::FromStr;
 use std::fmt;
 
@@ -46,7 +45,7 @@ impl PartialEq<Strand> for Strand {
 
 #[cfg(test)]
 mod tests {
-	use strand::Strand;
+	use model::strand::Strand;
 
 	#[test]
 	pub fn parse_forward() {

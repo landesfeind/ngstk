@@ -5,15 +5,13 @@ extern crate pretty_env_logger;
 
 extern crate clap;
 
-mod strand;
+mod io;
+mod util;
+mod model;
 mod sequence;
 mod alignment;
 mod sketch;
-mod util;
-mod region;
-mod io;
 mod tool;
-
 use tool::Tool;
 
 fn main() {

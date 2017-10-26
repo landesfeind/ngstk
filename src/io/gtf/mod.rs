@@ -1,6 +1,6 @@
 use std::fmt;
 use std::str::FromStr;
-use strand::Strand;
+use model::Strand;
 use util;
 
 #[derive(Clone,Debug)]

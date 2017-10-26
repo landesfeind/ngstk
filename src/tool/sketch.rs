@@ -9,14 +9,16 @@ use std::fmt::Display;
 
 use io::bed::*;
 
-use io::fasta::{FastaReader, FastaStream, IndexedFastaFile};
-use region::Region;
+use io::fasta::{FastaReader,IndexedFastaFile};
+use model::*;
 use sequence::aminoacid::*;
 use sequence::dna::*;
 
 use sketch;
+use sketch::Canvas;
 
 use tool::Tool;
+use util;
 
 pub struct Sketch {}
 
@@ -28,7 +30,8 @@ impl Tool for Sketch {
                     .short("r")
                     .long("region")
                     .help("Visualize the given region")
-                    .takes_value(true),
+                    .takes_value(true)
+                    .required(true)
             )
             .arg(
                 clap::Arg::with_name("title")
@@ -74,13 +77,11 @@ impl Tool for Sketch {
 
     fn run(args: &clap::ArgMatches) {
         // Check for a given region
-        let mut region = match Region::from_str(args.value_of("region").unwrap_or("ref")) {
-            Ok(r) => {
-                debug!("Using region: {}", r);
-                r
-            }
-            Err(e) => { error!("{}", e); return },
+        let (template, offset, length) = match util::parse_region_string(args.value_of("region").unwrap()) {
+                Ok(a) => a,
+                Err(e) => { error!("Can not parse region string '{}': {}", args.value_of("region").unwrap(), e); return },
         };
+        let region = SimpleRegion::new(template, offset, length);
         debug!("Start visualization of region: {}", region);
 
         // Load the reference sequence
@@ -92,12 +93,9 @@ impl Tool for Sketch {
                 Err(e) => { error!("{}", e); return }
                 Ok(r) => r
         };
-        if ! region.has_coordinates() {
-            region = Region::new_with_coordinates(region.name(), 0usize, reference.length())
-        }
-
+       
         // Create the drawing
-        let mut drawing = sketch::Sketch::default();
+        let mut drawing = sketch::Sketch::new(sketch::canvas::Svg::new(region.clone()));
         // Parse output image information
         drawing = match args.value_of("image-width") {
             Some(s) => {
@@ -115,10 +113,10 @@ impl Tool for Sketch {
                 drawing.append_title(s);
             }
             None => drawing.append_title(format!("{}: {} - {} ({} bp)", 
-                region.name(), 
-                region.offset().unwrap() + 1usize, 
-                region.end().unwrap(), 
-                region.length().unwrap()))
+                region.template(), 
+                region.offset() + 1usize, 
+                region.end(), 
+                region.length()))
         }
         drawing.append_section(&reference_filename);
         drawing.append_dna_sequence(reference);
@@ -154,27 +152,21 @@ impl Tool for Sketch {
 
 impl Sketch {
 
-    fn load_reference_sequence<P: AsRef<Path> + Display>(filename: &P, region: &Region) -> Result<DnaSequence,String> {
+    fn load_reference_sequence<P: AsRef<Path> + Display, R: Region>(filename: &P, region: &R) -> Result<DnaSequence,String> {
         let mut fasta = match IndexedFastaFile::open(filename) {
             Ok(f) => f,
             Err(e) => return Err(format!("{}", e))
         };
 
-        let seq = match region.has_coordinates() {
-            true => match fasta.search_region_as_dna(region.name(), region.offset().unwrap(), region.length().unwrap()) {
+        let seq = match fasta.search_region_as_dna(region.template(), region.offset(), region.length()) {
                 Some(s) => s,
-                None => return Err(format!("Can not find region '{}' in: {}", region, filename))
-            },
-            false => match fasta.search_as_dna(region.name()) {
-                Some(s) => s,
-                None => return Err(format!("Can not find region '{}' in: {}", region, filename))
-            }
-        };
+                None => return Err(format!("Can not find region '{}' in: {}", region.template(), filename))
+            };
 
         return Ok(seq);
     }
 
-    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas>(mut drawing: sketch::Sketch<C>, region: &Region, filename: &P) -> sketch::Sketch<C> {
+    fn draw_from_file<P: AsRef<Path> + Display, C: sketch::Canvas, R: Region>(mut drawing: sketch::Sketch<C>, region: &R, filename: &P) -> sketch::Sketch<C> {
         let fss = filename.to_string();
 
         if fss.ends_with("bam") {
@@ -182,7 +174,7 @@ impl Sketch {
         }
         else if fss.ends_with("bed") || fss.ends_with("bed.gz") {
             match BedStream::open(fss.clone()) {
-                Ok(mut r) => drawing.append_bed_records(r.read_records_in_region(region), region),
+                Ok(mut r) => drawing.append_bed_records(r.read_records_in_region(region)),
                 Err(e) => error!("Can not read BED records from '{}': {}", fss, e)
             }
         }

@@ -1,5 +1,5 @@
 
-use region::Region;
+use model::Region;
 use sketch::Color;
 use std::fmt;
 use std::str::FromStr;
@@ -63,11 +63,7 @@ impl BedRecord {
         self
     }
 
-
-    pub fn length(&self) -> usize {
-        self.chrom_end() - self.chrom_start()
-    }
-
+    
 
     pub fn has_name(&self) -> bool {
         self.name.is_some()
@@ -233,24 +229,21 @@ impl BedRecord {
     }
 }
 
-impl From<Region> for BedRecord {
-    fn from(r: Region) -> Self {
-        Self::new(&r.name(), r.offset().unwrap(), r.end().unwrap() + 1usize)
-    }
-}
 
-impl From<BedRecord> for Region {
-    fn from(r: BedRecord) -> Region {
-        Region::new_with_coordinates(r.chrom(), r.chrom_start(), r.length())
+impl Region for BedRecord {
+    fn template(&self) -> String {
+        self.chrom().clone()
     }
-}
 
-impl<'a> From<&'a BedRecord> for Region {
-    fn from(r: &'a BedRecord) -> Region {
-        Region::new_with_coordinates(r.chrom(), r.chrom_start(), r.length())
+    fn offset(&self) -> usize {
+        self.chrom_start()
     }
-}
 
+    fn length(&self) -> usize {
+        self.chrom_end() - self.chrom_start()
+    }
+
+}
 
 
 impl fmt::Display for BedRecord {
@@ -462,84 +455,14 @@ impl FromStr for BedRecord {
 #[cfg(test)]
 mod tests {
     use io::bed::record::BedRecord;
-    use region::Region;
+    use model::Region;
     use sketch::Color;
     use std::str::FromStr;
 
     #[test]
     fn test_length() {
         let r = BedRecord::new(&"ref", 0, 100);
-        assert_eq!(r.length(), 100usize);
-    }
-
-
-    #[test]
-    fn test_from_region() {
-        let region = Region::new_with_coordinates(&"ref", 0, 100);
-        let bed = BedRecord::from(region.clone());
-        assert_eq!(bed.chrom(), region.name(), "Chromosome vs. name");
-        assert_eq!(
-            bed.chrom_start(),
-            region.offset().unwrap(),
-            "Test equal offset/start"
-        );
-        assert_eq!(bed.length(), region.length().unwrap(), "Test equal length");
-        assert_eq!(
-            bed.chrom_end(),
-            region.end().unwrap() + 1usize,
-            "Test equal end"
-        );
-    }
-
-
-
-    #[test]
-    fn test_into_region() {
-        let bed = BedRecord::new(&"ref", 0, 100);
-        let region = Region::from(bed.clone());
-        assert_eq!(bed.chrom(), region.name(), "Chromosome vs. name");
-        assert_eq!(
-            bed.chrom_start(),
-            region.offset().unwrap(),
-            "Test equal offset/start"
-        );
-        assert_eq!(bed.length(), region.length().unwrap(), "Test equal length");
-        assert_eq!(
-            bed.chrom_end(),
-            region.end().unwrap() + 1usize,
-            "Test equal end"
-        );
-    }
-
-
-    #[test]
-    fn test_convert_through_region() {
-        let bed1 = BedRecord::new(&"ref", 0, 100);
-        let region = Region::from(bed1.clone());
-        let bed2 = BedRecord::from(region);
-
-        assert_eq!(bed1.chrom(), bed2.chrom(), "Test equal chrom");
-        assert_eq!(
-            bed1.chrom_start(),
-            bed2.chrom_start(),
-            "Test equal chrom_start"
-        );
-        assert_eq!(bed1.chrom_end(), bed2.chrom_end(), "Test equal chrom_end");
-    }
-
-	#[test]
-    fn test_to_string() {
-        let mut r = BedRecord::new(&"ref", 10, 100);
-        assert_eq!(r.to_string(), "ref\t10\t100".to_string());
-
-        r = r.with_name(&"Feature");
-		assert_eq!(r.to_string(), "ref\t10\t100\tFeature".to_string());
-
-		r = r.with_score(199.5);
-		assert_eq!(r.to_string(), "ref\t10\t100\tFeature\t199.5".to_string());
-
-		r = r.with_strand('+');
-		assert_eq!(r.to_string(), "ref\t10\t100\tFeature\t199.5\t+".to_string());
+        assert_eq!(r.length(), 100usize, "Length of record {:?}", r);
     }
 
     #[test]

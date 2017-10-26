@@ -1,5 +1,5 @@
 
-use region::Region;
+use model::Region;
 
 use sketch::Canvas;
 use sketch::Color;
@@ -28,16 +28,11 @@ pub trait Decorator {
         Color::black().lighten_by(20u8)
     }
 
-    fn element_width<C: Canvas>(&self, canvas: &C, region: &Region) -> f64 {
-        assert!(region.has_coordinates());
-        canvas.image_width() as f64 / region.length().unwrap() as f64
-    }
-
-    fn find_offset_row(&self, offsets: &mut BTreeMap<usize, Region>, reg: Region) -> usize {
+    fn find_offset_row<R: Region>(&self, offsets: &mut BTreeMap<usize, usize>, reg: &R) -> usize {
         for (key, val) in offsets.clone().iter() {
             debug!(" ==> {}: {:?}", *key, val);
-            if val.end().unwrap() < reg.offset().unwrap() {
-                offsets.insert(*key, reg);
+            if *val < reg.offset() {
+                offsets.insert(*key, reg.end());
                 return *key;
             }
         }
@@ -45,7 +40,7 @@ pub trait Decorator {
             Some(e) => e + 1usize,
             None => 0usize,
         };
-        offsets.insert(new_key, reg);
+        offsets.insert(new_key, reg.end());
         return new_key;
     }
 }
@@ -53,7 +48,7 @@ pub trait Decorator {
 
 #[cfg(test)]
 mod tests {
-    use region::Region;
+    use model::*;
     use sketch::Canvas;
     use sketch::decorator::Decorator;
     use std::collections::BTreeMap;
@@ -71,15 +66,15 @@ mod tests {
         let mut map = BTreeMap::new();
 
         assert_eq!(
-            dec.find_offset_row(&mut map, Region::new_with_coordinates(&"ref", 10usize, 6usize)),
+            dec.find_offset_row(&mut map, &SimpleRegion::new("ref", 10usize, 6usize)),
             0usize
         );
         assert_eq!(
-            dec.find_offset_row(&mut map, Region::new_with_coordinates(&"ref", 15usize, 6usize)),
+            dec.find_offset_row(&mut map, &SimpleRegion::new("ref", 15usize, 6usize)),
             1usize
         );
         assert_eq!(
-            dec.find_offset_row(&mut map, Region::new_with_coordinates(&"ref", 20usize, 6usize)),
+            dec.find_offset_row(&mut map, &SimpleRegion::new("ref", 20usize, 6usize)),
             0usize
         );
     }

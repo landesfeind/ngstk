@@ -1,7 +1,5 @@
-
-
+use model::Region;
 use io::bed::BedRecord;
-use region::Region;
 use sketch::Canvas;
 use sketch::Color;
 use sketch::Decorator;
@@ -9,30 +7,19 @@ use sketch::canvas::DrawOperation;
 use std::collections::BTreeMap;
 
 pub struct BedRecordDecorator {
-    records: Vec<BedRecord>,
-    region: Region,
+    records: Vec<BedRecord>
 }
 
 impl BedRecordDecorator {
-    pub fn new(region: Region) -> Self {
+    pub fn new() -> Self {
         BedRecordDecorator {
-            records: Vec::new(),
-            region: region,
+            records: Vec::new()
         }
-    }
-
-    pub fn with_region(mut self, region: Region) -> Self {
-        self.region = region;
-        self
     }
 
     pub fn with_records(mut self, records: Vec<BedRecord>) -> Self {
         self.records = records;
         self
-    }
-
-    pub fn region(&self) -> Region {
-        self.region.clone()
     }
 
     /// Defines the default color per BedRecord
@@ -48,22 +35,22 @@ impl BedRecordDecorator {
 
 
 impl Decorator for BedRecordDecorator {
+
     fn draw<C: Canvas>(&self, canvas: &mut C, offset_y: f64) -> f64 {
-        let mut offsets: BTreeMap<usize, Region> = BTreeMap::new();
+        let mut offsets: BTreeMap<usize, usize> = BTreeMap::new();
 
         let font_size = self.font_size();
         let bg_height = 2.0 * self.font_padding() + font_size;
-        let element_width = self.element_width(canvas, &self.region);
 
         for record in &self.records {
             debug!("Appending BedRecord: {:?}", record);
-            let row = self.find_offset_row(&mut offsets, Region::from(record)) as f64;
-            debug!(" -> will be placed in row {}", row);
-
-            let start = element_width *
-                (record.chrom_start() - self.region.offset().unwrap()) as f64;
-            let end = element_width * (record.chrom_end() - self.region.offset().unwrap()) as f64;
-
+            let row = self.find_offset_row(&mut offsets, record) as f64;
+            
+            let postion_opt = canvas.scale_position_x(record);
+            if ! postion_opt.is_some() {
+                continue
+            }
+            let (start, end) = postion_opt.unwrap();
             let offset_y_here = offset_y + row * bg_height;
 
             let block_background = match record.item_rgb() {
@@ -71,18 +58,19 @@ impl Decorator for BedRecordDecorator {
                 None => self.default_bg_color(),
             };
 
-            // Draw the full block
             canvas.draw_rect(
-                start,
-                offset_y_here,
-                end - start,
-                bg_height,
-                Some(block_background),
-            );
+                    start,
+                    offset_y_here,
+                    end - start,
+                    bg_height,
+                    Some(block_background),
+                );            
 
             // FIXME:
             // - thick
             // - blocks
+
+            let element_width = (end - start) / record.length() as f64;
 
             // Draw "arrows" showing the direction
             if record.has_strand() {

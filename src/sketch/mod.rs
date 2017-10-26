@@ -1,9 +1,9 @@
 
-mod color;
-mod scale;
-mod canvas;
-mod decorator;
-mod sketch;
+pub mod color;
+pub mod scale;
+pub mod canvas;
+pub mod decorator;
+pub mod sketch;
 pub use self::color::Color;
 pub use self::scale::Scale;
 pub use self::canvas::Canvas;

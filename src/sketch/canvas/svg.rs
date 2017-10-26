@@ -5,6 +5,7 @@ use sketch::canvas::*;
 use std::io::Write;
 
 pub struct Svg {
+    viewport: SimpleRegion,
     image_width: f64,
     image_height: f64,
     document: Document,
@@ -50,24 +51,33 @@ impl Svg {
 }
 
 
-impl Default for Svg {
-    fn default() -> Self {
+
+impl Canvas for Svg {
+    type Viewport = SimpleRegion;
+
+    fn new(viewport: Self::Viewport) -> Self {
         let doc = Document::new();
         let svg = doc.create_element(ElementId::Svg);
         doc.append(&svg);
 
         Svg {
+            viewport: viewport,
             image_width: 720f64,
-            image_height: 1024f64,
+            image_height: 0f64,
             document: doc,
             node_svg: svg,
         }
     }
-}
 
+    fn with_viewport(mut self, viewport: Self::Viewport) -> Self {
+        self.viewport = viewport;
+        self
+    }
 
+    fn viewport(&self) -> Self::Viewport {
+        self.viewport.clone()
+    }
 
-impl Canvas for Svg {
     fn write<W: Write>(&self, mut out: W) {
         self.node_svg.set_attribute(
             AttributeId::Height,

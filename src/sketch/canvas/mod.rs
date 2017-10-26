@@ -1,6 +1,7 @@
 use std::io::Write;
 pub mod svg;
 
+use model::*;
 pub use self::svg::Svg;
 use sketch::Color;
 
@@ -9,16 +10,37 @@ pub enum DrawOperation {
     LineTo(f64, f64),
 }
 
-pub trait Canvas: Default {
-    fn with_image_width(self, new_width: f64) -> Self;
+pub trait Canvas {
+    type Viewport : Region;
 
+    fn new(v: Self::Viewport) -> Self;
+    
+    fn with_viewport(self, viewport: Self::Viewport) -> Self;
+    fn viewport(&self) -> Self::Viewport;
+
+    fn with_image_width(self, new_width: f64) -> Self;
     fn image_width(&self) -> f64;
 
-    fn with_image_height(self, new_width: f64) -> Self;
 
+    fn with_image_height(self, new_width: f64) -> Self;
     fn image_height(&self) -> f64;
 
     fn write<W: Write>(&self, out: W);
+
+    fn bandwidth(&self) -> f64 {
+        self.image_width() / self.viewport().length() as f64
+    }
+
+    fn scale_position_x<R: Region>(&self, r: &R) -> Option<(f64, f64)> {
+        if self.viewport().overlaps(r) {
+            let offset = (self.viewport().offset() - r.offset() ) as f64 * self.bandwidth();
+            let length = offset + self.bandwidth() * r.length() as f64;
+            Some((offset, offset + length))
+        }
+        else {
+            None
+        }
+    }
 
     fn draw_text<S: ToString>(
         &self,

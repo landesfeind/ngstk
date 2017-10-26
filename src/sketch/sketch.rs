@@ -4,7 +4,7 @@ use sketch::canvas;
 use sketch::decorator::*;
 
 use sequence::*;
-use region::*;
+use model::*;
 use io::bed::BedRecord;
 
 
@@ -13,15 +13,9 @@ pub struct Sketch<C : canvas::Canvas> {
     canvas: C
 }
 
-impl Default for Sketch<canvas::Svg> {
-    fn default() -> Self {
-        Self::new_with_canvas(self::canvas::Svg::default())
-    }
-}
-
 impl<C: canvas::Canvas> Sketch<C> {
 
-    pub fn new_with_canvas(c: C) -> Self {
+    pub fn new(c: C) -> Self {
         Sketch {
             current_height: 0f64,
             canvas: c
@@ -54,8 +48,8 @@ impl<C: canvas::Canvas> Sketch<C> {
             .draw(&mut self.canvas, self.current_height);   
     }
 
-    pub fn append_bed_records(&mut self, records :Vec<BedRecord>, region: &Region){
-        self.current_height += BedRecordDecorator::new(region.clone())
+    pub fn append_bed_records(&mut self, records :Vec<BedRecord>){
+        self.current_height += BedRecordDecorator::new()
             .with_records(records)
             .draw(&mut self.canvas, self.current_height);
     }

@@ -3,8 +3,7 @@ use self::rust_htslib::bam;
 use self::rust_htslib::bam::Read;
 use self::rust_htslib::bam::record::Cigar;
 use alignment::*;
-use region::Region;
-
+use model::*;
 use sequence::dna::*;
 use std::cmp;
 use std::path::Path;
@@ -27,52 +26,41 @@ impl IndexedBamReader {
     }
 
     /// Open a BAM file and seek for a specific region
-    pub fn open_region<P: AsRef<Path>>(path: &P, region: &Region) -> bam::IndexedReader {
+    pub fn open_region<P: AsRef<Path>, R: Region>(path: &P, region: &R) -> bam::IndexedReader {
         let mut bam = IndexedBamReader::open(path);
 
-        let tid = match bam.header.tid(region.name().as_bytes()) {
-            None => panic!("Can not find region {} in BAM", region),
+        let tid = match bam.header.tid(region.template().as_bytes()) {
+            None => panic!("Can not find template '{}' in BAM", region.template()),
             Some(tid) => tid,
         };
         debug!("Found region with tid={}", tid);
 
         // Find start of region to extract
-        let from = match region.has_coordinates() {
-            true => {
-                cmp::min(
-                    region.offset().unwrap() as u32,
+        let from = cmp::min(
+                    region.offset() as u32,
                     bam.header.target_len(tid).unwrap_or(
-                        region.offset().unwrap_or(0) as
-                            u32,
+                        region.offset() as u32,
                     ),
-                )
-            }
-            false => 0,
-        };
+                );
 
         // Find end of region to extract
-        let to = match region.has_coordinates() {
-            true => {
-                cmp::min(
-                    region.end().unwrap() as u32,
+        let to = cmp::min(
+                    region.end() as u32,
                     bam.header.target_len(tid).unwrap_or(
-                        region.end().unwrap_or(0) as u32,
+                        region.end() as u32,
                     ),
-                )
-            }
-            false => bam.header.target_len(tid).unwrap_or(from),
-        };
+                );
 
         debug!("Extracting reads in range from {} to {}", from, to);
         match bam.seek(tid, from, to) {
-            Err(e) => panic!("Can not seek the position '{}': {}", region, e),
+            Err(e) => panic!("Can not seek the position '{}:{}-{}': {}", region.template(), region.offset(), region.length(), e),
             Ok(_) => bam,
         }
     }
 
     /// Parse a BAM file in a specific region and
-    pub fn load_alignments<P: AsRef<Path>>(
-        region: &Region,
+    pub fn load_alignments<P: AsRef<Path>, R:Region>(
+        region: &R,
         reference: DnaSequence,
         bam_path: &P,
     ) -> Option<Vec<Alignment<DnaNucleotide, DnaSequence>>> {
@@ -81,8 +69,8 @@ impl IndexedBamReader {
 
         for r in bam.records() {
             let record = r.expect("Can not get record");
-            /// Important: SAM/BAM lists sequence in correct order while
-            /// NgsTK alignments are 'unreversed'
+            // Important: SAM/BAM lists sequence in correct order while
+            // NgsTK alignments are 'unreversed'
             let seq: Vec<DnaNucleotide> = match record.is_reverse() {
                 true => {
                     record
@@ -169,7 +157,8 @@ mod tests {
     use io::bam::IndexedBamReader;
     use io::bam::rust_htslib::bam::Read;
     //use io::bam::rust_htslib::bam::record::Record;
-    use region::Region;
+    use model::*;
+    use std::usize;
 
     #[test]
     pub fn test_bam_open() {
@@ -178,7 +167,7 @@ mod tests {
 
     #[test]
     pub fn test_bam_open_region() {
-        let region = Region::new("ref".to_string());
+        let region = SimpleRegion::new("ref".to_string(), 0, usize::MAX);
         let bam = IndexedBamReader::open_region(&"testdata/toy.bam", &region);
 
         let mut count = 0;
@@ -193,7 +182,7 @@ mod tests {
 
     #[test]
     pub fn test_bam_open_region_range() {
-        let region = Region::new_with_coordinates("ref".to_string(), 8, 2);
+        let region = SimpleRegion::new("ref", 8, 2);
         let bam = IndexedBamReader::open_region(&"testdata/toy.bam", &region);
 
         let mut count = 0;
