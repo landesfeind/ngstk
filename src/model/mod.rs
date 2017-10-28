@@ -3,3 +3,8 @@ pub use self::region::Region;
 pub use self::region::SimpleRegion;
 pub mod strand;
 pub use self::strand::Strand;
+pub mod variant;
+pub use self::variant::VariantType;
+pub use self::variant::Variant;
+pub use self::variant::GenomicVariant;
+pub use self::variant::PeptideVariant;

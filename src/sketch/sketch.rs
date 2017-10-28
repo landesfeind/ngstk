@@ -4,7 +4,6 @@ use sketch::canvas;
 use sketch::decorator::*;
 
 use sequence::*;
-use model::*;
 use io::bed::BedRecord;
 
 

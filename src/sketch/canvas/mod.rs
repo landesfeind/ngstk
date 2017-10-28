@@ -33,7 +33,7 @@ pub trait Canvas {
 
     fn scale_position_x<R: Region>(&self, r: &R) -> Option<(f64, f64)> {
         if self.viewport().overlaps(r) {
-            let offset = (self.viewport().offset() - r.offset() ) as f64 * self.bandwidth();
+            let offset = (r.offset() as f64 - self.viewport().offset() as f64 ) * self.bandwidth();
             let length = offset + self.bandwidth() * r.length() as f64;
             Some((offset, offset + length))
         }

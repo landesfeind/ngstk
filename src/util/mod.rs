@@ -34,7 +34,7 @@ pub fn parse_region_string<S: ToString>(s: S) -> Result<(String, usize, usize), 
     let offset = match parts.len() > 1 {
         true => match parts[1].parse::<usize>() {
             Ok(o) => o - 1,
-            Err(e) => return Err(format!("Can not parse start part '{}'", parts[1]))
+            Err(e) => return Err(format!("Can not parse start part '{}': {}", parts[1], e))
         }, 
         false => 0
     };
@@ -45,7 +45,7 @@ pub fn parse_region_string<S: ToString>(s: S) -> Result<(String, usize, usize), 
                 true => end - offset,
                 false => return Err(format!("Region end after start '{}'", parts[2])),
             },
-            Err(e) => return Err(format!("Can not parse start part '{}'", parts[2]))
+            Err(e) => return Err(format!("Can not parse start part '{}': {}", parts[2], e))
         },
         false => 1usize
     };

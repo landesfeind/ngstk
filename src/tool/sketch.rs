@@ -8,9 +8,8 @@ use std::fmt::Display;
 
 
 use io::bed::*;
-
+use model::{Region,SimpleRegion};
 use io::fasta::{FastaReader,IndexedFastaFile};
-use model::*;
 use sequence::aminoacid::*;
 use sequence::dna::*;
 
@@ -81,7 +80,7 @@ impl Tool for Sketch {
                 Ok(a) => a,
                 Err(e) => { error!("Can not parse region string '{}': {}", args.value_of("region").unwrap(), e); return },
         };
-        let region = SimpleRegion::new(template, offset, length);
+        let mut region = SimpleRegion::new(template, offset, length);
         debug!("Start visualization of region: {}", region);
 
         // Load the reference sequence
@@ -93,8 +92,12 @@ impl Tool for Sketch {
                 Err(e) => { error!("{}", e); return }
                 Ok(r) => r
         };
+
+        if reference.length() < region.length() {
+            region = SimpleRegion::new(region.template(), region.offset(), reference.length())
+        }
        
-        // Create the drawing
+        //moz-extension://e94c6c94-63b8-4a7f-aadf-380f4931c605/main-blocked.html?details=eyJ1cmwiOiJodHRwOi8vYml0LmRvLzNEQmlvbG9neSIsImhuIjoiYml0LmRvIiwid2h5IjoiPyJ9 Create the drawing
         let mut drawing = sketch::Sketch::new(sketch::canvas::Svg::new(region.clone()));
         // Parse output image information
         drawing = match args.value_of("image-width") {
