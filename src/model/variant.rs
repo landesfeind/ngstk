@@ -20,7 +20,10 @@ pub enum VariantType {
     Complex,
 }
 
-
+/// Tries to identify the variation between the two sequences by stripping the 
+/// common prefix and common suffix.
+/// The returned tuple contains the length of the stripped prefix as well as the
+/// parts that are substituted.
 pub fn calculate_sequence_variation<E: SequenceElement, S1: Sequence<E>, S2: Sequence<E>>(
     s1: &S1,
     s2: &S2,
@@ -28,10 +31,14 @@ pub fn calculate_sequence_variation<E: SequenceElement, S1: Sequence<E>, S2: Seq
     let mut norm_ref = s1.as_vec();
     let mut norm_alt = s2.as_vec();
 
-    let prefix_length = norm_ref
-        .iter()
-        .enumerate()
-        .take_while(|es| norm_alt[es.0] == *(es.1))
+    let max_prefix_length = if norm_ref.len() >= norm_alt.len() {
+            norm_alt.len() 
+        } else {
+            norm_ref.len()
+        };
+
+    let prefix_length = (0..max_prefix_length)
+        .take_while(|i| norm_ref[*i] == norm_alt[*i] )
         .count();
 
     norm_ref = norm_ref.into_iter().skip(prefix_length).collect();
@@ -40,12 +47,17 @@ pub fn calculate_sequence_variation<E: SequenceElement, S1: Sequence<E>, S2: Seq
     // Reverse to get backward sequence
     norm_ref.reverse();
     norm_alt.reverse();
-    // find length of common prefix
-    let suffix_length = norm_ref
-        .iter()
-        .enumerate()
-        .take_while(|es| norm_alt[es.0] == *(es.1))
+
+    let max_suffix_length = if norm_ref.len() >= norm_alt.len() {
+            norm_alt.len() 
+        } else {
+            norm_ref.len()
+        };
+
+    let suffix_length = (0..max_suffix_length)
+        .take_while(|i| norm_ref[*i] == norm_alt[*i] )
         .count();
+
     norm_ref = norm_ref.into_iter().skip(suffix_length).collect();
     norm_alt = norm_alt.into_iter().skip(suffix_length).collect();
 
@@ -137,7 +149,8 @@ pub trait Variant<E: SequenceElement> {
         }
     }
 
-    /// Applies the variant to the given reference sequence and returns
+    /// Applies the variant to the given reference sequence and returns the altered sequence.
+    /// This method will not check if the reference matches.
     fn apply_variant<S: Sequence<E>>(&self, full_sequence: &S) -> Self::SequenceType {
         let (offset, reference, alternative) = self.normalized_variation();
 
@@ -173,7 +186,6 @@ pub trait PeptideVariant: Variant<Aminoacid> {}
 #[cfg(test)]
 mod tests {
     use model::variant::*;
-    use sequence::*;
     use sequence::dna::*;
 
     struct MockVariant {
@@ -271,4 +283,50 @@ mod tests {
         assert!(variant_ok.check_variant_reference(&full_sequence));
         assert!(!variant_wrong.check_variant_reference(&full_sequence));
     }
+
+    #[test]
+    fn test_calculate_sequence_variation_none(){
+        let seq1 = DnaSequence::from_str(&"ACGT").unwrap();
+        assert_eq!( calculate_sequence_variation(&seq1.clone(), &seq1), None, "No variation found") ;
+    }
+
+    #[test]
+    fn test_calculate_sequence_variation_substitution(){
+        let seq1 = DnaSequence::from_str(&"ACGT").unwrap();
+        let seq2 = DnaSequence::from_str(&"AGGT").unwrap();
+        let varo = calculate_sequence_variation(&seq1, &seq2);
+        assert!(varo.is_some());
+        let var = varo.unwrap();
+
+        assert_eq!(var.0, 1);
+        assert_eq!(var.1, DnaSequence::from_str(&"C").unwrap().as_vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"G").unwrap().as_vec());
+    }
+
+    #[test]
+    fn test_calculate_sequence_variation_insertion(){
+        let seq1 = DnaSequence::from_str(&"ACGT").unwrap();
+        let seq2 = DnaSequence::from_str(&"ACAGT").unwrap();
+        let varo = calculate_sequence_variation(&seq1, &seq2);
+        assert!(varo.is_some());
+        let var = varo.unwrap();
+
+        assert_eq!(var.0, 2);
+        assert_eq!(var.1, DnaSequence::from_str(&"").unwrap().as_vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"A").unwrap().as_vec());
+    }
+
+    #[test]
+    fn test_calculate_sequence_variation_deletion(){
+        let seq1 = DnaSequence::from_str(&"ACGT").unwrap();
+        let seq2 = DnaSequence::from_str(&"ACT").unwrap();
+        let varo = calculate_sequence_variation(&seq1, &seq2);
+        assert!(varo.is_some());
+        let var = varo.unwrap();
+
+        assert_eq!(var.0, 2);
+        assert_eq!(var.1, DnaSequence::from_str(&"G").unwrap().as_vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"").unwrap().as_vec());
+    }
+
 }
