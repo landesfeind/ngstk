@@ -1,6 +1,4 @@
-use std::cmp;
 use std::fmt;
-use std::slice;
 
 pub mod dna;
 pub mod rna;
@@ -23,13 +21,10 @@ pub trait SequenceElement
 /// A sequence is a consecutive sequence of sequence elements like nucleotides or amino acids
 pub trait Sequence<E: SequenceElement>
     : Clone
-    + cmp::PartialEq
-    + cmp::Eq
-    + cmp::PartialOrd
-    + cmp::Ord
-    + From<Vec<E>>
     + fmt::Debug
     + fmt::Display {
+    type SubsequenceType : Sequence<E>;
+
     /// Returns the length of the DNA sequence
     /// which is the number of nucleotides in it.
     fn length(&self) -> usize;
@@ -40,31 +35,11 @@ pub trait Sequence<E: SequenceElement>
         self.length() == 0
     }
 
-    /// Returns an iterator of over the sequence.
-    fn iterator(&self) -> slice::Iter<E>;
-
     /// Returns a copy of the sequence as vector
     /// of the sequence elements.
-    fn as_vec(&self) -> Vec<E> {
-        self.iterator().cloned().collect()
-    }
+    fn vec(&self) -> Vec<E>;
 
     /// Extracts the subsequence with a given offset and length.
-    fn subsequence(&self, offset: usize, length: usize) -> Self {
-        assert!(
-            offset + length <= self.length(),
-            "The requested range [{} .. {}] is out of range for a sequence of length {}",
-            offset,
-            offset + length,
-            self.length()
-        );
-        let v: Vec<E> = self.iterator().skip(offset).take(length).cloned().collect();
-        Self::from(v)
-    }
+    fn subsequence(&self, offset: usize, length: usize) -> Self::SubsequenceType;
 
-    /// Returns the a copy of the reversed sequence.
-    fn reverse(&self) -> Self {
-        let v: Vec<E> = self.iterator().rev().cloned().collect();
-        Self::from(v)
-    }
 }

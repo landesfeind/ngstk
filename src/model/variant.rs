@@ -28,8 +28,8 @@ pub fn calculate_sequence_variation<E: SequenceElement, S1: Sequence<E>, S2: Seq
     s1: &S1,
     s2: &S2,
 ) -> Option<(usize, Vec<E>, Vec<E>)> {
-    let mut norm_ref = s1.as_vec();
-    let mut norm_alt = s2.as_vec();
+    let mut norm_ref = s1.vec();
+    let mut norm_alt = s2.vec();
 
     let max_prefix_length = if norm_ref.len() >= norm_alt.len() {
             norm_alt.len() 
@@ -78,7 +78,7 @@ pub fn calculate_sequence_variation<E: SequenceElement, S1: Sequence<E>, S2: Seq
 /// by means of a change of a part of the sequence into
 /// another.
 pub trait Variant<E: SequenceElement> {
-    type SequenceType: Sequence<E>;
+    type SequenceType: Sequence<E> + From<Vec<E>>;
 
     /// Returns the name of the template (e.g., the chromosome)
     /// on which this variant is located.
@@ -154,17 +154,9 @@ pub trait Variant<E: SequenceElement> {
     fn apply_variant<S: Sequence<E>>(&self, full_sequence: &S) -> Self::SequenceType {
         let (offset, reference, alternative) = self.normalized_variation();
 
-        let mut new_seq: Vec<E> = full_sequence
-            .iterator()
-            .take(offset)
-            .map(|e| e.clone())
-            .collect();
-        new_seq.append(&mut alternative.as_vec());
-        new_seq.append(&mut full_sequence
-            .iterator()
-            .skip(offset + reference.length())
-            .map(|e| e.clone())
-            .collect());
+        let mut new_seq: Vec<E> = full_sequence.subsequence(0, offset).vec();
+        new_seq.append(&mut alternative.vec());
+        new_seq.append(&mut full_sequence.subsequence(offset + reference.length(), full_sequence.length()).vec());
 
         Self::SequenceType::from(new_seq)
     }
@@ -174,12 +166,31 @@ pub trait Variant<E: SequenceElement> {
     /// the function returns true.
     fn check_variant_reference<S: Sequence<E>>(&self, full_sequence: &S) -> bool {
         let s = full_sequence.subsequence(self.offset(), self.reference_length());
-        s.as_vec() == self.reference().as_vec()
+        s.vec() == self.reference().vec()
+    }
+
+    /// Describe the variant by standards of the Human Genome Variant Society
+    /// @see www.hgvs.org
+    fn hgvs(&self) -> String {
+        let (offset, reference, alternative) = self.normalized_variation();
+        if reference.length() == 0 {
+            format!("{}_{}ins{}", offset + 1, offset + 2, alternative )
+        } 
+        else if alternative.length() == 0 && reference.length() == 1{
+            format!("{}del{}", offset + 1, reference)
+        }
+        else if alternative.length() == 0 && reference.length() > 1{
+            format!("{}_{}del{}", offset + 1, offset + reference.length(), reference)
+        }
+        else {
+            format!("{}{}>{}", offset + 1, reference, alternative)
+        }
     }
 }
 
 
 pub trait GenomicVariant: Variant<DnaNucleotide> {}
+
 pub trait PeptideVariant: Variant<Aminoacid> {}
 
 
@@ -299,8 +310,8 @@ mod tests {
         let var = varo.unwrap();
 
         assert_eq!(var.0, 1);
-        assert_eq!(var.1, DnaSequence::from_str(&"C").unwrap().as_vec());
-        assert_eq!(var.2, DnaSequence::from_str(&"G").unwrap().as_vec());
+        assert_eq!(var.1, DnaSequence::from_str(&"C").unwrap().vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"G").unwrap().vec());
     }
 
     #[test]
@@ -312,8 +323,8 @@ mod tests {
         let var = varo.unwrap();
 
         assert_eq!(var.0, 2);
-        assert_eq!(var.1, DnaSequence::from_str(&"").unwrap().as_vec());
-        assert_eq!(var.2, DnaSequence::from_str(&"A").unwrap().as_vec());
+        assert_eq!(var.1, DnaSequence::from_str(&"").unwrap().vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"A").unwrap().vec());
     }
 
     #[test]
@@ -325,8 +336,8 @@ mod tests {
         let var = varo.unwrap();
 
         assert_eq!(var.0, 2);
-        assert_eq!(var.1, DnaSequence::from_str(&"G").unwrap().as_vec());
-        assert_eq!(var.2, DnaSequence::from_str(&"").unwrap().as_vec());
+        assert_eq!(var.1, DnaSequence::from_str(&"G").unwrap().vec());
+        assert_eq!(var.2, DnaSequence::from_str(&"").unwrap().vec());
     }
 
 }

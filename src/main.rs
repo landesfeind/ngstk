@@ -9,7 +9,7 @@ mod io;
 mod util;
 mod model;
 mod sequence;
-mod alignment;
+//mod alignment;
 mod sketch;
 mod tool;
 use tool::Tool;

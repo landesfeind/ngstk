@@ -3,8 +3,6 @@
 use sequence::dna::*;
 use std::cmp::{Ord, Ordering};
 use std::fmt;
-use std::rc::Rc;
-use std::slice;
 pub use std::str::FromStr;
 
 #[derive(Clone, Debug)]
@@ -328,18 +326,26 @@ impl From<(DnaNucleotide, DnaNucleotide, DnaNucleotide)> for Aminoacid {
 
 #[derive(Clone, Debug)]
 pub struct Peptide {
-    elements: Rc<Vec<Aminoacid>>,
+    elements: Vec<Aminoacid>,
 }
 
 impl Peptide {}
 
+
 impl Sequence<Aminoacid> for Peptide {
+    type SubsequenceType = Peptide;
+    
     fn length(&self) -> usize {
         self.elements.len()
     }
 
-    fn iterator(&self) -> slice::Iter<Aminoacid> {
-        self.elements.iter()
+    fn vec(&self) -> Vec<Aminoacid> {
+        self.elements.clone()
+    }
+
+    fn subsequence(&self, offset:usize, length: usize) -> Peptide {
+        let v : Vec<Aminoacid> = self.elements.iter().cloned().skip(offset).take(length).collect();
+        Peptide::from(v)
     }
 }
 
@@ -362,7 +368,7 @@ impl Ord for Peptide {
 }
 impl Default for Peptide {
     fn default() -> Peptide {
-        Peptide { elements: Rc::new(Vec::new()) }
+        Peptide { elements: Vec::new() }
     }
 }
 impl FromStr for Peptide {
@@ -377,23 +383,23 @@ impl FromStr for Peptide {
 }
 impl From<Vec<Aminoacid>> for Peptide {
     fn from(v: Vec<Aminoacid>) -> Peptide {
-        Peptide { elements: Rc::new(v) }
+        Peptide { elements: v }
     }
 }
 impl fmt::Display for Peptide {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s: String = self.iterator().map(|n| char::from(n)).collect();
+        let s: String = self.vec().iter().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
 impl From<Peptide> for Vec<Aminoacid> {
     fn from(seq: Peptide) -> Vec<Aminoacid> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 impl<'a> From<&'a Peptide> for Vec<Aminoacid> {
     fn from(seq: &'a Peptide) -> Vec<Aminoacid> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 impl From<DnaSequence> for Peptide {

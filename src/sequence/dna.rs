@@ -3,8 +3,6 @@
 pub use sequence::{SequenceElement, Sequence};
 use std::cmp::{Ord, Ordering};
 use std::fmt;
-use std::rc::Rc;
-use std::slice;
 pub use std::str::FromStr;
 
 #[derive(Clone, Debug)]
@@ -167,16 +165,25 @@ impl<'a> From<&'a Vec<DnaNucleotide>> for DnaCodon {
 
 #[derive(Clone, Debug)]
 pub struct DnaSequence {
-    elements: Rc<Vec<DnaNucleotide>>,
+    elements: Vec<DnaNucleotide>,
 }
 
 impl Sequence<DnaNucleotide> for DnaSequence {
+    type SubsequenceType = DnaSequence;
+    
     fn length(&self) -> usize {
         self.elements.len()
     }
 
-    fn iterator(&self) -> slice::Iter<DnaNucleotide> {
-        self.elements.iter()
+    fn vec(&self) -> Vec<DnaNucleotide> {
+        self.elements.clone()
+    }
+
+    fn subsequence(&self, offset:usize, length: usize) -> DnaSequence {
+        let v : Vec<DnaNucleotide> = self.elements.iter().skip(offset).take(length).cloned().collect();
+        DnaSequence {
+            elements: v
+        }
     }
 }
 
@@ -184,13 +191,13 @@ impl DnaSequence {
     /// Returns the complementary strand sequence in reversed direction (i.e., the actual sequence
     /// that is read by DNA or RNA polymerase).
     pub fn reverse_strand(&self) -> Self {
-        let r: Vec<DnaNucleotide> = self.iterator().map(|n| n.complement()).rev().collect();
+        let r: Vec<DnaNucleotide> = self.vec().iter().map(|n| n.complement()).rev().collect();
         Self::from(r)
     }
 
     /// Returns the complementary strand sequence in forward direction.
     pub fn complement(&self) -> Self {
-        let r: Vec<DnaNucleotide> = self.iterator().map(|n| n.complement()).collect();
+        let r: Vec<DnaNucleotide> = self.vec().iter().map(|n| n.complement()).collect();
         Self::from(r)
     }
 
@@ -204,7 +211,7 @@ impl DnaSequence {
     /// at `offset`. If the sequence is not a multiple of 3, the
     /// last codon will be filled with `DnaNucleotide::N`.
     pub fn frame(&self, offset: usize) -> Vec<DnaCodon> {
-        let v: Vec<DnaNucleotide> = self.iterator().skip(offset).map(|n| n.clone()).collect();
+        let v: Vec<DnaNucleotide> = self.vec().iter().skip(offset).map(|n| n.clone()).collect();
         v.chunks(3usize).map(|c| DnaCodon::from(c)).collect()
     }
 }
@@ -244,23 +251,23 @@ impl FromStr for DnaSequence {
 
 impl From<Vec<DnaNucleotide>> for DnaSequence {
     fn from(v: Vec<DnaNucleotide>) -> DnaSequence {
-        DnaSequence { elements: Rc::new(v) }
+        DnaSequence { elements: v }
     }
 }
 impl fmt::Display for DnaSequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s: String = self.iterator().map(|n| char::from(n)).collect();
+        let s: String = self.vec().iter().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
 impl From<DnaSequence> for Vec<DnaNucleotide> {
     fn from(seq: DnaSequence) -> Vec<DnaNucleotide> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 impl<'a> From<&'a DnaSequence> for Vec<DnaNucleotide> {
     fn from(seq: &'a DnaSequence) -> Vec<DnaNucleotide> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 

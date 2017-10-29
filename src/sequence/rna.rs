@@ -3,8 +3,6 @@
 use sequence::dna::*;
 use std::cmp::{Ord, Ordering};
 use std::fmt;
-use std::rc::Rc;
-use std::slice;
 pub use std::str::FromStr;
 
 #[derive(Clone, Debug)]
@@ -148,18 +146,25 @@ impl<'a> From<&'a DnaNucleotide> for RnaNucleotide {
 
 #[derive(Clone, Debug)]
 pub struct RnaSequence {
-    elements: Rc<Vec<RnaNucleotide>>,
+    elements: Vec<RnaNucleotide>,
 }
 
 impl RnaSequence {}
 
 impl Sequence<RnaNucleotide> for RnaSequence {
+    type SubsequenceType = RnaSequence;
+
     fn length(&self) -> usize {
         self.elements.len()
     }
 
-    fn iterator(&self) -> slice::Iter<RnaNucleotide> {
-        self.elements.iter()
+    fn vec(&self) -> Vec<RnaNucleotide> {
+        self.elements.clone()
+    }
+
+    fn subsequence(&self, offset:usize, length: usize) -> RnaSequence {
+        let v : Vec<RnaNucleotide> = self.elements.iter().cloned().skip(offset).take(length).collect();
+        RnaSequence::from(v)
     }
 }
 
@@ -197,23 +202,23 @@ impl FromStr for RnaSequence {
 }
 impl From<Vec<RnaNucleotide>> for RnaSequence {
     fn from(v: Vec<RnaNucleotide>) -> RnaSequence {
-        RnaSequence { elements: Rc::new(v) }
+        RnaSequence { elements: v }
     }
 }
 impl fmt::Display for RnaSequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s: String = self.iterator().map(|n| char::from(n)).collect();
+        let s: String = self.vec().iter().map(|n| char::from(n)).collect();
         write!(f, "{}", s)
     }
 }
 impl From<RnaSequence> for Vec<RnaNucleotide> {
     fn from(seq: RnaSequence) -> Vec<RnaNucleotide> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 impl<'a> From<&'a RnaSequence> for Vec<RnaNucleotide> {
     fn from(seq: &'a RnaSequence) -> Vec<RnaNucleotide> {
-        seq.iterator().map(|n| n.clone()).collect()
+        seq.vec().iter().map(|n| n.clone()).collect()
     }
 }
 impl From<DnaSequence> for RnaSequence {
@@ -223,7 +228,7 @@ impl From<DnaSequence> for RnaSequence {
 }
 impl<'a> From<&'a DnaSequence> for RnaSequence {
     fn from(d: &'a DnaSequence) -> RnaSequence {
-        let v: Vec<RnaNucleotide> = d.iterator().map(|n| RnaNucleotide::from(n)).collect();
+        let v: Vec<RnaNucleotide> = d.vec().iter().map(|n| RnaNucleotide::from(n)).collect();
         RnaSequence::from(v)
     }
 }

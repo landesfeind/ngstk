@@ -2,7 +2,6 @@ extern crate rust_htslib;
 use self::rust_htslib::bam;
 use self::rust_htslib::bam::Read;
 use self::rust_htslib::bam::record::Cigar;
-use alignment::*;
 use model::*;
 use sequence::dna::*;
 use std::cmp;

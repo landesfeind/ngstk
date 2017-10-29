@@ -25,7 +25,7 @@ impl Decorator for DnaSequenceDecorator {
         let box_height = (self.font_size() + 2.0 * self.font_padding()) as f64;
 
 
-        for (i, e) in self.sequence.iterator().enumerate() {
+        for (i, e) in self.sequence.vec().iter().enumerate() {
             canvas.draw_rect(
                 box_width * i as f64, // x
                 offset_y as f64, //y
